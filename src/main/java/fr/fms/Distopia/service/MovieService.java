@@ -26,7 +26,7 @@ public class MovieService {
         return movieRepository.findAll();
     }
 
-    //--------------------créer ou mofifier un film------------------
+    //--------------------créer ou modifier un film------------------
     public Movie save(Long id, String title, String description, int duration, String genre, Long cinemaId) {
         Movie movie = (id !=null) ? movieRepository.findById(id).orElse(new Movie()) : new Movie();
         movie.setTitle(title);
@@ -41,6 +41,14 @@ public class MovieService {
             });
         }
         return movieRepository.save(movie);
+    }
+
+    //----------------suppression d'un film (il reste en bdd)-----------
+    public void softDelete(Long id) {
+        movieRepository.findById(id).ifPresent(movie -> {
+            movie.setDeleted(true);
+            movieRepository.save(movie);
+        });
     }
 
 }
