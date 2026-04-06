@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -32,5 +33,23 @@ public class MovieController {
         model.addAttribute("movies", movieService.getAll());
         model.addAttribute("cinemas", cinemaService.getAll());
         return "admin-movies";
+    }
+
+    //----------créer ou modifier un film-----------------------------
+    @PostMapping("/admin/saveMovie")
+    public String saveMovie(@RequestParam(required = false) Long id, @RequestParam String title,
+                            @RequestParam String description, @RequestParam int duration, @RequestParam String genre,
+                            @RequestParam(required = false) Long cinemaId, HttpSession session){
+        if(SessionUtils.isNotAdmin(session)) return  SessionUtils.REDIRECTION;
+        movieService.save(id, title, description, duration, genre, cinemaId);
+        return "redirect:/admin/movies";
+    }
+
+    //--------suppression d'un film --------------
+    @GetMapping("/admin/deleteMovie")
+    public String deleteMovie(@RequestParam Long id, HttpSession session){
+        if(SessionUtils.isNotAdmin(session)) return  SessionUtils.REDIRECTION;
+        movieService.softDelete(id);
+        return "redirect:/admin/movies";
     }
 }
