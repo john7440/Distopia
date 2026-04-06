@@ -20,4 +20,13 @@ public class CinemaService {
         return cinemaRepository.findByTownID(townId);
     }
 
+    //-----------------rechercher par mot-clé (nom ou adresse)-------------------------
+    public List<Cinema> search(String keyword){
+        return cinemaRepository.findByNameContainingIgnoreCaseOrAddressContainingIgnoreCase(keyword,keyword);
+    }
+
+    //-----------affciher tous les cinémas-------------
+    public List<Cinema> getAll(){
+        return cinemaRepository.findAll();
+    }
 }
