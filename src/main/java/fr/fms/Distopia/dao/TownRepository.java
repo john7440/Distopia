@@ -1,0 +1,8 @@
+package fr.fms.Distopia.dao;
+
+
+import fr.fms.Distopia.entities.Town;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface TownRepository extends JpaRepository<Town,Long> {
+}
