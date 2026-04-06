@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -40,16 +41,30 @@ public class CinemaController {
         return "cinemas";
     }
 
-    //------------pourl admin - page de gestion des cinémas-------------
+    //------------pour admin - page de gestion des cinémas-------------
     @GetMapping("/admin/cinemas")
     public String cinemas(Model model, HttpSession session){
-        if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION; {
-            model.addAttribute("cinemas", cinemaService.getAll());
-            model.addAttribute("towns", townService.getAll());
-            return "admin-cinemas";
-        }
+        if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+        model.addAttribute("cinemas", cinemaService.getAll());
+        model.addAttribute("towns", townService.getAll());
+        return "admin-cinemas";
     }
 
+    //--------------créer ou modifier un cinééma -----------------------
+    @PostMapping("/admin/saveCinema")
+    public String saveCinema(@RequestParam(required = false) Long id, @RequestParam String name,
+                             @RequestParam String address, @RequestParam(required = false) Long townId, HttpSession session){
+        if(SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+        cinemaService.save(id, name, address, townId);
+        return "redirect:/admin/cinemas";
+    }
+
+    @GetMapping("/admin/deleteCinema")
+    public String deleteCinema(@RequestParam Long id, HttpSession session){
+        if(SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+        cinemaService.delete(id);
+        return "redirect:/admin/cinemas";
+    }
 
 
 
