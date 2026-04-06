@@ -21,6 +21,8 @@ public class Movie implements Serializable {
     private String description;
     private int duration;
     private String genre;
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     @ManyToMany(mappedBy = "movies")
     private List<Cinema> cinemas =  new ArrayList<>();

@@ -19,6 +19,6 @@ public class Town implements Serializable {
     @Column(nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "town", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "town")
     private List<Cinema> cinemas=  new ArrayList<>();
 }

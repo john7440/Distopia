@@ -21,7 +21,7 @@ public class Cinema implements Serializable {
     private String address;
 
     @ManyToOne
-    @JoinColumn(name = "town_id", nullable = false)
+    @JoinColumn(name = "town_id")
     private Town town;
 
     @ManyToMany
