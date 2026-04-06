@@ -25,8 +25,24 @@ public class CinemaService {
         return cinemaRepository.findByNameContainingIgnoreCaseOrAddressContainingIgnoreCase(keyword,keyword);
     }
 
-    //-----------affciher tous les cinémas-------------
+    //-----------afficher tous les cinémas-------------
     public List<Cinema> getAll(){
         return cinemaRepository.findAll();
+    }
+
+    //-----------------------créer ou modifier un cinéma----------------
+    public Cinema save(Long id, String name, String address, Long townId){
+        Cinema cinema = (id != null) ? cinemaRepository.findById(id).orElse(new Cinema()): new Cinema();
+        cinema.setName(name);
+        cinema.setAddress(address);
+        if (townId != null){
+            townRepository.findById(townId).ifPresent(cinema::setTown);
+        }
+        return cinemaRepository.save(cinema);
+    }
+
+    //--------------supprimer un conéma----------------
+    public void delete(Long id){
+        cinemaRepository.deleteById(id);
     }
 }
