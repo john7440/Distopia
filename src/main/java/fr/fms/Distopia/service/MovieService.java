@@ -26,4 +26,21 @@ public class MovieService {
         return movieRepository.findAll();
     }
 
+    //--------------------créer ou mofifier un film------------------
+    public Movie save(Long id, String title, String description, int duration, String genre, Long cinemaId) {
+        Movie movie = (id !=null) ? movieRepository.findById(id).orElse(new Movie()) : new Movie();
+        movie.setTitle(title);
+        movie.setDescription(description);
+        movie.setDuration(duration);
+        movie.setGenre(genre);
+        if (cinemaId != null) {
+            cinemaRepository.findById(cinemaId).ifPresent( cinema -> {
+                if (!movie.getCinemas().contains(cinema)) {
+                    movie.getCinemas().add(cinema);
+                }
+            });
+        }
+        return movieRepository.save(movie);
+    }
+
 }
