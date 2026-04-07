@@ -9,6 +9,12 @@ public class SessionUtils {
     }
 
     public static final String REDIRECTION = "redirect:/index";
+    public static final String SESSION_USER = "connectedUser";
+
+    //---------------vérification de connexion----------------------
+    public static boolean isNotConnected(HttpSession session) {
+        return session.getAttribute(SESSION_USER) == null;
+    }
 
     /**
      * Checks whether the currently authenticated user doesn't
@@ -23,4 +29,13 @@ public class SessionUtils {
         return user == null || !user.getRole().equals("ADMIN");
     }
 
+    //-------------------stocke l'utilisateur connecté en session------------
+    public static void setUser(HttpSession session, User user) {
+        session.setAttribute(SESSION_USER, user);
+    }
+
+    //-------------------récupérer l'utilisateur----------------------
+    public static User getUser(HttpSession session) {
+        return (User) session.getAttribute(SESSION_USER);
+    }
 }
