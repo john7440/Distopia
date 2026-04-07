@@ -1,8 +1,10 @@
 package fr.fms.Distopia.service;
 
 import fr.fms.Distopia.dao.CinemaRepository;
+import fr.fms.Distopia.dao.MovieRepository;
 import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.entities.Cinema;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,8 @@ public class CinemaService {
     private CinemaRepository cinemaRepository;
     @Autowired
     private TownRepository townRepository;
+    @Autowired
+    private MovieRepository movieRepository;
 
     //------affichage cinéma d'une ville------------------
     public List<Cinema> getByTown(Long townId) {
@@ -41,8 +45,18 @@ public class CinemaService {
         return cinemaRepository.save(cinema);
     }
 
-    //--------------supprimer un conéma----------------
-    public void delete(Long id){
-        cinemaRepository.deleteById(id);
+    //--------------supprimer un cinéma + vérif film orphelins----------------
+    @Transactional
+    public void delete(Long id) {
+        cinemaRepository.findById(id).ifPresent(cinema -> {
+            cinema.getMovies().forEach(movie -> {
+                movie.getCinemas().remove(cinema);
+                if (movie.getCinemas().isEmpty()) {
+                    movie.setDeleted(true);
+                }
+                movieRepository.save(movie);
+            });
+            cinemaRepository.delete(cinema);
+        });
     }
 }
