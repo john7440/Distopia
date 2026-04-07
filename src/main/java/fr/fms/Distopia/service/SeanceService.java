@@ -42,8 +42,12 @@ public class SeanceService {
         return seanceRepository.save(seance);
     }
 
-    //-----------supprimer une séance-------------
+    //-----------supprimer une séance (ajout vérif de réservation)-------------
     public void delete(Long id){
-        seanceRepository.deleteById(id);
+        Seance seance = seanceRepository.findById(id).orElseThrow();
+        if (!seance.getReservations().isEmpty()){
+            throw new IllegalStateException("Impossible de supprimer une séance avec des réservations");
+        }
+        seanceRepository.delete(seance);
     }
 }
