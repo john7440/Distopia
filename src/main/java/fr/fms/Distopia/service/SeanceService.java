@@ -41,4 +41,9 @@ public class SeanceService {
         }
         return seanceRepository.save(seance);
     }
+
+    //-----------supprimer une séance-------------
+    public void delete(Long id){
+        seanceRepository.deleteById(id);
+    }
 }
