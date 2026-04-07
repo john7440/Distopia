@@ -1,7 +1,10 @@
 package fr.fms.Distopia.web;
 
+import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
+import fr.fms.Distopia.utils.SessionUtils;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,4 +25,17 @@ public class SeanceController {
         model.addAttribute("movieId", movieId);
         return "seances";
     }
+
+    //-------------page de gestion des séances------------
+    @GetMapping("/admin/seances")
+    public String adminSeances(Model model, HttpSession session){
+        if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+        model.addAttribute("seances", seanceService.getAll());
+        model.addAttribute("movies", movieService.getAll());
+        model.addAttribute("newSeance", new Seance());
+        return "admin-seances";
+    }
+
+
+
 }
