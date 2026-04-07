@@ -37,6 +37,10 @@ public class ReservationService {
         if (seance.getAvailableSeats() <= 0){
             throw new NoSeatsAvailableException("Plus de places disponibles pour cetté séance");
         }
+        boolean alreadyReserved = reservationRepository.existsByUserIdAndSeanceId(userId, seanceId);
+        if (alreadyReserved){
+            throw new IllegalStateException("Vous avez déjà réservé cette séance");
+        }
         seance.setAvailableSeats(seance.getAvailableSeats() - 1);
         seanceRepository.save(seance);
 
