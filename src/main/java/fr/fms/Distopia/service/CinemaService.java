@@ -21,7 +21,7 @@ public class CinemaService {
 
     //------affichage cinéma d'une ville------------------
     public List<Cinema> getByTown(Long townId) {
-        return cinemaRepository.findByTownID(townId);
+        return cinemaRepository.findByTownId(townId);
     }
 
     //-----------------rechercher par mot-clé (nom ou adresse)-------------------------
