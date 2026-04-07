@@ -9,7 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.time.LocalDateTime;
 
 @Controller
 public class SeanceController {
@@ -35,6 +38,24 @@ public class SeanceController {
         model.addAttribute("newSeance", new Seance());
         return "admin-seances";
     }
+
+    //--------------créer oou modifier une séance----------
+    @PostMapping("/admin/seances")
+    public String saveSeance(@RequestParam(required = false) Long id, @RequestParam String dateTime,@RequestParam int availableSeats,
+                             @RequestParam double price, @RequestParam Long movieId, HttpSession session){
+        if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+        seanceService.save(id, LocalDateTime.parse(dateTime), availableSeats, price, movieId);
+        return "redirect:/admin/seances";
+    }
+
+    //-------------------------supprimer une séance----------------
+    @GetMapping("/admin/deleteSeance")
+    public String deleteSeance(@RequestParam Long id, HttpSession session){
+        if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+        seanceService.delete(id);
+        return "redirect:/admin/seances";
+    }
+
 
 
 
