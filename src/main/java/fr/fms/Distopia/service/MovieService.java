@@ -21,7 +21,7 @@ public class MovieService {
 
     //-------les films d'un cinéma (sauf ceux supprimés)-------------
     public List<Movie> getByCinema(Long cinemaId) {
-        return movieRepository.findByCinemaIdAndDeletedFalse(cinemaId);
+        return movieRepository.findByCinemasIdAndDeletedFalse(cinemaId);
     }
 
     //-----tous les films (même supprimés)-----------------
