@@ -9,5 +9,4 @@ public class DistopiaApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(DistopiaApplication.class, args);
 	}
-
 }
