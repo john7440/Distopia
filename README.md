@@ -10,6 +10,7 @@ Spring Boot / JPA / Thymeleaf
 - [Technologies](#technologies)
 - [Installation](#installation)
 - [Base de données](#base-de-données)
+- [Utilisation](#utilisation)
 
 ## Présentation
 
@@ -104,3 +105,20 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MariaDBDialect
 ```
 
 > **Note** : Adaptez le port, l'utilisateur et le mot de passe selon votre configuration MariaDB locale
+
+--- 
+## Utilisation
+
+### Lancer l'application
+
+**Option A - IntelliJ IDEA :**
+
+Naviguer vers `src/main/java/fr/fms/Distopia/DistopiaApplication.java`  
+Clic droit -> `Run 'DistopiaApplication.main()'`
+
+**Option B - Maven :**
+
+```bash
+mvn spring-boot:run
+```
+Puis ouvrir votre navigateur à l'adresse : [http://localhost:8080/index](http://localhost:8080/index)
