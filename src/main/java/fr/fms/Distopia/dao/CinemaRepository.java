@@ -8,5 +8,7 @@ import java.util.List;
 public interface CinemaRepository extends JpaRepository<Cinema,Long> {
     List<Cinema> findByTownId(Long townId);
     List<Cinema> findByNameContainingIgnoreCaseOrAddressContainingIgnoreCase(String name,String address);
+    List<Cinema> findByTownIdAndNameContainingIgnoreCaseOrTownIdAndAddressContainingIgnoreCase(
+            Long townId1, String name, Long townId2, String address);
 
 }

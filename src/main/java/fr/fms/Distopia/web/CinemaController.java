@@ -24,29 +24,25 @@ public class CinemaController {
 
     //---------pour visiteur — cinémas d'une ville-----------------
     @GetMapping("/cinemas")
-    public String cinemasByTown(@RequestParam(required = false)Long townId, Model model){
+    public String cinemasByTown(@RequestParam(required = false)Long townId,
+                                @RequestParam(required = false) String keyword, Model model){
         model.addAttribute("towns", townService.getAll());
-        if(townId != null){
-            model.addAttribute("cinemas", cinemaService.getByTown(townId));
-            model.addAttribute("selectedTownId", townId);
-        }
-        return "cinemas";
-    }
-
-    //------recherche par mot-clé-------------------
-    @GetMapping("/cinema/search")
-    public String searchCinemas(@RequestParam String keyword, Model model){
-        model.addAttribute("cinemas", cinemaService.search(keyword));
-        model.addAttribute("keyword", keyword);
+        model.addAttribute("cinemas", cinemaService.search(keyword, townId));
+        model.addAttribute("selectedTownId", townId);
+        model.addAttribute("keyword", keyword != null ? keyword : "");
         return "cinemas";
     }
 
     //------------pour admin - page de gestion des cinémas-------------
     @GetMapping("/admin/cinemas")
-    public String cinemas(Model model, HttpSession session){
+    public String adminCinemas(@RequestParam(required = false) Long editId,
+                               Model model, HttpSession session) {
         if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
         model.addAttribute("cinemas", cinemaService.getAll());
         model.addAttribute("towns", townService.getAll());
+        if (editId != null) {
+            cinemaService.findById(editId).ifPresent(c -> model.addAttribute("editCinema", c));
+        }
         return "admin-cinemas";
     }
 

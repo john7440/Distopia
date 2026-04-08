@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CinemaService {
@@ -19,14 +20,30 @@ public class CinemaService {
     @Autowired
     private MovieRepository movieRepository;
 
+
     //------affichage cinéma d'une ville------------------
     public List<Cinema> getByTown(Long townId) {
         return cinemaRepository.findByTownId(townId);
     }
 
+    //-------find by id--------------
+    public Optional<Cinema> findById(Long id) {
+        return cinemaRepository.findById(id);
+    }
+
     //-----------------rechercher par mot-clé (nom ou adresse)-------------------------
-    public List<Cinema> search(String keyword){
-        return cinemaRepository.findByNameContainingIgnoreCaseOrAddressContainingIgnoreCase(keyword,keyword);
+    public List<Cinema> search(String keyword, Long townId) {
+        if (keyword != null && !keyword.isBlank() && townId != null) {
+            return cinemaRepository
+                    .findByTownIdAndNameContainingIgnoreCaseOrTownIdAndAddressContainingIgnoreCase(
+                            townId, keyword, townId, keyword);
+        } else if (keyword != null && !keyword.isBlank()) {
+            return cinemaRepository
+                    .findByNameContainingIgnoreCaseOrAddressContainingIgnoreCase(keyword, keyword);
+        } else if (townId != null) {
+            return cinemaRepository.findByTownId(townId);
+        }
+        return cinemaRepository.findAll();
     }
 
     //-----------afficher tous les cinémas-------------
