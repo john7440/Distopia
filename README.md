@@ -122,3 +122,24 @@ Clic droit -> `Run 'DistopiaApplication.main()'`
 mvn spring-boot:run
 ```
 Puis ouvrir votre navigateur à l'adresse : [http://localhost:8080/index](http://localhost:8080/index)
+
+---
+### Tableau des routes
+
+| Route                | Accès    | Description                               |
+|----------------------|----------|-------------------------------------------|
+| `/index`             | Tous     | Page d'accueil avec recherche             |
+| `/cinemas`           | Tous     | Liste des cinémas (filtre ville + mot-clé) |
+| `/movies?cinemaId=x` | Tous     | Films d'un cinéma                         |
+| `/seances?movieId=x` | Tous     | Séances d'un film                         |
+| `/login`             | Tous     | Formulaire de connexion                   |
+| `/register`          | tous     | Formulaire d'inscription                  |
+| `/logout`            | Connecté | Déconnexion                               |
+| `/my-reservations`   | Connecté | Historique des réservations               |
+| `/reserve` (POST)    | Connecté | réserver une ou plusieurs places          |
+| `/admin/towns`       | Admin    | Gestion des villes                        |
+| `/admin/cinemas`     | Admin    | Gestion des cinéma                        |
+| `/admin/movies`      | Admin    | Gestion des films                         |
+| `/admin/seances`     | Admin    | Gestion des séances                       |
+
+---
