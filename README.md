@@ -8,6 +8,7 @@ Spring Boot / JPA / Thymeleaf
 - [Fonctionnalités](#fonctionnalités)
 - [Architecture](#architecture)
 - [Technologies](#technologies)
+- [Installation](#installation)
 
 ## Présentation
 
@@ -54,16 +55,32 @@ L'application suit une **architecture MVC multi-couches** :
 
 ## Technologies
 
-| Composant | Technologie                                |
-|---|--------------------------------------------|
-| Langage | Java 17                                    |
-| Framework | Spring Boot 4.x                            |
-| Vue | Thymeleaf + Thymeleaf Layout               |
-| ORM | Spring Data JPA / Hibernate                |
-| Sécurité | Spring Security (BCrypt, session custom)   |
-| Base de données | MariaDB                                    |
-| Frontend | Bootstrap 5.3, Bootstrap Icons, vanilla JS |
-| Build | Maven                                      |
-| IDE | IntelliJ IDEA                              |
+| Composant           | Technologie                                |
+|---------------------|--------------------------------------------|
+| **Langage**         | Java 17                                    |
+| **Framework**       | Spring Boot 4.x                            |
+| **Vue**             | Thymeleaf + Thymeleaf Layout               |
+| **ORM**             | Spring Data JPA / Hibernate                |
+| **Sécurité**        | Spring Security (BCrypt, session custom)   |
+| **Base de données** | MariaDB                                    |
+| **Frontend**        | Bootstrap 5.3, Bootstrap Icons, vanilla JS |
+| **Build**           | Maven                                      |
+| **IDE**             | IntelliJ IDEA                              |
+
+---
+
+## Installation
+
+### 1. Cloner le dépôt
+
+```bash
+git clone https://github.com/john7440/Distopia.git
+```
+
+### 2. Ouvrir dans IntelliJ IDEA
+
+1. `File` -> `Open` -> Sélectionner le dossier du projet
+2. Attendre qu'IntelliJ indexe le projet et télécharge les dépendances Maven
+3. Vérifier que `pom.xml` est bien reconnu
 
 ---
