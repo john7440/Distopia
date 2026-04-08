@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Distopia — Gestion des séances</title></head>
+<body>
+<section layout:fragment="content">
+    <div class="container py-5">
+
+        <h2 class="fw-bold mb-4">
+            <i class="bi bi-calendar3 text-dark"></i> Gestion des séances
+        </h2>
+
+        <div class="row g-4">
+
+            <!-- formulaire -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-plus text-dark"></i>
+                            Ajouter / Modifier
+                        </h5>
+                        <form th:action="@{/admin/saveSeance}" method="post">
+                            <input type="hidden" name="id"
+                                   th:if="${editSeance != null}"
+                                   th:value="${editSeance.id}">
+
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold">Film</label>
+                                <select name="movieId" class="form-select" required>
+                                    <option value="">-- Choisir un film --</option>
+                                    <option th:each="movie : ${movies}"
+                                            th:if="${!movie.deleted}"
+                                            th:value="${movie.id}"
+                                            th:text="${movie.title}"
+                                            th:selected="${editSeance != null
+                                   and editSeance.movie.id == movie.id}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold">Date et heure</label>
+                                <input type="datetime-local" name="dateTime"
+                                       class="form-control"
+                                       th:value="${editSeance != null ?
+                   #temporals.format(editSeance.dateTime, 'yyyy-MM-dd''T''HH:mm') : ''}"
+                                       required>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold">Places disponibles</label>
+                                <input type="number" name="availableSeats" class="form-control"
+                                       min="0"
+                                       th:value="${editSeance != null ? editSeance.availableSeats : 100}"
+                                       required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Prix (€)</label>
+                                <input type="number" name="price" step="0.01"
+                                       class="form-control" min="0"
+                                       th:value="${editSeance != null ? editSeance.price : ''}"
+                                       placeholder="9.50" required>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i>
+                                    <span th:text="${editSeance != null ? 'Modifier' : 'Ajouter'}"></span>
+                                </button>
+                                <a th:if="${editSeance != null}"
+                                   th:href="@{/admin/seances}"
+                                   class="btn btn-outline-danger">Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- liste -->
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>Film</th>
+                                <th>Date</th>
+                                <th>Heure</th>
+                                <th>Places</th>
+                                <th>Prix</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="seance : ${seances}">
+                                <td class="fw-semibold"
+                                    th:text="${seance.movie.title}"></td>
+                                <td th:text="${#temporals.format(seance.dateTime, 'dd/MM/yyyy')}"></td>
+                                <td th:text="${#temporals.format(seance.dateTime, 'HH:mm')}"></td>
+                                <td>
+                                        <span th:text="${seance.availableSeats}"
+                                              th:classappend="${seance.availableSeats == 0}
+                                                  ? 'text-danger fw-bold' : ''">
+                                        </span>
+                                </td>
+                                <td th:text="${seance.price} + ' €'"></td>
+                                <td class="text-end">
+                                    <a th:href="@{/admin/seances(editId=${seance.id})}"
+                                       class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:href="@{/admin/deleteSeance(id=${seance.id})}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Supprimer cette séance ?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>
