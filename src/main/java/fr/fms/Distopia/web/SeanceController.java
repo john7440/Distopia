@@ -23,24 +23,27 @@ public class SeanceController {
 
     //----------------seances d'un film----------------
     @GetMapping("/seances")
-    public String seancesByMovie(@RequestParam Long movieId, Model model){
+    public String seancesByMovie(@RequestParam Long movieId, Model model, Long cinemaId){
         model.addAttribute("seances", seanceService.getByMovie(movieId));
         model.addAttribute("movieId", movieId);
+        model.addAttribute("cinemaId", cinemaId);
         return "seances";
     }
 
     //-------------page de gestion des séances------------
     @GetMapping("/admin/seances")
-    public String adminSeances(Model model, HttpSession session){
+    public String adminSeances(@RequestParam(required = false)Long editId, Model model, HttpSession session){
         if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
         model.addAttribute("seances", seanceService.getAll());
         model.addAttribute("movies", movieService.getAll());
-        model.addAttribute("newSeance", new Seance());
+        if (editId != null) {
+            seanceService.findById(editId).ifPresent(s -> model.addAttribute("editSeance", s));
+        }
         return "admin-seances";
     }
 
-    //--------------créer oou modifier une séance----------
-    @PostMapping("/admin/seances")
+    //--------------créer ou modifier une séance----------
+    @PostMapping("/admin/saveSeance")
     public String saveSeance(@RequestParam(required = false) Long id, @RequestParam String dateTime,@RequestParam int availableSeats,
                              @RequestParam double price, @RequestParam Long movieId, HttpSession session){
         if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
@@ -55,8 +58,4 @@ public class SeanceController {
         seanceService.delete(id);
         return "redirect:/admin/seances";
     }
-
-
-
-
 }

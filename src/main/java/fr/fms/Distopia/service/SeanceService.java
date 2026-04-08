@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SeanceService {
@@ -20,6 +21,11 @@ public class SeanceService {
     //---------------les séances d'un film---------------------
     public List<Seance> getByMovie(Long movieId){
         return seanceRepository.findByMovieIdOrderByDateTimeAsc(movieId);
+    }
+
+    //--------------find by id------------
+    public Optional<Seance> findById(Long id) {
+        return seanceRepository.findById(id);
     }
 
     //------------toutes les séances-------------
