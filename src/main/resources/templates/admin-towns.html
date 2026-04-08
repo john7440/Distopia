@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Distopia — Gestion des villes</title></head>
+<body>
+<section layout:fragment="content">
+    <div class="container py-5">
+
+        <h2 class="fw-bold mb-4">
+            <i class="bi bi-building text-dark"></i> Gestion des villes
+        </h2>
+
+        <div class="row g-4">
+
+            <!--ajout / modif -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-plus text-dark"></i>
+                            Ajouter / Modifier
+                        </h5>
+                        <form th:action="@{/admin/saveTown}" method="post">
+                            <!-- id -->
+                            <input type="hidden" name="id"
+                                   th:if="${editTown != null}"
+                                   th:value="${editTown.id}">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Nom de la ville</label>
+                                <input type="text" name="name" class="form-control"
+                                       th:value="${editTown != null ? editTown.name : ''}"
+                                       placeholder="Ex: Lyon" required autofocus>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i>
+                                    <span th:text="${editTown != null ? 'Modifier' : 'Ajouter'}"></span>
+                                </button>
+                                <a th:if="${editTown != null}"
+                                   th:href="@{/admin/towns}"
+                                   class="btn btn-outline-secondary">
+                                    Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- liste villes-->
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Ville</th>
+                                <th>Cinémas</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="town : ${towns}">
+                                <td class="text-muted small" th:text="${town.id}"></td>
+                                <td class="fw-semibold" th:text="${town.name}"></td>
+                                <td>
+                                        <span class="badge bg-secondary"
+                                              th:text="${town.cinemas.size()} + ' cinéma(s)'">
+                                        </span>
+                                </td>
+                                <td class="text-end">
+                                    <a th:href="@{/admin/towns(editId=${town.id})}"
+                                       class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:href="@{/admin/deleteTown(id=${town.id})}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Supprimer cette ville ? Les cinémas associés perdront leur ville !')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${towns.isEmpty()}">
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    Aucune ville enregistrée
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+</body>
+</html>
