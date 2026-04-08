@@ -31,7 +31,7 @@ public class ReservationService {
     //------------------créer une réservation---------------
     @Transactional
     public Reservation createReservation(Long seanceId, Long userId, int quantity){
-        Seance seance = seanceRepository.findById(seanceId).orElseThrow();
+        Seance seance = seanceRepository.findByIdForUpdate(seanceId).orElseThrow();
         User user = userRepository.findById(userId).orElseThrow();
 
         if (seance.getAvailableSeats() < quantity){
