@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Accueil</title>
+</head>
+<body>
+<section layout:fragment="content">
+
+    <div class="bg-dark text-white py-5">
+        <div class="container text-center py-4">
+            <h1 class="display-5 fw-bold mb-3">
+                <i class="bi bi-camera-reels"></i> Bienvenue sur Distopia
+            </h1>
+            <p class="lead text-secondary mb-4">
+                Trouvez un cinéma près de chez vous, consultez les films à l'affiche et réservez votre place
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a th:href="@{/cinemas}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-geo-alt"></i> Trouver un cinéma
+                </a>
+                <form th:action="@{/cinemas}" method="get" class="d-flex gap-2">
+                    <input type="text" name="keyword" class="form-control form-control-lg"
+                           placeholder="Rechercher un cinéma...">
+                    <button class="btn btn-outline-light btn-lg" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- recherche-->
+    <div class="container py-5">
+        <h2 class="fw-bold mb-4 text-center">
+            <i class="bi bi-building"></i> Cinémas par ville
+        </h2>
+        <form th:action="@{/cinemas}" method="get" class="row g-3 justify-content-center mb-5">
+            <div class="col-md-5">
+                <select name="townId" class="form-select form-select-lg">
+                    <option value="">-- Choisir une ville --</option>
+                    <option th:each="town : ${towns}"
+                            th:value="${town.id}"
+                            th:text="${town.name}">
+                    </option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary btn-lg" type="submit">
+                    <i class="bi bi-search"></i> Rechercher
+                </button>
+            </div>
+        </form>
+    </div>
+
+</section>
+</body>
+</html>
