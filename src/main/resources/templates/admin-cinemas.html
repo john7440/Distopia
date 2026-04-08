@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Distopia — Gestion des cinémas</title></head>
+<body>
+<section layout:fragment="content">
+    <div class="container py-5">
+
+        <h2 class="fw-bold mb-4">
+            <i class="bi bi-camera-reels text-primary"></i> Gestion des cinémas
+        </h2>
+
+        <div class="row g-4">
+
+            <!-- formulaire -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-plus-circle text-primary"></i>
+                            Ajouter / Modifier
+                        </h5>
+                        <form th:action="@{/admin/saveCinema}" method="post">
+                            <input type="hidden" name="id"
+                                   th:if="${editCinema != null}"
+                                   th:value="${editCinema.id}">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Nom</label>
+                                <input type="text" name="name" class="form-control"
+                                       th:value="${editCinema != null ? editCinema.name : ''}"
+                                       placeholder="Nom du cinéma" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Adresse</label>
+                                <input type="text" name="address" class="form-control"
+                                       th:value="${editCinema != null ? editCinema.address : ''}"
+                                       placeholder="Adresse complète">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Ville</label>
+                                <select name="townId" class="form-select">
+                                    <option value="">-- Aucune ville --</option>
+                                    <option th:each="town : ${towns}"
+                                            th:value="${town.id}"
+                                            th:text="${town.name}"
+                                            th:selected="${editCinema != null
+                                   and editCinema.town != null
+                                   and editCinema.town.id == town.id}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i>
+                                    <span th:text="${editCinema != null ? 'Modifier' : 'Ajouter'}"></span>
+                                </button>
+                                <a th:if="${editCinema != null}"
+                                   th:href="@{/admin/cinemas}"
+                                   class="btn btn-outline-danger">Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- liste -->
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>Cinéma</th>
+                                <th>Adresse</th>
+                                <th>Ville</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="cinema : ${cinemas}">
+                                <td class="fw-semibold" th:text="${cinema.name}"></td>
+                                <td class="text-muted small" th:text="${cinema.address}"></td>
+                                <td>
+                                        <span th:if="${cinema.town != null}"
+                                              th:text="${cinema.town.name}"
+                                              class="badge bg-secondary">
+                                        </span>
+                                    <span th:if="${cinema.town == null}"
+                                          class="badge bg-warning text-dark">
+                                            Sans ville
+                                        </span>
+                                </td>
+                                <td class="text-end">
+                                    <a th:href="@{/admin/cinemas(editId=${cinema.id})}"
+                                       class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:href="@{/admin/deleteCinema(id=${cinema.id})}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Supprimer ce cinéma ?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>
