@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Distopia — Cinémas</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="container py-5">
+
+        <!--barre de recherche-->
+        <div class="row g-3 mb-5 align-items-end">
+                <form th:action="@{/cinemas}" method="get" class="row g-3 mb-5 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Ville</label>
+                        <select name="townId" class="form-select">
+                            <option value="">-- Toutes les villes --</option>
+                            <option th:each="town : ${towns}"
+                                    th:value="${town.id}"
+                                    th:text="${town.name}"
+                                    th:selected="${town.id == selectedTownId}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold">Mot-clé</label>
+                        <input type="text" name="keyword" class="form-control"
+                               th:value="${keyword}" placeholder="Nom, adresse...">
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Rechercher
+                        </button>
+                    </div>
+                </form>
+        </div>
+
+        <h2 class="fw-bold mb-4" th:if="${keyword != null}">
+            Résultats pour "<span th:text="${keyword}"></span>"
+        </h2>
+        <h2 class="fw-bold mb-4" th:if="${selectedTownId != null}">
+            Cinémas dans la ville sélectionnée
+        </h2>
+
+        <!--liste cinémas-->
+        <div class="row g-4" th:if="${cinemas != null and !cinemas.isEmpty()}">
+            <div class="col-md-4" th:each="cinema : ${cinemas}">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold">
+                            <i class="bi bi-camera-reels text-primary"></i>
+                            <span th:text="${cinema.name}"></span>
+                        </h5>
+                        <p class="card-text text-muted small">
+                            <i class="bi bi-geo-alt"></i>
+                            <span th:text="${cinema.address}"></span>
+                        </p>
+                        <p class="card-text text-muted small" th:if="${cinema.town != null}">
+                            <i class="bi bi-building"></i>
+                            <span th:text="${cinema.town.name}"></span>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3">
+                        <a th:href="@{/movies(cinemaId=${cinema.id})}"
+                           class="btn btn-primary w-100">
+                            <i class="bi bi-film"></i> Voir les films
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${cinemas == null or cinemas.isEmpty()}"
+             class="text-center py-5 text-muted">
+            <i class="bi bi-search fs-1 d-block mb-3"></i>
+            <p class="fs-5">Aucun cinéma trouvé</p>
+            <a th:href="@{/cinemas}" class="btn btn-outline-primary">Voir tous les cinémas</a>
+        </div>
+
+    </div>
+</section>
+</body>
+</html>
