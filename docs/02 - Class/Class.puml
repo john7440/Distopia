@@ -1,0 +1,58 @@
+@startuml
+
+enum Role {
+  ADMIN
+  USER
+}
+
+class User {
+- id : Long
+- username : String
+- password  : String
+- role : Role
+}
+
+class Town{
+- id: Long
+- name : String
+}
+
+class Cinema{
+- id : Long
+- name : String
+- address : String
+}
+
+class Movie{
+- id : Long
+- title : String
+- description : String
+- duration : int
+- genre : String
+- imageUrl : String
+- deleted : boolean
+
+}
+
+class Seance {
+- id :Long
+- dateTime : LocalDateTime
+- availableSeats : int
+- price : double
+}
+
+class Reservation {
+-id :Long
+- reservedAt : LocalDateTime
+- quantity : int
+}
+
+User -- Role
+
+Cinema "*" --> "*" Movie : screen
+Town "1" o-- "0..*" Cinema : contains
+Movie "1" *-- "0..*" Seance : has
+User "1" --> "0..*" Reservation : performs
+Reservation "*" --> "1" Seance : concern
+
+@enduml
