@@ -28,10 +28,13 @@ public class MovieController {
 
     //--------------page de gestion des films---------------------
     @GetMapping("/admin/movies")
-    public String adminMovies(Model model, HttpSession session){
-        if(SessionUtils.isNotAdmin(session)) return  SessionUtils.REDIRECTION;
+    public String adminMovies(@RequestParam(required = false) Long editId, Model model, HttpSession session) {
+        if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
         model.addAttribute("movies", movieService.getAll());
         model.addAttribute("cinemas", cinemaService.getAll());
+        if (editId != null) {
+            movieService.findById(editId).ifPresent(m -> model.addAttribute("editMovie", m));
+        }
         return "admin-movies";
     }
 
@@ -39,9 +42,10 @@ public class MovieController {
     @PostMapping("/admin/saveMovie")
     public String saveMovie(@RequestParam(required = false) Long id, @RequestParam String title,
                             @RequestParam String description, @RequestParam int duration, @RequestParam String genre,
-                            @RequestParam(required = false) Long cinemaId, HttpSession session){
+                            @RequestParam(required = false) Long cinemaId,
+                            @RequestParam(required = false) String imageUrl, HttpSession session){
         if(SessionUtils.isNotAdmin(session)) return  SessionUtils.REDIRECTION;
-        movieService.save(id, title, description, duration, genre, cinemaId);
+        movieService.save(id, title, description, duration, genre, imageUrl,cinemaId);
         return "redirect:/admin/movies";
     }
 

@@ -23,6 +23,7 @@ public class Movie implements Serializable {
     private String genre;
     @Column(nullable = false)
     private boolean deleted = false;
+    private String imageUrl;
 
     @ManyToMany(mappedBy = "movies")
     private List<Cinema> cinemas =  new ArrayList<>();
