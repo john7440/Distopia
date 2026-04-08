@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <title>Distopia</title>
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css"
+          th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<!-- navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold fs-3" th:href="@{/index}">
+            <i class="bi bi-camera-reels"></i> Distopia
+        </a>
+
+        <div class="d-flex gap-2 align-items-center">
+
+            <!--utilisateur connecté-->
+            <div th:if="${session.connectedUser != null}" class="dropdown">
+                <button class="btn btn-dark btn-sm dropdown-toggle"
+                        type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle"></i>
+                    <span th:text="${#strings.capitalize(session.connectedUser.username)}"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+
+                    <li>
+                        <a class="dropdown-item" th:href="@{/my-reservations}">
+                            <i class="bi bi-ticket-perforated me-2"></i> Mes réservations
+                        </a>
+                    </li>
+
+            <!--visiteur -->
+            <div th:if="${session.connectedUser == null}" class="d-flex gap-2">
+                <a th:href="@{/register}" class="btn btn-outline-dark btn-sm">
+                    <i class="bi bi-person-plus"></i> Inscription
+                </a>
+                <a th:href="@{/login}" class="btn btn-dark btn-sm">
+                    <i class="bi bi-person-circle"></i> Connexion
+                </a>
+            </div>
+
+        </div>
+    </div>
+</nav>
+
+<!-- le contenu -->
+<main class="flex-grow-1">
+    <section layout:fragment="content"></section>
+</main>
+
+<!-- footer-->
+<footer class="bg-dark text-white pt-5 pb-3 mt-auto border-top border-secondary">
+    <div class="container">
+        <div class="row">
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="fw-bold text-uppercase text-primary mb-3"><i class="bi bi-camera-reels"></i> Distopia</h5>
+                <p class="text-secondary small">La référence du cinéma en France</p>
+                <div class="d-flex gap-3 mt-3">
+                    <a href="#" class="text-white"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="text-white"><i class="bi bi-twitter"></i></a>
+                    <a href="#" class="text-white"><i class="bi bi-instagram"></i></a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="fw-bold text-uppercase mb-3">Navigation</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a th:href="@{/index}"
+                           class="text-secondary text-decoration-none">Accueil</a>
+                    </li>
+                    <li class="mb-2">
+                        <a th:href="@{/cinemas}"
+                           class="text-secondary text-decoration-none">Cinémas</a>
+                    </li>
+                    <li class="mb-2">
+                        <a th:href="@{/cinemas/}"
+                           class="text-secondary text-decoration-none">Recherche</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="fw-bold text-uppercase mb-3">Infos légales</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            Conditions Générales
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            Politique de confidentialité
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            Mentions légales
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h5 class="fw-bold text-uppercase mb-3">Newsletter</h5>
+                <p class="text-secondary small">
+                    Abonnez-vous pour recevoir nos nouveautés !
+                </p>
+                <div class="input-group mb-3">
+                    <input type="email" class="form-control"
+                           placeholder="Votre email...">
+                    <button class="btn btn-primary" type="button">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <hr class="border-secondary my-4">
+
+        <p class="small text-secondary text-center mb-0">
+            &copy; 2026 <strong>Distopia</strong> - Tous droits réservés - Designed by <a href="https://github.com/john7440" class="text-secondary text-decoration-none">Jonathan Maier</a>
+        </p>
+
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
