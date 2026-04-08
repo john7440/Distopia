@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Distopia — Connexion</title></head>
+<body>
+<section layout:fragment="content">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+
+                        <h2 class="fw-bold mb-1 text-center">
+                            <i class="bi bi-person-circle text-dark"></i> Connexion
+                        </h2>
+                        <p class="text-center text-muted small mb-4">
+                            Accédez à votre espace Distopia
+                        </p>
+
+                        <div th:if="${error}"
+                             class="alert alert-danger d-flex align-items-center gap-2">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span th:text="${error}"></span>
+                        </div>
+
+                        <form th:action="@{/login}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nom d'utilisateur</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-person"></i>
+                                    </span>
+                                    <input type="text" name="username"
+                                           class="form-control" placeholder="Votre identifiant"
+                                           required autofocus>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Mot de passe</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+                                    <input type="password" name="password"
+                                           class="form-control" placeholder="Votre mot de passe"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="container d-flex justify-content-space-between me-3">
+                                <button type="submit" class="btn btn-success w-50 me-3">Se connecter</button>
+                                <a th:href="@{/index}" class="btn btn-danger w-50">Annuler</a>
+                            </div>
+                        </form>
+
+                        <p class="text-center text-muted small mb-0">
+                            Pas encore de compte ?
+                            <a th:href="@{/register}" class="text-primary fw-semibold">
+                                S'inscrire
+                            </a>
+                        </p>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>
