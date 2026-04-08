@@ -25,4 +25,7 @@ public class Reservation implements Serializable {
     @ManyToOne
     @JoinColumn(name = "seance_id", nullable = false)
     private Seance seance;
+    @Column(nullable = false)
+    private int quantity;
+    
 }

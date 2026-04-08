@@ -30,24 +30,21 @@ public class ReservationService {
 
     //------------------créer une réservation---------------
     @Transactional
-    public Reservation createReservation(Long seanceId, Long userId){
+    public Reservation createReservation(Long seanceId, Long userId, int quantity){
         Seance seance = seanceRepository.findById(seanceId).orElseThrow();
         User user = userRepository.findById(userId).orElseThrow();
 
-        if (seance.getAvailableSeats() <= 0){
-            throw new NoSeatsAvailableException("Plus de places disponibles pour cetté séance");
+        if (seance.getAvailableSeats() < quantity){
+            throw new NoSeatsAvailableException("Seulement " + seance.getAvailableSeats() + " places disponibles");
         }
-        boolean alreadyReserved = reservationRepository.existsByUserIdAndSeanceId(userId, seanceId);
-        if (alreadyReserved){
-            throw new IllegalStateException("Vous avez déjà réservé cette séance");
-        }
-        seance.setAvailableSeats(seance.getAvailableSeats() - 1);
+        seance.setAvailableSeats(seance.getAvailableSeats() - quantity);
         seanceRepository.save(seance);
 
         Reservation reservation = new Reservation();
         reservation.setReservedAt(LocalDateTime.now());
         reservation.setSeance(seance);
         reservation.setUser(user);
+        reservation.setQuantity(quantity);
 
         return  reservationRepository.save(reservation);
     }
