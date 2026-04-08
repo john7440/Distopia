@@ -68,15 +68,17 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">Cinéma</label>
-                                <select name="cinemaId" class="form-select">
-                                    <option value="">-- Choisir un cinéma --</option>
+                                <label class="form-label fw-semibold">
+                                    Cinémas
+                                    <span class="text-muted small fw-normal">(Ctrl+clic pour sélection multiple)</span>
+                                </label>
+                                <select name="cinemaIds" class="form-select" multiple size="5">
                                     <option th:each="cinema : ${cinemas}"
                                             th:value="${cinema.id}"
                                             th:text="${cinema.name}"
                                             th:selected="${editMovie != null
-                                   and !editMovie.cinemas.isEmpty()
-                                   and editMovie.cinemas[0].id == cinema.id}">
+                               and editMovie.cinemas != null
+                               and editMovie.cinemas.contains(cinema)}">
                                     </option>
                                 </select>
                             </div>
