@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Distopia — Mes réservations</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="container py-5">
+
+        <h2 class="fw-bold mb-4">
+            <i class="bi bi-ticket-perforated text-dark"></i> Mes réservations
+        </h2>
+
+        <div th:if="${reservations != null and !reservations.isEmpty()}">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Film</th>
+                        <th>Date de séance</th>
+                        <th>Heure</th>
+                        <th>Places</th>
+                        <th>Prix unitaire</th>
+                        <th>Réservé le</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="resa : ${reservations}">
+                        <td th:text="${resa.seance.movie.title}"></td>
+                        <td th:text="${#temporals.format(resa.seance.dateTime, 'dd/MM/yyyy')}"></td>
+                        <td th:text="${#temporals.format(resa.seance.dateTime, 'HH:mm')}"></td>
+                        <td th:text="${resa.quantity}"></td>
+                        <td th:text="${resa.seance.price} + ' €'"></td>
+                        <td th:text="${#temporals.format(resa.reservedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div th:if="${reservations == null or reservations.isEmpty()}"
+             class="text-center py-5 text-muted">
+            <i class="bi bi-ticket fs-1 d-block mb-3"></i>
+            <p class="fs-5">Vous n'avez pas encore de réservation</p>
+            <a th:href="@{/cinemas}" class="btn btn-primary">
+                <i class="bi bi-camera-reels"></i> Trouver un cinéma
+            </a>
+        </div>
+
+    </div>
+</section>
+</body>
+</html>
