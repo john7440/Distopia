@@ -6,6 +6,7 @@ Spring Boot / JPA / Thymeleaf
 ## Table des matières
 - [Présentation](#présentation)
 - [Fonctionnalités](#fonctionnalités)
+- [Architecture](#architecture)
 
 ## Présentation
 
@@ -34,5 +35,18 @@ L'administrateur dispose d'une interface complète pour gérer les villes, ciné
 - Gérer les **Cinémas** : ajouter, modifier, supprimer, associer à une ville
 - Gérer les **Films** : ajouter, modifier, suppression logique (*soft delete* -le film reste en bdd)
 - Gérer les **Séances** : ajouter, modifier, supprimer (bloqué si des réservations existent)
+---
+
+## Architecture
+
+L'application suit une **architecture MVC multi-couches** :
+
+- **View Layer** : Thymeleaf + Bootstrap 5 - templates avec héritage de layout
+- **Controller**: Spring MVC @Controller - gestion des requêtes HTTP
+- **Service** : Logique métier - validation, transactions, règles de gestion
+- **Repository** : Accès base de données via JpaRepository (Spring Data JPA)
+- **Entity** :Objets mappés JPA
+- **Security** :Authentification par session + BCrypt via Spring Security
+- **Database** : MariaDB
 
 ---
