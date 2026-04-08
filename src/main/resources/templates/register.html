@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Distopia — Inscription</title></head>
+<body>
+<section layout:fragment="content">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+
+                        <h2 class="fw-bold mb-1 text-center">
+                            <i class="bi bi-person-plus text-dark"></i> Inscription
+                        </h2>
+                        <p class="text-center text-muted small mb-4">
+                            Créez votre compte Distopia
+                        </p>
+
+                        <!--erreur -->
+                        <div th:if="${error}"
+                             class="alert alert-danger d-flex align-items-center gap-2">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span th:text="${error}"></span>
+                        </div>
+
+                        <form th:action="@{/register}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nom d'utilisateur</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-person"></i>
+                                    </span>
+                                    <input type="text" name="username"
+                                           class="form-control"
+                                           placeholder="Choisissez un identifiant"
+                                           required autofocus>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Mot de passe</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+                                    <input type="password" name="password"
+                                           id="password"
+                                           class="form-control"
+                                           placeholder="Choisissez un mot de passe"
+                                           required>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    Confirmer le mot de passe
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-lock-fill"></i>
+                                    </span>
+                                    <input type="password" name="confirmPassword"
+                                           id="confirmPassword"
+                                           class="form-control"
+                                           placeholder="Confirmez votre mot de passe"
+                                           required>
+                                </div>
+                                <div id="passwordError" class="text-danger small mt-1 d-none">
+                                    Les mots de passe ne correspondent pas
+                                </div>
+                            </div>
+
+                            <button type="submit" id="submitBtn"
+                                    class="btn btn-success w-100 mb-3">
+                                <i class="bi bi-person-check"></i> Créer mon compte
+                            </button>
+                        </form>
+
+                        <p class="text-center text-muted small mb-0">
+                            Déjà un compte ?
+                            <a th:href="@{/login}" class="text-primary fw-semibold">
+                                Se connecter
+                            </a>
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pwd = document.getElementById('password');
+        const confirm = document.getElementById('confirmPassword');
+        const err = document.getElementById('passwordError');
+        const btn = document.getElementById('submitBtn');
+
+        function checkPasswords() {
+            if (confirm.value && pwd.value !== confirm.value) {
+                err.classList.remove('d-none');
+                btn.disabled = true;
+            } else {
+                err.classList.add('d-none');
+                btn.disabled = false;
+            }
+        }
+        pwd.addEventListener('input', checkPasswords);
+        confirm.addEventListener('input', checkPasswords);
+    </script>
+
+</section>
+</body>
+</html>
