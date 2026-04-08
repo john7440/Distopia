@@ -1,5 +1,6 @@
 package fr.fms.Distopia.utils;
 
+import fr.fms.Distopia.entities.Role;
 import fr.fms.Distopia.entities.User;
 import jakarta.servlet.http.HttpSession;
 
@@ -25,8 +26,8 @@ public class SessionUtils {
      *         false otherwise
      */
     public static boolean isNotAdmin(HttpSession session) {
-        User user = (User) session.getAttribute("currentUser");
-        return user == null || !user.getRole().equals("ADMIN");
+        User user = (User) session.getAttribute("connectedUser");
+        return user == null || user.getRole() != Role.ADMIN;
     }
 
     //-------------------stocke l'utilisateur connecté en session------------

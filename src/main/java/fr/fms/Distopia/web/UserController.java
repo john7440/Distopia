@@ -1,10 +1,14 @@
 package fr.fms.Distopia.web;
 
 
+import fr.fms.Distopia.dao.UserRepository;
+import fr.fms.Distopia.entities.Role;
+import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.service.UserService;
 import fr.fms.Distopia.utils.SessionUtils;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +22,10 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     //-------------affichage page de connexion -------------------
 
@@ -90,10 +98,22 @@ public class UserController {
      * @param session the current HTTP session to invalidate
      * @return a redirect to /index
      */
-    @GetMapping("'/logout")
+    @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
         return SessionUtils.REDIRECTION;
+    }
+
+    //----------A SUPPRIMER après usage!!!!!!!!!!!!!!!--------------------
+    //-----Don't forget to delete it after use!!!!!!!!!!!!!!!!----------------------
+    @GetMapping("/createAdmin")
+    public String createAdmin() {
+        User admin = new User();
+        admin.setUsername("admin");
+        admin.setPassword(passwordEncoder.encode("admin123"));
+        admin.setRole(Role.ADMIN);
+        userRepository.save(admin);
+        return "redirect:/login";
     }
 
 }
