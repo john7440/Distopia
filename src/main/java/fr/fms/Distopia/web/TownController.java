@@ -1,6 +1,6 @@
 package fr.fms.Distopia.web;
 
-import fr.fms.Distopia.entities.Town;
+import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.service.TownService;
 import fr.fms.Distopia.utils.SessionUtils;
 import jakarta.servlet.http.HttpSession;
@@ -18,15 +18,20 @@ public class TownController {
     @Autowired
     private TownService townService;
 
+    @Autowired
+    private TownRepository townRepository;
+
     /**
      * Displays the admin town management page
      */
     @GetMapping("/admin/towns")
-    public String towns(Model model, HttpSession session) {
+    public String towns(@RequestParam(required = false) Long editId, Model model, HttpSession session) {
         if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
         model.addAttribute("towns", townService.getAll());
-        model.addAttribute("newTown", new Town());
-        return "towns";
+        if (editId != null) {
+            townRepository.findById(editId).ifPresent(town -> model.addAttribute("editTown", town));
+        }
+        return "admin-towns";
     }
 
     //------méthode pour ajouter ou modifier une ville------------------------
