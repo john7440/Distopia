@@ -29,11 +29,12 @@ public class ReservationController {
 
     //----------------------faire une réservation--------------------------
     @PostMapping("/reserve")
-    public String reserveSeance(@RequestParam Long seanceId, HttpSession session, RedirectAttributes redirectAttributes){
+    public String reserveSeance(@RequestParam Long seanceId, @RequestParam(defaultValue = "1") int quantity,
+                                HttpSession session, RedirectAttributes redirectAttributes){
         if (SessionUtils.isNotConnected(session)) return "redirect:/login";
         User user = SessionUtils.getUser(session);
         try {
-            reservationService.createReservation(seanceId, user.getId());
+            reservationService.createReservation(seanceId, user.getId(), quantity);
             redirectAttributes.addFlashAttribute("message", "Reservation bien enregistrée");
         } catch (NoSeatsAvailableException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
