@@ -11,6 +11,7 @@ Spring Boot / JPA / Thymeleaf
 - [Installation](#installation)
 - [Base de données](#base-de-données)
 - [Utilisation](#utilisation)
+- [Structure du projet](#structure-du-projet)
 
 ## Présentation
 
@@ -104,8 +105,159 @@ spring.jpa.show-sql=false
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MariaDBDialect
 ```
 
-> **Note** : Adaptez le port, l'utilisateur et le mot de passe selon votre configuration MariaDB locale
+> **Note** : **Adaptez** le port, l'utilisateur et le mot de passe **selon votre configuration** MariaDB locale
+> 
+> **Important** : vous pouvez créer un admin via la route **/createAdmin** (id: admin/ pass: admin123), **n'oubliez pas**
+> de supprimer la méthode dans `UserController` après utilisation !
 
+### Données de test
+
+```text
+-- Nettoyage
+DELETE FROM reservation;
+DELETE FROM seance;
+DELETE FROM cinema_movie;
+DELETE FROM movie;
+DELETE FROM cinema;
+DELETE FROM town;
+DELETE FROM users;
+
+-- Villes
+INSERT INTO town (id, name) VALUES
+(1, 'Lyon'),
+(2, 'Paris'),
+(3, 'Marseille'),
+(4, 'Bordeaux'),
+(5, 'Toulouse');
+
+-- Cinémas
+INSERT INTO cinema (id, name, address, town_id) VALUES
+(1,  'CGR Lyon Confluence',       '112 Cours Charlemagne, 69002 Lyon',          1),
+(2,  'UGC Ciné Cité Lyon',        '35 Cours Bayard, 69007 Lyon',                1),
+(3,  'Pathé Vaise',               '28 Rue Paul Cazeneuve, 69009 Lyon',          1),
+(4,  'UGC Ciné Cité Les Halles',  '7 Place de la Rotonde, 75001 Paris',         2),
+(5,  'Pathé Wepler',              '146 Bvd de Clichy, 75018 Paris',             2),
+(6,  'MK2 Bibliothèque',          '128 Av de France, 75013 Paris',              2),
+(7,  'Les Variétés',              '37 Rue Vincent Scotto, 13001 Marseille',     3),
+(8,  'Pathé Plan de Campagne',    'Centre Commercial, 13170 Marseille',         3),
+(9,  'CGR Bordeaux',              '13 Rue Georges Bonnac, 33000 Bordeaux',      4),
+(10, 'Pathé Toulouse Wilson',     '16 Rue des Lois, 31000 Toulouse',            5);
+
+-- Films
+INSERT INTO movie (id, title, genre, duration, description, image_url, deleted) VALUES
+(1,  'Dune : Deuxième Partie',
+     'Science-Fiction', 166,
+     'Paul Atreides s''unit aux Fremen pour mener la guerre contre les Harkonnen.',
+     'https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg',
+     false),
+
+(2,  'Inception',
+     'Thriller', 148,
+     'Un voleur spécialisé dans l''extraction de secrets enfouis au cœur des rêves.',
+     'https://image.tmdb.org/t/p/w500/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg',
+     false),
+
+(3,  'Interstellar',
+     'Science-Fiction', 169,
+     'Des astronautes voyagent à travers un trou de ver à la recherche d''une nouvelle planète.',
+     'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
+     false),
+
+(4,  'Le Comte de Monte-Cristo',
+     'Aventure', 178,
+     'Edmond Dantès, injustement emprisonné, ourdit une vengeance impitoyable.',
+     'https://image.tmdb.org/t/p/w500/spCAxD99U1A6jsiePFl3500qpDt.jpg',
+     false),
+
+(5,  'Inside Out 2',
+     'Animation', 100,
+     'Riley entre au lycée et de nouvelles émotions font irruption dans son monde intérieur.',
+     'https://image.tmdb.org/t/p/w500/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg',
+     false),
+
+(6,  'Alien : Romulus',
+     'Horreur', 119,
+     'Un groupe de jeunes colons se retrouve face à la forme de vie la plus terrifiante.',
+     'https://image.tmdb.org/t/p/w500/b33nnKl1GSFbao4l3fZDDqsMx0F.jpg',
+     false),
+
+(7,  'Oppenheimer',
+     'Drame', 180,
+     'L''histoire du physicien américain J. Robert Oppenheimer et de la bombe atomique.',
+     'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
+     false),
+
+(8,  'The Batman',
+     'Action', 176,
+     'Bruce Wayne traque un tueur en série qui sème la terreur à Gotham City.',
+     'https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg',
+     false);
+
+-- Associations Cinéma <-> Film 
+INSERT INTO cinema_movie (cinema_id, movie_id) VALUES
+-- Lyon - CGR Confluence
+(1, 1), (1, 2), (1, 3), (1, 7),
+-- Lyon - UGC
+(2, 1), (2, 4), (2, 5), (2, 8),
+-- Lyon - Pathé Vaise
+(3, 3), (3, 5), (3, 6),
+-- Paris - UGC Les Halles
+(4, 1), (4, 2), (4, 4), (4, 7),
+-- Paris - Pathé Wepler
+(5, 3), (5, 6), (5, 8),
+-- Paris - MK2 Bibliothèque
+(6, 2), (6, 5), (6, 7),
+-- Marseille - Les Variétés
+(7, 4), (7, 5), (7, 6),
+-- Marseille - Pathé Plan de Campagne
+(8, 1), (8, 6), (8, 8),
+-- Bordeaux - CGR
+(9, 2), (9, 3), (9, 4), (9, 7),
+-- Toulouse - Pathé Wilson
+(10, 1), (10, 5), (10, 8);
+
+-- Séances
+INSERT INTO seance (id, date_time, available_seats, price, movie_id) VALUES
+-- Dune 2 (movie 1)
+(1,  '2026-04-10 14:00:00', 80,  9.50,  1),
+(2,  '2026-04-10 17:30:00', 60,  9.50,  1),
+(3,  '2026-04-10 20:45:00', 30,  11.00, 1),
+(4,  '2026-04-11 14:00:00', 100, 9.50,  1),
+(5,  '2026-04-11 20:30:00', 0,   11.00, 1),  -- complet
+
+-- Inception (movie 2)
+(6,  '2026-04-10 15:00:00', 90,  9.50,  2),
+(7,  '2026-04-11 20:00:00', 50,  11.00, 2),
+
+-- Interstellar (movie 3)
+(8,  '2026-04-12 16:00:00', 75,  9.50,  3),
+(9,  '2026-04-12 21:00:00', 40,  11.00, 3),
+
+-- Monte-Cristo (movie 4)
+(10, '2026-04-13 14:30:00', 60,  8.50,  4),
+(11, '2026-04-13 19:00:00', 45,  10.00, 4),
+(12, '2026-04-14 16:00:00', 80,  8.50,  4),
+
+-- Inside Out 2 (movie 5)
+(13, '2026-04-10 10:00:00', 120, 8.00,  5),
+(14, '2026-04-10 14:00:00', 90,  8.00,  5),
+(15, '2026-04-11 10:30:00', 5,   8.00,  5),  -- presque complet
+
+-- Alien Romulus (movie 6)
+(16, '2026-04-11 21:30:00', 55,  11.00, 6),
+(17, '2026-04-12 22:00:00', 35,  11.00, 6),
+
+-- Oppenheimer (movie 7)
+(18, '2026-04-13 17:00:00', 70,  9.50,  7),
+(19, '2026-04-14 20:00:00', 60,  11.00, 7),
+
+-- The Batman (movie 8)
+(20, '2026-04-15 19:30:00', 80,  9.50,  8),
+(21, '2026-04-15 22:30:00', 40,  11.00, 8);
+```
+> **Note** : le jeu de données **ne contient pas d'utilisateur** et par conséquent **pas de réservations**.
+> Vous pouvez les créer manuellement vi le bouton `inscription` de la barre de navigation puis faire des réservations qui apparaîtront
+> ensuite dans 'Mes Reservations'
 --- 
 ## Utilisation
 
