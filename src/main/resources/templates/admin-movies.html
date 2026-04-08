@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Distopia — Gestion des films</title></head>
+<body>
+<section layout:fragment="content">
+    <div class="container py-5">
+
+        <h2 class="fw-bold mb-4">
+            <i class="bi bi-film text-dark"></i> Gestion des films
+        </h2>
+
+        <div class="row g-4">
+
+            <!-- formulaire -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-plus text-dark"></i>
+                            Ajouter / Modifier
+                        </h5>
+                        <form th:action="@{/admin/saveMovie}" method="post">
+                            <input type="hidden" name="id"
+                                   th:if="${editMovie != null}"
+                                   th:value="${editMovie.id}">
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold">Titre</label>
+                                <input type="text" name="title" class="form-control"
+                                       th:value="${editMovie != null ? editMovie.title : ''}"
+                                       placeholder="Titre du film" required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold">Genre</label>
+                                <input type="text" name="genre" class="form-control"
+                                       th:value="${editMovie != null ? editMovie.genre : ''}"
+                                       placeholder="Ex: Action, Comédie...">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold">Durée (min)</label>
+                                <input type="number" name="duration" class="form-control"
+                                       th:value="${editMovie != null ? editMovie.duration : ''}"
+                                       placeholder="120" min="1">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold">Description</label>
+                                <textarea name="description" class="form-control" rows="2"
+                                          placeholder="Synopsis..."
+                                          th:text="${editMovie != null ? editMovie.description : ''}">
+                                </textarea>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold">URL de l'affiche</label>
+                                <!-- aperçu si image existante -->
+                                <div th:if="${editMovie != null
+                      and editMovie.imageUrl != null
+                      and !editMovie.imageUrl.isBlank()}"
+                                     class="mb-2">
+                                    <img th:src="${editMovie.imageUrl}"
+                                         th:alt="${editMovie.title}"
+                                         style="height: 80px; border-radius: 6px; object-fit: cover;">
+                                </div>
+                                <input type="text" name="imageUrl" class="form-control"
+                                       th:value="${editMovie != null ? editMovie.imageUrl : ''}"
+                                       placeholder="https://...">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Cinéma</label>
+                                <select name="cinemaId" class="form-select">
+                                    <option value="">-- Choisir un cinéma --</option>
+                                    <option th:each="cinema : ${cinemas}"
+                                            th:value="${cinema.id}"
+                                            th:text="${cinema.name}"
+                                            th:selected="${editMovie != null
+                                   and !editMovie.cinemas.isEmpty()
+                                   and editMovie.cinemas[0].id == cinema.id}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i>
+                                    <span th:text="${editMovie != null ? 'Modifier' : 'Ajouter'}"></span>
+                                </button>
+                                <a th:if="${editMovie != null}"
+                                   th:href="@{/admin/movies}"
+                                   class="btn btn-outline-danger">Annuler</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- liste -->
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>Titre</th>
+                                <th>Genre</th>
+                                <th>Durée</th>
+                                <th>Statut</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="movie : ${movies}"
+                                th:classappend="${movie.deleted} ? 'table-secondary text-muted' : ''">
+                                <td class="fw-semibold" th:text="${movie.title}"></td>
+                                <td th:text="${movie.genre}"></td>
+                                <td th:text="${movie.duration} + ' min'"></td>
+                                <td>
+                                        <span th:if="${!movie.deleted}"
+                                              class="badge bg-success">Actif</span>
+                                    <span th:if="${movie.deleted}"
+                                          class="badge bg-danger">Supprimé</span>
+                                </td>
+                                <td class="text-end">
+                                    <a th:if="${!movie.deleted}"
+                                       th:href="@{/admin/movies(editId=${movie.id})}"
+                                       class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:if="${!movie.deleted}"
+                                       th:href="@{/admin/deleteMovie(id=${movie.id})}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Supprimer ce film ?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>
