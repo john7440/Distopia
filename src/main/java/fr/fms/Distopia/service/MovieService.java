@@ -5,6 +5,7 @@ import fr.fms.Distopia.dao.MovieRepository;
 
 import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.entities.Movie;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,19 +37,31 @@ public class MovieService {
     }
 
     //--------------------créer ou modifier un film------------------
-    public Movie save(Long id, String title, String description, int duration, String genre,String imageUrl, Long cinemaId) {
-        Movie movie = (id !=null) ? movieRepository.findById(id).orElse(new Movie()) : new Movie();
+    @Transactional
+    public Movie save(Long id, String title, String description,
+                      int duration, String genre, String imageUrl,
+                      List<Long> cinemaIds) {
+
+        Movie movie = (id != null)
+                ? movieRepository.findById(id).orElse(new Movie())
+                : new Movie();
+
         movie.setTitle(title);
         movie.setDescription(description);
         movie.setDuration(duration);
         movie.setGenre(genre);
         movie.setImageUrl(imageUrl);
-        if (cinemaId != null) {
-            cinemaRepository.findById(cinemaId).ifPresent( cinema -> {
-                if (!movie.getCinemas().contains(cinema)) {
-                    movie.getCinemas().add(cinema);
-                }
-            });
+
+        movie.getCinemas().forEach(c -> c.getMovies().remove(movie));
+        movie.getCinemas().clear();
+
+        if (cinemaIds != null) {
+            cinemaIds.forEach(cinemaId ->
+                    cinemaRepository.findById(cinemaId).ifPresent(cinema -> {
+                        cinema.getMovies().add(movie);
+                        movie.getCinemas().add(cinema);
+                    })
+            );
         }
         return movieRepository.save(movie);
     }
