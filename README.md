@@ -9,6 +9,7 @@ Spring Boot / JPA / Thymeleaf
 - [Architecture](#architecture)
 - [Technologies](#technologies)
 - [Installation](#installation)
+- [Base de données](#base-de-données)
 
 ## Présentation
 
@@ -84,3 +85,22 @@ git clone https://github.com/john7440/Distopia.git
 3. Vérifier que `pom.xml` est bien reconnu
 
 ---
+
+## Base de données
+
+La configuration se trouve dans `src/main/resources/application.properties` :
+
+```properties
+# bdd
+spring.datasource.url=jdbc:mariadb://localhost:3308/distopia?createDatabaseIfNotExist=true
+spring.datasource.username=root
+spring.datasource.password=
+spring.datasource.driver-class-name=org.mariadb.jdbc.Driver
+
+# JPA
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MariaDBDialect
+```
+
+> **Note** : Adaptez le port, l'utilisateur et le mot de passe selon votre configuration MariaDB locale
