@@ -143,3 +143,73 @@ Puis ouvrir votre navigateur à l'adresse : [http://localhost:8080/index](http:/
 | `/admin/seances`     | Admin    | Gestion des séances                       |
 
 ---
+
+## Structure du projet
+
+```text
+Distopia/
+├── src/
+│   └── main/
+│       ├── java/fr/fms/Distopia/
+│       │   ├── DistopiaApplication.java          # Point d'entré
+│       │   ├── config/
+│       │   │   └── SecurityConfig.java           # BCrypt + Security filter chain
+│       │   ├── dao/                              # JPA Repository
+│       │   │   ├── TownRepository.java            
+│       │   │   ├── CinemaRepository.java
+│       │   │   ├── MovieRepository.java
+│       │   │   ├── SeanceRepository.java          
+│       │   │   ├── UserRepository.java
+│       │   │   └── ReservationRepository.java
+│       │   ├── entities/                         # Entités JPA 
+│       │   │   ├── Town.java                     
+│       │   │   ├── Cinema.java                   
+│       │   │   ├── Movie.java                                     
+│       │   │   ├── Seance.java                   
+│       │   │   ├── User.java                     
+│       │   │   ├── Reservation.java                   
+│       │   │   └── Role.java                      
+│       │   ├── service/                           # Logique métier
+│       │   │   ├── TownService.java              
+│       │   │   ├── CinemaService.java            
+│       │   │   ├── MovieService.java             
+│       │   │   ├── SeanceService.java            
+│       │   │   ├── UserService.java              
+│       │   │   ├── ReservationService.java       
+│       │   ├── exceptions/                        # exceptions personnalisées
+│       │   │   └── NoSeatsAvailableException.java 
+│       │   ├── utils/
+│       │   │   └── SessionUtils.java          
+│       │   └── web/                               # Controleurs
+│       │       ├── IndexController.java
+│       │       ├── TownController.java
+│       │       ├── CinemaController.java
+│       │       ├── MovieController.java
+│       │       ├── SeanceController.java
+│       │       ├── UserController.java
+│       │       └── ReservationController.java
+│       └── resources/
+│           ├── templates/
+│           │   ├── layout.html                   # Navbar + footer communs
+│           │   ├── index.html                    # Accueil
+│           │   ├── cinemas.html                  # Recherche cinémas
+│           │   ├── movies.html                   # Films d'un cinéma
+│           │   ├── seances.html                  # Séances + réservation
+│           │   ├── my-reservations.html          # Historique réservations
+│           │   ├── login.html                    # Formulaire de connexion
+│           │   ├── register.html                 # Formulaire d'inscription
+│           │   ├── admin-towns.html              # Formulaire admin villes
+│           │   ├── admin-cinemas.html            # Formulaire admin Cinémas
+│           │   ├── admin-movies.html             # Formulaire admin films
+│           │   └── admin-seances.html            # Formulaire admin séances
+│           ├── static/
+│           │   └── css/
+│           │       └── bootstrap.min.css
+│           └── application.properties
+├── pom.xml
+└── README.md
+```
+# Licence
+
+Ce projet est réalisé dans le cadre d'un exercice d'évaluation Spring Boot / JPA / Thymeleaf et est destiné à des fins pédagogiques uniquement
+'''
