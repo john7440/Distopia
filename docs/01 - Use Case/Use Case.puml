@@ -1,0 +1,47 @@
+@startuml
+left to right direction
+
+Actor Visiteur
+Actor Utilisateur
+Actor Admin
+
+Utilisateur -|> Visiteur
+Admin -|> Utilisateur
+
+rectangle "Distopia" {
+
+usecase "Se connecter" as AUTH
+usecase "Afficher cinémas d'une ville" as UC1
+usecase "Rechercher un cinéma" as UC2
+usecase "Afficher les films d'un cinéma" as UC3
+usecase "Afficher les séances d'un film" as UC4
+usecase "Créer un compte" as UC5
+
+usecase "Réserver une place" as UC6
+
+usecase "Gérer les villes" as A1
+usecase "Gérer les cinémas" as A2
+usecase "Gérer les films" as A3
+usecase "Gérer les séances" as A4
+
+
+Visiteur -- UC1
+Visiteur -- UC2
+Visiteur -- UC3
+Visiteur -- UC4
+Visiteur -- UC5
+
+Utilisateur -- UC6
+
+Admin -- A1
+Admin -- A2
+Admin -- A3
+Admin -- A4
+
+UC6 ..> AUTH : <<include>>
+A1 ..> AUTH : <<include>>
+A2 ..> AUTH : <<include>>
+A3 ..> AUTH : <<include>>
+A4 ..> AUTH : <<include>>
+}
+@enduml
