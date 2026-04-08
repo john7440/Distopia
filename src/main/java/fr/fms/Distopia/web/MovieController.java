@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 @Controller
 public class MovieController {
     @Autowired
@@ -42,10 +44,10 @@ public class MovieController {
     @PostMapping("/admin/saveMovie")
     public String saveMovie(@RequestParam(required = false) Long id, @RequestParam String title,
                             @RequestParam String description, @RequestParam int duration, @RequestParam String genre,
-                            @RequestParam(required = false) Long cinemaId,
+                            @RequestParam(required = false) List<Long> cinemaIds,
                             @RequestParam(required = false) String imageUrl, HttpSession session){
         if(SessionUtils.isNotAdmin(session)) return  SessionUtils.REDIRECTION;
-        movieService.save(id, title, description, duration, genre, imageUrl,cinemaId);
+        movieService.save(id, title, description, duration, genre, imageUrl,cinemaIds);
         return "redirect:/admin/movies";
     }
 
