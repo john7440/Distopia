@@ -7,6 +7,7 @@ Spring Boot / JPA / Thymeleaf
 - [Présentation](#présentation)
 - [Fonctionnalités](#fonctionnalités)
 - [Architecture](#architecture)
+- [Technologies](#technologies)
 
 ## Présentation
 
@@ -48,5 +49,21 @@ L'application suit une **architecture MVC multi-couches** :
 - **Entity** :Objets mappés JPA
 - **Security** :Authentification par session + BCrypt via Spring Security
 - **Database** : MariaDB
+
+---
+
+## Technologies
+
+| Composant | Technologie                                |
+|---|--------------------------------------------|
+| Langage | Java 17                                    |
+| Framework | Spring Boot 4.x                            |
+| Vue | Thymeleaf + Thymeleaf Layout               |
+| ORM | Spring Data JPA / Hibernate                |
+| Sécurité | Spring Security (BCrypt, session custom)   |
+| Base de données | MariaDB                                    |
+| Frontend | Bootstrap 5.3, Bootstrap Icons, vanilla JS |
+| Build | Maven                                      |
+| IDE | IntelliJ IDEA                              |
 
 ---
