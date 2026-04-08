@@ -1,0 +1,38 @@
+@startuml
+title Réserver une ou plusieurs places
+
+actor Utilisateur
+participant "Frontend" as FE
+participant "ReservationController" as CTRL
+participant "ReservationService" as SVC
+database "MariaDB" as DB
+
+Utilisateur -> FE : Sélectionne séance\net nombre de places
+activate FE
+
+FE -> CTRL : POST /reserve\n{ seanceId, quantity }
+activate CTRL
+
+CTRL -> SVC : createReservation(seanceId, userId, quantity)
+activate SVC
+
+alt availableSeats < quantity
+    SVC --> CTRL : NoSeatsAvailableException
+    CTRL --> FE : error
+    FE --> Utilisateur : "Pas assez de places disponibles"
+else availableSeats >= quantity
+    SVC -> DB : UPDATE seance\nSET availableSeats = availableSeats - quantity
+    activate DB
+    SVC -> DB : INSERT reservation\n(userId, seanceId, quantity, reservedAt)
+    DB --> SVC : Reservation
+    deactivate DB
+    SVC --> CTRL : Reservation
+    deactivate SVC
+    CTRL --> FE : success
+    deactivate CTRL
+    FE --> Utilisateur : "Réservation bien enregistrée"
+end
+
+deactivate FE
+
+@enduml
