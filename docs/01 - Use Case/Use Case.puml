@@ -10,20 +10,27 @@ Admin -|> Utilisateur
 
 rectangle "Distopia" {
 
+usecase "Gérer le site" as A1
+
 usecase "Se connecter" as AUTH
+usecase "Créer un compte" as UC5
+
 usecase "Afficher cinémas d'une ville" as UC1
 usecase "Rechercher un cinéma" as UC2
 usecase "Afficher les films d'un cinéma" as UC3
 usecase "Afficher les séances d'un film" as UC4
-usecase "Créer un compte" as UC5
 
-usecase "Réserver une place" as UC6
+usecase "Réserver une ou plusieurs places" as UC6
 
-usecase "Gérer les villes" as A1
-usecase "Gérer les cinémas" as A2
-usecase "Gérer les films" as A3
-usecase "Gérer les séances" as A4
+usecase "Consulter son historique de réservations" as UC7
 
+note bottom of A1
+    Inclut :
+    - CRUD Villes
+    - CRUD Cinémas
+    - CRUD Films (soft delete)
+    - CRUD Séances
+end note
 
 Visiteur -- UC1
 Visiteur -- UC2
@@ -34,14 +41,10 @@ Visiteur -- UC5
 Utilisateur -- UC6
 
 Admin -- A1
-Admin -- A2
-Admin -- A3
-Admin -- A4
 
 UC6 ..> AUTH : <<include>>
 A1 ..> AUTH : <<include>>
-A2 ..> AUTH : <<include>>
-A3 ..> AUTH : <<include>>
-A4 ..> AUTH : <<include>>
+
+UC7 .up.> UC6 : <<extend>>
 }
 @enduml
