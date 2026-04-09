@@ -49,9 +49,10 @@ class Reservation {
 
 User -- Role
 
-Cinema "*" --> "*" Movie : screen
+Cinema "*" <--> "*" Movie : screens
 Town "1" o-- "0..*" Cinema : contains
-Movie "1" *-- "0..*" Seance : has
+Seance "*" --> "1" Movie : for
+Seance "*" --> "1" Cinema : at
 User "1" --> "0..*" Reservation : performs
 Reservation "*" --> "1" Seance : concern
 
