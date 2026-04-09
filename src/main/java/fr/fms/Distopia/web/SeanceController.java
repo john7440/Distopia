@@ -1,5 +1,6 @@
 package fr.fms.Distopia.web;
 
+import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
 import fr.fms.Distopia.utils.SessionUtils;
@@ -25,6 +26,8 @@ public class SeanceController {
     private SeanceService seanceService;
     @Autowired
     private MovieService movieService;
+    @Autowired
+    private CinemaService cinemaService;
 
     private static final String SEANCES =  "seances";
 
@@ -41,8 +44,8 @@ public class SeanceController {
      * @return the view name "seances"
      */
     @GetMapping("/seances")
-    public String seancesByMovie(@RequestParam Long movieId, Model model, Long cinemaId){
-        model.addAttribute(SEANCES, seanceService.getByMovie(movieId));
+    public String seancesByMovie(@RequestParam Long movieId, Model model,  @RequestParam Long cinemaId){
+        model.addAttribute(SEANCES, seanceService.getByMovieAndCinema(movieId, cinemaId));
         model.addAttribute("movieId", movieId);
         model.addAttribute("cinemaId", cinemaId);
         return SEANCES;
@@ -69,6 +72,7 @@ public class SeanceController {
         if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
         model.addAttribute(SEANCES, seanceService.getAll());
         model.addAttribute("movies", movieService.getAll());
+        model.addAttribute("cinemas", cinemaService.getAll());
         if (editId != null) {
             seanceService.findById(editId).ifPresent(s -> model.addAttribute("editSeance", s));
         }
@@ -96,9 +100,9 @@ public class SeanceController {
      */
     @PostMapping("/admin/saveSeance")
     public String saveSeance(@RequestParam(required = false) Long id, @RequestParam String dateTime,@RequestParam int availableSeats,
-                             @RequestParam double price, @RequestParam Long movieId, HttpSession session){
+                             @RequestParam double price, @RequestParam Long movieId,@RequestParam Long cinemaId, HttpSession session){
         if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
-        seanceService.save(id, LocalDateTime.parse(dateTime), availableSeats, price, movieId);
+        seanceService.save(id, LocalDateTime.parse(dateTime), availableSeats, price, movieId,cinemaId);
         return "redirect:/admin/seances";
     }
 

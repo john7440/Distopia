@@ -1,5 +1,6 @@
 package fr.fms.Distopia.service;
 
+import fr.fms.Distopia.dao.CinemaRepository;
 import fr.fms.Distopia.dao.MovieRepository;
 import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.entities.Movie;
@@ -17,10 +18,12 @@ public class SeanceService {
     private SeanceRepository seanceRepository;
     @Autowired
     private MovieRepository movieRepository;
+    @Autowired
+    private CinemaRepository cinemaRepository;
 
     //---------------les séances d'un film---------------------
     /**
-     * Retrieves all scheduled seances for a specific movie
+     * Retrieves all scheduled seances for a specific movie in a specific cinema
      * <p>
      * The results are ordered chronologically by their date and time in ascending order
      * (the earliest screenings are returned first)
@@ -28,8 +31,8 @@ public class SeanceService {
      * @param movieId the unique identifier of the movie
      * @return a list of {@link Seance} objects scheduled for the specified movie
      */
-    public List<Seance> getByMovie(Long movieId){
-        return seanceRepository.findByMovieIdOrderByDateTimeAsc(movieId);
+    public List<Seance> getByMovieAndCinema(Long movieId, Long cinemaId) {
+        return seanceRepository.findByMovieIdAndCinemaIdOrderByDateTimeAsc(movieId, cinemaId);
     }
 
     //--------------find by id------------
@@ -68,17 +71,17 @@ public class SeanceService {
      * @return the saved or updated {@link Seance} entity
      * @throws java.util.NoSuchElementException if a {@code movieId} is provided but the movie cannot be found
      */
-    public Seance save(Long id, LocalDateTime dateTime, int availableSeats, double price, Long movieId) {
+    public Seance save(Long id, LocalDateTime dateTime, int availableSeats, double price, Long movieId, Long cinemaId) {
         Seance seance = (id!=null) ? seanceRepository.findById(id).orElse(new Seance()) : new Seance();
 
         seance.setDateTime(dateTime);
         seance.setAvailableSeats(availableSeats);
         seance.setPrice(price);
-
         if(movieId !=null){
             Movie movie = movieRepository.findById(movieId).orElseThrow();
             seance.setMovie(movie);
         }
+        cinemaRepository.findById(cinemaId).ifPresent(seance::setCinema);
         return seanceRepository.save(seance);
     }
 
