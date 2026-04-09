@@ -217,43 +217,64 @@ INSERT INTO cinema_movie (cinema_id, movie_id) VALUES
 (10, 1), (10, 5), (10, 8);
 
 -- Séances
-INSERT INTO seance (id, date_time, available_seats, price, movie_id) VALUES
--- Dune 2 (movie 1)
-(1,  '2026-04-10 14:00:00', 80,  9.50,  1),
-(2,  '2026-04-10 17:30:00', 60,  9.50,  1),
-(3,  '2026-04-10 20:45:00', 30,  11.00, 1),
-(4,  '2026-04-11 14:00:00', 100, 9.50,  1),
-(5,  '2026-04-11 20:30:00', 0,   11.00, 1),  -- complet
+-- Dune 2 — CGR Lyon Confluence (cinema 1)
+INSERT INTO seance (id, date_time, available_seats, price, movie_id, cinema_id) VALUES
+(1,  '2026-04-10 14:00:00', 80,  9.50,  1, 1),
+(2,  '2026-04-10 20:45:00', 40,  11.00, 1, 1),
+(3,  '2026-04-11 17:30:00', 0,   11.00, 1, 1),  -- complet
 
--- Inception (movie 2)
-(6,  '2026-04-10 15:00:00', 90,  9.50,  2),
-(7,  '2026-04-11 20:00:00', 50,  11.00, 2),
+-- Dune 2 — UGC Les Halles Paris (cinema 4)
+(4,  '2026-04-10 15:00:00', 90,  9.50,  1, 4),
+(5,  '2026-04-11 21:00:00', 55,  11.00, 1, 4),
 
--- Interstellar (movie 3)
-(8,  '2026-04-12 16:00:00', 75,  9.50,  3),
-(9,  '2026-04-12 21:00:00', 40,  11.00, 3),
+-- Inception — UGC Lyon (cinema 2)  -- non : pas dans cinema_movie(2,2) donc on prend CGR
+-- Inception — CGR Lyon Confluence (cinema 1)
+(6,  '2026-04-11 15:00:00', 70,  9.50,  2, 1),
+(7,  '2026-04-12 20:00:00', 35,  11.00, 2, 1),
 
--- Monte-Cristo (movie 4)
-(10, '2026-04-13 14:30:00', 60,  8.50,  4),
-(11, '2026-04-13 19:00:00', 45,  10.00, 4),
-(12, '2026-04-14 16:00:00', 80,  8.50,  4),
+-- Inception — MK2 Bibliothèque Paris (cinema 6)
+(8,  '2026-04-11 18:30:00', 80,  9.50,  2, 6),
 
--- Inside Out 2 (movie 5)
-(13, '2026-04-10 10:00:00', 120, 8.00,  5),
-(14, '2026-04-10 14:00:00', 90,  8.00,  5),
-(15, '2026-04-11 10:30:00', 5,   8.00,  5),  -- presque complet
+-- Interstellar — Pathé Vaise Lyon (cinema 3)
+(9,  '2026-04-12 16:00:00', 75,  9.50,  3, 3),
+(10, '2026-04-12 21:00:00', 30,  11.00, 3, 3),
 
--- Alien Romulus (movie 6)
-(16, '2026-04-11 21:30:00', 55,  11.00, 6),
-(17, '2026-04-12 22:00:00', 35,  11.00, 6),
+-- Interstellar — Pathé Wepler Paris (cinema 5)
+(11, '2026-04-13 19:30:00', 60,  11.00, 3, 5),
 
--- Oppenheimer (movie 7)
-(18, '2026-04-13 17:00:00', 70,  9.50,  7),
-(19, '2026-04-14 20:00:00', 60,  11.00, 7),
+-- Monte-Cristo — UGC Lyon (cinema 2)
+(12, '2026-04-13 14:00:00', 90,  8.50,  4, 2),
+(13, '2026-04-13 20:30:00', 50,  10.00, 4, 2),
 
--- The Batman (movie 8)
-(20, '2026-04-15 19:30:00', 80,  9.50,  8),
-(21, '2026-04-15 22:30:00', 40,  11.00, 8);
+-- Monte-Cristo — Les Variétés Marseille (cinema 7)
+(14, '2026-04-14 18:00:00', 45,  8.50,  4, 7),
+
+-- Inside Out 2 — Pathé Vaise Lyon (cinema 3)
+(15, '2026-04-10 10:00:00', 120, 8.00,  5, 3),
+(16, '2026-04-10 14:30:00', 5,   8.00,  5, 3),  -- presque complet
+
+-- Inside Out 2 — MK2 Bibliothèque Paris (cinema 6)
+(17, '2026-04-11 11:00:00', 100, 8.00,  5, 6),
+
+-- Alien Romulus — Pathé Vaise Lyon (cinema 3)
+(18, '2026-04-11 22:00:00', 55,  11.00, 6, 3),
+
+-- Alien Romulus — Pathé Plan de Campagne Marseille (cinema 8)
+(19, '2026-04-12 21:30:00', 40,  11.00, 6, 8),
+
+-- Oppenheimer — CGR Lyon Confluence (cinema 1)
+(20, '2026-04-14 17:00:00', 70,  9.50,  7, 1),
+(21, '2026-04-15 20:00:00', 60,  11.00, 7, 1),
+
+-- Oppenheimer — CGR Bordeaux (cinema 9)
+(22, '2026-04-14 19:00:00', 80,  9.50,  7, 9),
+
+-- The Batman — UGC Lyon (cinema 2)
+(23, '2026-04-15 19:30:00', 65,  9.50,  8, 2),
+(24, '2026-04-15 22:30:00', 40,  11.00, 8, 2),
+
+-- The Batman — Pathé Toulouse Wilson (cinema 10)
+(25, '2026-04-16 20:00:00', 75,  9.50,  8, 10);
 ```
 > **Note** : le jeu de données **ne contient pas d'utilisateur** et par conséquent **pas de réservations**.
 > Vous pouvez les créer manuellement via le bouton `inscription` de la barre de navigation puis faire des réservations qui apparaîtront
