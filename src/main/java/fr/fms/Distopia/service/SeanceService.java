@@ -3,6 +3,7 @@ package fr.fms.Distopia.service;
 import fr.fms.Distopia.dao.CinemaRepository;
 import fr.fms.Distopia.dao.MovieRepository;
 import fr.fms.Distopia.dao.SeanceRepository;
+import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.entities.Seance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,8 @@ public class SeanceService {
             Movie movie = movieRepository.findById(movieId).orElseThrow();
             seance.setMovie(movie);
         }
-        cinemaRepository.findById(cinemaId).ifPresent(seance::setCinema);
+        Cinema cinema = cinemaRepository.findById(cinemaId).orElseThrow(() -> new RuntimeException("Cinéma introuvable"));
+        seance.setCinema(cinema);
         return seanceRepository.save(seance);
     }
 
