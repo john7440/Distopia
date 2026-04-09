@@ -48,7 +48,7 @@ L'application suit une **architecture MVC multi-couches** :
 
 - **View Layer** : Thymeleaf + Bootstrap 5 - templates avec héritage de layout
 - **Controller**: Spring MVC @Controller - gestion des requêtes HTTP
-- **Service** : Logique métier - validation, transactions, règles de gestion
+- **Service** : Logique métier — validation, transactions, règles de gestion
 - **Repository** : Accès base de données via JpaRepository (Spring Data JPA)
 - **Entity** :Objets mappés JPA
 - **Security** :Authentification par session + BCrypt via Spring Security
@@ -83,7 +83,7 @@ git clone https://github.com/john7440/Distopia.git
 ### 2. Ouvrir dans IntelliJ IDEA
 
 1. `File` -> `Open` -> Sélectionner le dossier du projet
-2. Attendre qu'IntelliJ indexe le projet et télécharge les dépendances Maven
+2. Attendre qu'IntelliJ indexe le projet et télécharger les dépendances Maven
 3. Vérifier que `pom.xml` est bien reconnu
 
 ---
@@ -107,7 +107,7 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MariaDBDialect
 
 > **Note** : **Adaptez** le port, l'utilisateur et le mot de passe **selon votre configuration** MariaDB locale
 > 
-> **Important** : vous pouvez créer un admin via la route **/createAdmin** (id: admin/ pass: admin123), **n'oubliez pas**
+> **Important** : vous pouvez créer un admin via la route **/createAdmin** (ID : admin/ Pass : admin123), **n'oubliez pas**
 > de supprimer la méthode dans `UserController` après utilisation !
 
 ### Données de test
@@ -256,7 +256,7 @@ INSERT INTO seance (id, date_time, available_seats, price, movie_id) VALUES
 (21, '2026-04-15 22:30:00', 40,  11.00, 8);
 ```
 > **Note** : le jeu de données **ne contient pas d'utilisateur** et par conséquent **pas de réservations**.
-> Vous pouvez les créer manuellement vi le bouton `inscription` de la barre de navigation puis faire des réservations qui apparaîtront
+> Vous pouvez les créer manuellement via le bouton `inscription` de la barre de navigation puis faire des réservations qui apparaîtront
 > ensuite dans 'Mes Reservations'
 --- 
 ## Utilisation
@@ -278,21 +278,21 @@ Puis ouvrir votre navigateur à l'adresse : [http://localhost:8080/index](http:/
 ---
 ### Tableau des routes
 
-| Route                | Accès    | Description                               |
-|----------------------|----------|-------------------------------------------|
-| `/index`             | Tous     | Page d'accueil avec recherche             |
+| Route                | Accès    | Description                                |
+|----------------------|----------|--------------------------------------------|
+| `/index`             | Tous     | Page d'accueil avec recherche              |
 | `/cinemas`           | Tous     | Liste des cinémas (filtre ville + mot-clé) |
-| `/movies?cinemaId=x` | Tous     | Films d'un cinéma                         |
-| `/seances?movieId=x` | Tous     | Séances d'un film                         |
-| `/login`             | Tous     | Formulaire de connexion                   |
-| `/register`          | tous     | Formulaire d'inscription                  |
-| `/logout`            | Connecté | Déconnexion                               |
-| `/my-reservations`   | Connecté | Historique des réservations               |
-| `/reserve` (POST)    | Connecté | réserver une ou plusieurs places          |
-| `/admin/towns`       | Admin    | Gestion des villes                        |
-| `/admin/cinemas`     | Admin    | Gestion des cinéma                        |
-| `/admin/movies`      | Admin    | Gestion des films                         |
-| `/admin/seances`     | Admin    | Gestion des séances                       |
+| `/movies?cinemaId=x` | Tous     | Films d'un cinéma                          |
+| `/seances?movieId=x` | Tous     | Séances d'un film                          |
+| `/login`             | Tous     | Formulaire de connexion                    |
+| `/register`          | tous     | Formulaire d'inscription                   |
+| `/logout`            | Connecté | Déconnexion                                |
+| `/my-reservations`   | Connecté | Historique des réservations                |
+| `/reserve` (POST)    | Connecté | réserver une ou plusieurs places           |
+| `/admin/towns`       | Admin    | Gestion des villes                         |
+| `/admin/cinemas`     | Admin    | Gestion des cinéma                         |
+| `/admin/movies`      | Admin    | Gestion des films                          |
+| `/admin/seances`     | Admin    | Gestion des séances                        |
 
 ---
 
@@ -329,6 +329,7 @@ Distopia/
 │       │   │   ├── UserService.java              
 │       │   │   ├── ReservationService.java       
 │       │   ├── exceptions/                        # exceptions personnalisées
+│       │   │   ├── SecurityFilterException.java 
 │       │   │   └── NoSeatsAvailableException.java 
 │       │   ├── utils/
 │       │   │   └── SessionUtils.java          
@@ -363,5 +364,5 @@ Distopia/
 ```
 # Licence
 
-Ce projet est réalisé dans le cadre d'un exercice d'évaluation Spring Boot / JPA / Thymeleaf et est destiné à des fins pédagogiques uniquement
-'''
+Ce projet est réalisé dans le cadre d'un exercice d'évaluation Spring Boot / JPA / Thymeleaf et est destiné à des fins pédagogiques uniquement.
+© 2026 [Jonathan Maier](https://github.com/john7440)
