@@ -8,8 +8,9 @@
 - Créer un **nouveau compte**
 
 ## Pour les utilisateurs connectés, l'appli permet en plus de :
-- **Réserver une place** en selectionnant le film et la séance à une date donnée    
+- **Réserver une ou plusieurs place(s)** en selectionnant le film et la séance à une date donnée    
 ainsi que la quantité de place(s) désirée(s)
+- De **consulter son historique** de reservations 
 
 ## Pour l'admin du site, l'application permet en plus :
 
