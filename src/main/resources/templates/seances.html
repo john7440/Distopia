@@ -95,6 +95,50 @@
         </div>
 
     </div>
+    <!-- modal confirmation réservation existante -->
+    <div th:if="${confirmNeeded}"
+         class="modal fade show d-block"
+         style="background: rgba(0,0,0,0.5);"
+         tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Réservation existante
+                    </h5>
+                </div>
+
+                <div class="modal-body">
+                    <p>Attention ! Vous avez déjà une réservation pour cette séance </p>
+                    <p>Voulez-vous ajouter
+                        <strong th:text="${pendingQuantity} + ' place(s)'"></strong>
+                        à votre réservation existante ?
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <a th:href="@{/seances(movieId=${movieId}, cinemaId=${cinemaId})}"
+                       class="btn btn-outline-danger">Annuler
+                    </a>
+
+                    <!--renvoie le POST avec confirmed=true -->
+                    <form th:action="@{/reserve}" method="post">
+                        <input type="hidden" name="seanceId"
+                               th:value="${pendingSeanceId}">
+                        <input type="hidden" name="quantity"
+                               th:value="${pendingQuantity}">
+                        <input type="hidden" name="confirmed" value="true">
+                        <button type="submit" class="btn btn-success fw-bold">
+                             Confirmer l'ajout
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </section>
 </body>
 </html>

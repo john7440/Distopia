@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ReservationService {
@@ -63,8 +64,21 @@ public class ReservationService {
         if (seance.getAvailableSeats() < quantity){
             throw new NoSeatsAvailableException("Seulement " + seance.getAvailableSeats() + " places disponibles");
         }
+
+        List<Reservation> existingList = reservationRepository.findAllByUserIdAndSeanceId(userId, seanceId);
+
+
         seance.setAvailableSeats(seance.getAvailableSeats() - quantity);
         seanceRepository.save(seance);
+
+        if (!existingList.isEmpty()){
+            Reservation resa =  existingList.get(0);
+            if (existingList.size() > 1){
+                reservationRepository.deleteAll(existingList.subList(1, existingList.size()));
+            }
+            resa.setQuantity(resa.getQuantity() + quantity);
+            return reservationRepository.save(resa);
+        }
 
         Reservation reservation = new Reservation();
         reservation.setReservedAt(LocalDateTime.now());
@@ -73,5 +87,22 @@ public class ReservationService {
         reservation.setQuantity(quantity);
 
         return  reservationRepository.save(reservation);
+    }
+
+
+    public boolean existsByUserAndSeance(Long userId, Long seanceId) {
+        return reservationRepository.findByUserIdAndSeanceId(userId, seanceId).isPresent();
+    }
+
+    public Long getMovieIdBySeance(Long seanceId) {
+        return seanceRepository.findById(seanceId)
+                .map(s -> s.getMovie().getId())
+                .orElse(null);
+    }
+
+    public Long getCinemaIdBySeance(Long seanceId) {
+        return seanceRepository.findById(seanceId)
+                .map(s -> s.getCinema().getId())
+                .orElse(null);
     }
 }

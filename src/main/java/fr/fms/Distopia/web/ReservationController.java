@@ -59,9 +59,21 @@ public class ReservationController {
      */
     @PostMapping("/reserve")
     public String reserveSeance(@RequestParam Long seanceId, @RequestParam(defaultValue = "1") int quantity,
+                                @RequestParam(required = false) Boolean confirmed,
                                 HttpSession session, RedirectAttributes redirectAttributes){
         if (SessionUtils.isNotConnected(session)) return "redirect:/login";
         User user = SessionUtils.getUser(session);
+
+        boolean alreadyBooked = reservationService.existsByUserAndSeance(user.getId(), seanceId);
+
+        if (alreadyBooked && (confirmed == null || !confirmed)){
+            redirectAttributes.addFlashAttribute("confirmNeeded", true);
+            redirectAttributes.addFlashAttribute("pendingSeanceId", seanceId);
+            redirectAttributes.addFlashAttribute("pendingQuantity", quantity);
+            return "redirect:/seances?movieId=" + reservationService.getMovieIdBySeance(seanceId) + "&cinemaId=" +
+                    reservationService.getCinemaIdBySeance(seanceId);
+        }
+
         try {
             reservationService.createReservation(seanceId, user.getId(), quantity);
             redirectAttributes.addFlashAttribute("message", "Reservation bien enregistrée");

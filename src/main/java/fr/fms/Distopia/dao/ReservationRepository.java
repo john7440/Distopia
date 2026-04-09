@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The JPA Repository of reservation
@@ -12,5 +13,6 @@ import java.util.List;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findByUserIdOrderByReservedAtDesc(Long userId);
-    boolean existsByUserIdAndSeanceId(Long userId, Long seanceId);
+    Optional<Reservation> findByUserIdAndSeanceId(Long userId, Long seanceId);
+    List<Reservation> findAllByUserIdAndSeanceId(Long userId, Long seanceId);
 }
