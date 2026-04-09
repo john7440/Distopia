@@ -9,6 +9,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a Movie entity in the application
+ * <p>
+ * This class holds the details of a film, such as its title, duration, and genre.
+ * It also manages the relationships with the cinemas where it is screened and
+ * its specific scheduled seances
+ * <p>
+ * <strong>Note on Lombok:</strong> This class uses Lombok annotations
+ * ({@code @Data}, {@code @AllArgsConstructor}, {@code @NoArgsConstructor})
+ * to automatically generate getters, setters, and constructors
+ */
 @Entity
 @Data
 @AllArgsConstructor @NoArgsConstructor
