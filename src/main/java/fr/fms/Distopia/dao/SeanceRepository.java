@@ -18,4 +18,5 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Seance s WHERE s.id = :id")
     Optional<Seance> findByIdForUpdate(@Param("id") Long id);
+    List<Seance> findByMovieIdAndCinemaIdOrderByDateTimeAsc(Long movieId, Long cinemaId);
 }

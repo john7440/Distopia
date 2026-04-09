@@ -14,7 +14,7 @@ import java.util.List;
  * <p>
  * This class models a specific scheduled showtime for a movie. It holds
  * crucial business data such as the date and time of the screening, the ticket
- * price, and the real-time count of available seats
+ * price, the real-time count of available seats, and the cinema concerned
  * <p>
  * <strong>Note on Lombok:</strong> This class uses Lombok annotations
  * ({@code @Data}, {@code @AllArgsConstructor}, {@code @NoArgsConstructor})
@@ -39,4 +39,8 @@ public class Seance implements Serializable {
 
     @OneToMany(mappedBy = "seance")
     private List<Reservation> reservations;
+
+    @ManyToOne
+    @JoinColumn(name = "cinema_id", nullable = false)
+    private Cinema cinema;
 }
