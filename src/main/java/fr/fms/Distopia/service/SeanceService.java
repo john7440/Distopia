@@ -29,6 +29,7 @@ public class SeanceService {
      * (the earliest screenings are returned first)
      *
      * @param movieId the unique identifier of the movie
+     * @param cinemaId the identifier of the cinema
      * @return a list of {@link Seance} objects scheduled for the specified movie
      */
     public List<Seance> getByMovieAndCinema(Long movieId, Long cinemaId) {
@@ -68,6 +69,7 @@ public class SeanceService {
      * @param availableSeats the total number of seats available for this screening
      * @param price          the ticket price for this screening
      * @param movieId        the identifier of the movie being screened
+     * @param cinemaId       the identifier of the cinema
      * @return the saved or updated {@link Seance} entity
      * @throws java.util.NoSuchElementException if a {@code movieId} is provided but the movie cannot be found
      */

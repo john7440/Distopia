@@ -94,6 +94,7 @@ public class SeanceController {
      * @param availableSeats the initial total number of available seats for this screening
      * @param price          the ticket price for this screening
      * @param movieId        the identifier of the movie to be screened
+     * @param cinemaId       the identifier of the cinema
      * @param session        the current {@link HttpSession} used to verify the user's role
      * @return a redirection URL to the admin seances page, or the default redirection if unauthorized
      * @throws java.time.format.DateTimeParseException if the {@code dateTime} string cannot be parsed
