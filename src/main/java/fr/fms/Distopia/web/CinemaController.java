@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * Controller responsible for handling cinema-related web requests,
+ * including both public views and administrative management
+ */
 @Controller
 public class CinemaController {
 
