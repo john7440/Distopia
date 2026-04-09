@@ -9,6 +9,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a Cinema entity in the application
+ * <p>
+ * This class is mapped to a database table and holds the core information
+ * about a cinema, including its location (Town) and the catalog of movies
+ * currently being screened there
+ * <p>
+ * <strong>Note on Lombok:</strong> This class uses Lombok annotations
+ * ({@code @Data}, {@code @AllArgsConstructor}, {@code @NoArgsConstructor})
+ * to automatically generate boilerplate code such as getters, setters,
+ * and constructors
+ */
 @Entity
 @Data
 @AllArgsConstructor @NoArgsConstructor
