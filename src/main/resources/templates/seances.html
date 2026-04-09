@@ -47,6 +47,10 @@
                                       th:text="${seance.availableSeats} + ' place(s) disponible(s)'">
                                 </span>
                             </p>
+                            <p class="text-muted small mb-1">
+                                <i class="bi bi-geo-alt text-primary"></i>
+                                <span th:text="${seances[0].cinema.name}"></span>
+                            </p>
                             <p class="fw-bold text-primary" th:text="${seance.price} + ' €'"></p>
                         </div>
 

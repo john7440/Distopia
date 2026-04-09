@@ -58,6 +58,19 @@
                                        required>
                             </div>
 
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold">Cinéma</label>
+                                <select name="cinemaId" class="form-select" required>
+                                    <option value="">-- Choisir un cinéma --</option>
+                                    <option th:each="cinema : ${cinemas}"
+                                            th:value="${cinema.id}"
+                                            th:text="${cinema.name}"
+                                            th:selected="${editSeance != null
+                               and editSeance.cinema.id == cinema.id}">
+                                    </option>
+                                </select>
+                            </div>
+
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Prix (€)</label>
                                 <input type="number" name="price" step="0.01"

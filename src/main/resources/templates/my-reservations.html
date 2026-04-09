@@ -25,6 +25,7 @@
                         <th>Places</th>
                         <th>Prix unitaire</th>
                         <th>Réservé le</th>
+                        <th>Cinéma</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -35,6 +36,7 @@
                         <td th:text="${resa.quantity}"></td>
                         <td th:text="${resa.seance.price} + ' €'"></td>
                         <td th:text="${#temporals.format(resa.reservedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td th:text="${resa.seance.cinema.name}"></td>
                     </tr>
                     </tbody>
                 </table>
