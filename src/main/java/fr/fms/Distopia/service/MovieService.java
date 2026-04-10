@@ -124,4 +124,8 @@ public class MovieService {
         });
     }
 
+    //-------------chercher tous les films actifs---------------
+    public List<Movie> getAllActive(){
+        return movieRepository.findByDeletedFalseOrderByTitleAsc();
+    }
 }

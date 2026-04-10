@@ -12,4 +12,5 @@ import java.util.List;
 @Repository
 public interface MovieRepository extends JpaRepository<Movie,Long> {
     List<Movie> findByCinemasIdAndDeletedFalse(Long cinemaId);
+    List<Movie> findByDeletedFalseOrderByTitleAsc();
 }

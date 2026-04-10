@@ -38,9 +38,13 @@ public class MovieController {
      * @return the view name "movies"
      */
     @GetMapping("/movies")
-    public String moviesByCinema(@RequestParam Long cinemaId, Model model){
-        model.addAttribute(MOVIES, movieService.getByCinema(cinemaId));
-        model.addAttribute("cinemaId", cinemaId);
+    public String moviesByCinema(@RequestParam(required = false) Long cinemaId, Model model){
+        if (cinemaId != null){
+            model.addAttribute(MOVIES, movieService.getByCinema(cinemaId));
+        } else {
+            model.addAttribute(MOVIES, movieService.getAllActive());
+        }
+        model.addAttribute("cinemaId", null);
         return MOVIES;
     }
 
