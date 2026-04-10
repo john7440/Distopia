@@ -30,6 +30,7 @@ class Movie{
 - duration : int
 - genre : String
 - imageUrl : String
+- trailerUrl : String
 - deleted : boolean
 
 }
