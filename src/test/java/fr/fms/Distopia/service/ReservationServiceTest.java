@@ -1,4 +1,4 @@
-package fr.fms.Distopia;
+package fr.fms.Distopia.service;
 
 import fr.fms.Distopia.dao.ReservationRepository;
 import fr.fms.Distopia.dao.SeanceRepository;
@@ -7,7 +7,6 @@ import fr.fms.Distopia.entities.Reservation;
 import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
-import fr.fms.Distopia.service.ReservationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -130,5 +129,24 @@ public class ReservationServiceTest {
         assertThat(result.getQuantity()).isEqualTo(5);
         assertThat(result.getId()).isEqualTo(99L);
         assertThat(seance.getAvailableSeats()).isEqualTo(7);
+    }
+
+    //----Test 5 ------------------une réservation avec exactement 1 place restante-------------------
+    @Test
+    void should_allow_reservation_when_exactly_one_seat_left(){
+        //GIVEN
+        Seance seance = buildSeance(1);
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(buildUser()));
+        when(reservationRepository.findAllByUserIdAndSeanceId(2L, 1L)).thenReturn(List.of());
+        when(reservationRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        //WHEN
+        Reservation result = reservationService.createReservation(1L,2L,1);
+
+        //THEN
+        assertThat(result.getQuantity()).isEqualTo(1);
+        assertThat(seance.getAvailableSeats()).isEqualTo(0);
     }
 }
