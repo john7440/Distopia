@@ -90,4 +90,18 @@ public class ReservationServiceTest {
 
         verify(reservationRepository, never()).save(any());
     }
+
+    //-----Test 3---------Séance complète (0 places restantes)
+    @Test
+    void should_throw_exception_when_seance_is_full(){
+        //GIVEN
+        Seance seance = buildSeance(0);
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(buildUser()));
+
+        //WHEN + THEN
+        assertThatThrownBy(() -> reservationService.createReservation(1L,2L,1))
+                .isInstanceOf(NoSeatsAvailableException.class);
+    }
 }
