@@ -25,6 +25,8 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private static final String REDIRECTAFTERLOGIN = "redirectAfterLogin";
+
     //-------------affichage page de connexion -------------------
 
     /**
@@ -32,7 +34,11 @@ public class UserController {
      * @return the name of the login template
      */
     @GetMapping("/login")
-    public String loginPage() {
+    public String loginPage(@RequestParam(required = false)String redirect,HttpSession session, Model model) {
+        if (redirect != null) {
+            session.setAttribute(REDIRECTAFTERLOGIN, redirect);
+        }
+        model.addAttribute("redirect", redirect);
         return "login";
     }
 
@@ -50,7 +56,9 @@ public class UserController {
     public String login(@RequestParam String username, @RequestParam String password, HttpSession session, Model model) {
         return userService.login(username, password)
                 .map(user -> {SessionUtils.setUser(session, user);
-                    return SessionUtils.REDIRECTION;
+                    String redirect = (String) session.getAttribute(REDIRECTAFTERLOGIN);
+                    session.removeAttribute(REDIRECTAFTERLOGIN);
+                    return "redirect:"+ (redirect != null ? redirect : "/index");
                 })
                 .orElseGet(() -> {model.addAttribute("error", "Identifiants incorrects");
                     return "login";
