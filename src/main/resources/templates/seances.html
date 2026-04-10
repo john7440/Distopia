@@ -75,9 +75,9 @@
                             </button>
                         </div>
 
-                        <!-- visiteur non connecté -->
+                        <!-- redirection login + sauvegarde de l'url avant redirection-->
                         <div th:if="${session.connectedUser == null}">
-                            <a th:href="@{/login}" class="btn btn-outline-primary w-100">
+                            <a th:href="@{/login(redirect=${'/seances?movieId=' + movieId + '&cinemaId=' + cinemaId})}"
                                 <i class="bi bi-person-circle"></i> Connectez-vous pour réserver
                             </a>
                         </div>
