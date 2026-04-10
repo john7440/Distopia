@@ -33,7 +33,7 @@
         <h2 class="fw-bold mb-4">
             <i class="bi bi-film text-dark"></i> Films à l'affiche
         </h2>
-
+git co
         <!-- liste films -->
         <div class="row g-4">
         <div class="col-md-4 col-lg-3" th:each="movie : ${movies}">
@@ -74,7 +74,9 @@
                     <!-- Hint visuel en bas de card -->
                     <div class="card-footer bg-transparent border-0 pb-3 px-3">
                 <span class="text-primary small fw-semibold">
-                    <i class="bi bi-info-circle me-1"></i> Voir les détails et séances
+                    <i class="bi bi-info-circle me-1"></i>
+                    <span th:if="${cinemaId != null}">Voir les détails et séances</span>
+                    <span th:if="${cinemaId == null}">Voir les détails</span>
                 </span>
                     </div>
 
