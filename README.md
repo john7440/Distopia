@@ -275,6 +275,14 @@ INSERT INTO seance (id, date_time, available_seats, price, movie_id, cinema_id) 
 
 -- The Batman — Pathé Toulouse Wilson (cinema 10)
 (25, '2026-04-16 20:00:00', 75,  9.50,  8, 10);
+
+UPDATE movie SET trailer_url = 'https://www.youtube.com/embed/n9xhJrPXop4' WHERE id = 1; -- Dune 2
+UPDATE movie SET trailer_url = 'https://www.youtube.com/embed/YoHD9XEInc0' WHERE id = 2; -- Inception
+UPDATE movie SET trailer_url = 'https://www.youtube.com/embed/zSWdZVtXT7E' WHERE id = 3; -- Interstellar
+UPDATE movie SET trailer_url = 'https://www.youtube.com/embed/LEjhY15eCx0' WHERE id = 5; -- Inside Out 2
+UPDATE movie SET trailer_url = 'https://www.youtube.com/embed/sAeNumA6UkQ' WHERE id = 6; -- Alien Romulus
+UPDATE movie SET trailer_url = 'https://www.youtube.com/embed/uYPbbksJxIg' WHERE id = 7; -- Oppenheimer
+UPDATE movie SET trailer_url = 'https://www.youtube.com/embed/mqqft2x_Aa4' WHERE id = 8; -- The Batman
 ```
 > **Note** : le jeu de données **ne contient pas d'utilisateur** et par conséquent **pas de réservations**.
 > Vous pouvez les créer manuellement via le bouton `inscription` de la barre de navigation puis faire des réservations qui apparaîtront
