@@ -77,7 +77,7 @@ public class MovieService {
      */
     @Transactional
     public Movie save(Long id, String title, String description,
-                      int duration, String genre, String imageUrl,
+                      int duration, String genre, String imageUrl, String trailerUrl,
                       List<Long> cinemaIds) {
 
         Movie movie = (id != null)
@@ -89,6 +89,7 @@ public class MovieService {
         movie.setDuration(duration);
         movie.setGenre(genre);
         movie.setImageUrl(imageUrl);
+        movie.setTrailerUrl(trailerUrl);
 
         movie.getCinemas().forEach(c -> c.getMovies().remove(movie));
         movie.getCinemas().clear();

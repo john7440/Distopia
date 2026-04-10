@@ -35,6 +35,7 @@ public class Movie implements Serializable {
     @Column(nullable = false)
     private boolean deleted = false;
     private String imageUrl;
+    private String trailerUrl;
 
     @ManyToMany(mappedBy = "movies")
     private List<Cinema> cinemas =  new ArrayList<>();

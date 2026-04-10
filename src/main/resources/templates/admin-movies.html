@@ -66,7 +66,12 @@
                                        th:value="${editMovie != null ? editMovie.imageUrl : ''}"
                                        placeholder="https://...">
                             </div>
-
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold">URL Bande-annonce YouTube</label>
+                                <input type="text" name="trailerUrl" class="form-control"
+                                       th:value="${editMovie != null ? editMovie.trailerUrl : ''}"
+                                       placeholder="https://www.youtube.com/embed/XXXXXXXX">
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">
                                     Cinémas
