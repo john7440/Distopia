@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title th:text="'Distopia — ' + ${movie.title}">Détail film</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="container py-5" th:if="${movie != null}">
+
+        <a href="javascript:history.back()" class="btn btn-outline-danger mb-4">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+        <div class="row g-4 mb-5">
+            <!-- affiche -->
+            <div class="col-md-3">
+                <img th:if="${movie.imageUrl != null and !movie.imageUrl.isBlank()}"
+                     th:src="${movie.imageUrl}"
+                     th:alt="${movie.title}"
+                     class="img-fluid rounded shadow"
+                     style="width:100%; object-fit:cover;">
+                <div th:if="${movie.imageUrl == null or movie.imageUrl.isBlank()}"
+                     class="bg-dark rounded d-flex align-items-center justify-content-center"
+                     style="height:400px;">
+                    <i class="bi bi-film text-secondary" style="font-size:5rem;"></i>
+                </div>
+            </div>
+
+            <!-- infos -->
+            <div class="col-md-9">
+                <h1 class="fw-bold mb-2" th:text="${movie.title}"></h1>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="badge bg-primary fs-6"
+                      th:text="${movie.genre}"></span>
+                    <span class="badge bg-light text-dark border fs-6">
+                    <i class="bi bi-clock"></i>
+                    <span th:text="${movie.duration} + ' min'"></span>
+                </span>
+                </div>
+
+                <p class="lead text-muted" th:text="${movie.description}"></p>
+
+                <!-- bande-annonce YouTube -->
+                <div th:if="${movie.trailerUrl != null and !movie.trailerUrl.isBlank()}"
+                     class="ratio ratio-16x9 mt-4" style="max-width: 640px;">
+                    <iframe th:src="${movie.trailerUrl}"
+                            title="Bande-annonce"
+                            allowfullscreen
+                            allow="accelerometer; autoplay; clipboard-write;
+                               encrypted-media; gyroscope; picture-in-picture">
+                    </iframe>
+                </div>
+
+                <!-- si paas de bande-annonce -->
+                <div th:if="${movie.trailerUrl == null or movie.trailerUrl.isBlank()}"
+                     class="alert alert-light border mt-4 text-muted"
+                     style="max-width:640px;">
+                    <i class="bi bi-camera-video-off me-2"></i>
+                    Aucune bande-annonce disponible pour ce film
+                </div>
+            </div>
+        </div>
+
+        <!-- séances à venir groupés par cinéma -->
+        <h2 class="fw-bold mb-4">
+            <i class="bi bi-calendar3 text-dark"></i> Prochaines séances
+        </h2>
+
+        <div th:if="${seances == null or seances.isEmpty()}"
+             class="alert alert-light border text-muted text-center py-4">
+            <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
+            Aucune séance à venir pour ce film.
+        </div>
+
+        <div th:if="${seances != null and !seances.isEmpty()}">
+
+            <!-- itère sur les cinémas uniques via les séances -->
+            <div th:each="seance, iter : ${seances}">
+
+                <div th:if="${iter.first or seances[__${iter.index - 1}__].cinema.id != seance.cinema.id}"
+                     class="d-flex align-items-center gap-2 mt-4 mb-3">
+                    <i class="bi bi-geo-alt-fill text-primary fs-5"></i>
+                    <h5 class="fw-bold mb-0" th:text="${seance.cinema.name}"></h5>
+                    <span class="text-muted small"
+                          th:text="${seance.cinema.address}"></span>
+                </div>
+
+                <!-- Card séance -->
+                <div class="card mb-2 border-0 shadow-sm">
+                    <div class="card-body d-flex align-items-center
+                            justify-content-between flex-wrap gap-3">
+
+                        <div class="d-flex gap-4">
+                            <div>
+                                <div class="text-muted small">Date</div>
+                                <div class="fw-semibold"
+                                     th:text="${#temporals.format(seance.dateTime, 'dd/MM/yyyy')}">
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-muted small">Heure</div>
+                                <div class="fw-semibold"
+                                     th:text="${#temporals.format(seance.dateTime, 'HH:mm')}">
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-muted small">Prix</div>
+                                <div class="fw-semibold"
+                                     th:text="${seance.price} + ' €'">
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-muted small">Places</div>
+                                <div th:if="${seance.availableSeats > 0}"
+                                     class="fw-semibold text-success"
+                                     th:text="${seance.availableSeats} + ' restantes'">
+                                </div>
+                                <div th:if="${seance.availableSeats == 0}"
+                                     class="fw-semibold text-danger">
+                                    Complet
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- bouton réserver -->
+                        <div>
+                            <form th:if="${seance.availableSeats > 0
+                                       and session.connectedUser != null}"
+                                  th:action="@{/reserve}" method="post"
+                                  class="d-flex gap-2 align-items-center">
+                                <input type="hidden" name="seanceId"
+                                       th:value="${seance.id}">
+                                <input type="number" name="quantity"
+                                       class="form-control form-control-sm"
+                                       value="1" min="1"
+                                       th:max="${seance.availableSeats}"
+                                       style="width:70px;">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-ticket-perforated"></i> Réserver
+                                </button>
+                            </form>
+
+                            <span th:if="${seance.availableSeats > 0
+                                       and session.connectedUser == null}">
+                            <a th:href="@{/login}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-person-circle"></i> Connexion pour réserver
+                            </a>
+                        </span>
+
+                            <span th:if="${seance.availableSeats == 0}"
+                                  class="badge bg-danger fs-6 px-3 py-2">Complet
+                        </span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!--si film introuvable -->
+    <div th:if="${movie == null}" class="container py-5 text-center text-muted">
+        <i class="bi bi-question-circle fs-1 d-block mb-3"></i>
+        <p class="fs-5">Film introuvable.</p>
+        <a th:href="@{/cinemas}" class="btn btn-outline-primary">Retour aux cinémas</a>
+    </div>
+
+</section>
+</body>
+</html>
