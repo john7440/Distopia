@@ -17,7 +17,7 @@ Spring Boot / JPA / Thymeleaf
 
 Distopia est une application web permettant de consulter et gérer un parc de cinémas répartis en France où  
 les visiteurs peuvent rechercher des cinémas par ville ou par mot-clé, consulter les films à l'affiche et les séances disponibles.  
-Les utilisateurs connectés peuvent réserver une ou plusieurs places pour une séance donnée.  
+Les utilisateurs connectés peuvent réserver une ou plusieurs places pour une séance donnée et voir leurs réservations.  
 L'administrateur dispose d'une interface complète pour gérer les villes, cinémas, films et séances.
 
 > L'authentification est gérée via session HTTP avec hachage des mots de passe BCrypt
@@ -29,7 +29,7 @@ L'administrateur dispose d'une interface complète pour gérer les villes, ciné
 - Rechercher des cinémas par **ville** et/ ou par **mot-clé**
 - Afficher tous les **films à l'affiche** d'un cinéma
 - Consulter les **séances disponibles** d'un film avec prix et nombre de places restantes
-- S'inscrire/ se connecter
+- S'inscrire/ Se connecter
 
 ### Utilisateur connecté
 - **Réserver une ou plusieurs places** pour une séance (avec contrôle du nombre de places dispos)
@@ -61,7 +61,7 @@ L'application suit une **architecture MVC multi-couches** :
 | Composant           | Technologie                                |
 |---------------------|--------------------------------------------|
 | **Langage**         | Java 17                                    |
-| **Framework**       | Spring Boot 4.x                            |
+| **Framework**       | Spring Boot 4.0.5                          |
 | **Vue**             | Thymeleaf + Thymeleaf Layout               |
 | **ORM**             | Spring Data JPA / Hibernate                |
 | **Sécurité**        | Spring Security (BCrypt, session custom)   |
@@ -106,7 +106,7 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MariaDBDialect
 ```
 
 > **Note** : **Adaptez** le port, l'utilisateur et le mot de passe **selon votre configuration** MariaDB locale
-> 
+
 > **Important** : vous pouvez créer un admin via la route **/createAdmin** (ID : admin/ Pass : admin123), **n'oubliez pas**
 > de supprimer la méthode dans `UserController` après utilisation !
 
