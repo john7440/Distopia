@@ -104,4 +104,31 @@ public class ReservationServiceTest {
         assertThatThrownBy(() -> reservationService.createReservation(1L,2L,1))
                 .isInstanceOf(NoSeatsAvailableException.class);
     }
+
+    //----Test 4-------- fusion si réservation déjà éxistante-----------
+    @Test
+    void should_update_existing_reservation_instead_of_creating_new(){
+        //GIVEN
+        Seance seance = buildSeance(10);
+        User user = buildUser();
+
+        Reservation existing = new Reservation();
+        existing.setId(99L);
+        existing.setQuantity(2);
+        existing.setUser(user);
+        existing.setSeance(seance);
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
+        when(reservationRepository.findAllByUserIdAndSeanceId(2L, 1L)).thenReturn(List.of(existing));
+        when(reservationRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        //WHEN
+        Reservation result = reservationService.createReservation(1L,2L,3);
+
+        //THEN
+        assertThat(result.getQuantity()).isEqualTo(5);
+        assertThat(result.getId()).isEqualTo(99L);
+        assertThat(seance.getAvailableSeats()).isEqualTo(7);
+    }
 }
