@@ -108,4 +108,9 @@ public class SeanceService {
         }
         seanceRepository.delete(seance);
     }
+
+    //------------------séances a venir pour un film ----------------
+    public List<Seance> getUpcomingByMovie(Long movieId) {
+        return seanceRepository.findByMovieIdAndDateTimeAfterOrderByDateTimeAsc(movieId, LocalDateTime.now());
+    }
 }

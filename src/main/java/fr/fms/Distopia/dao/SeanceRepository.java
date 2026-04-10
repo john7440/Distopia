@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,4 +24,5 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     @Query("SELECT s FROM Seance s WHERE s.id = :id")
     Optional<Seance> findByIdForUpdate(@Param("id") Long id);
     List<Seance> findByMovieIdAndCinemaIdOrderByDateTimeAsc(Long movieId, Long cinemaId);
+    List<Seance> findByMovieIdAndDateTimeAfterOrderByDateTimeAsc(Long movieId, LocalDateTime after);
 }

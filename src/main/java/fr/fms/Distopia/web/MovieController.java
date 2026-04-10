@@ -2,6 +2,7 @@ package fr.fms.Distopia.web;
 
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
+import fr.fms.Distopia.service.SeanceService;
 import fr.fms.Distopia.utils.SessionUtils;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,8 @@ public class MovieController {
     private MovieService movieService;
     @Autowired
     private CinemaService cinemaService;
+    @Autowired
+    private SeanceService seanceService;
 
     private static final String MOVIES = "movies";
 
@@ -91,9 +94,10 @@ public class MovieController {
     public String saveMovie(@RequestParam(required = false) Long id, @RequestParam String title,
                             @RequestParam String description, @RequestParam int duration, @RequestParam String genre,
                             @RequestParam(required = false) List<Long> cinemaIds,
-                            @RequestParam(required = false) String imageUrl, HttpSession session){
+                            @RequestParam(required = false) String imageUrl,@RequestParam(required = false) String trailerUrl,
+                            HttpSession session){
         if(SessionUtils.isNotAdmin(session)) return  SessionUtils.REDIRECTION;
-        movieService.save(id, title, description, duration, genre, imageUrl,cinemaIds);
+        movieService.save(id, title, description, duration, genre, imageUrl,trailerUrl,cinemaIds);
         return "redirect:/admin/movies";
     }
 
@@ -116,5 +120,12 @@ public class MovieController {
         if(SessionUtils.isNotAdmin(session)) return  SessionUtils.REDIRECTION;
         movieService.softDelete(id);
         return "redirect:/admin/movies";
+    }
+
+    @GetMapping("/movie")
+    public String movieDetail(@RequestParam Long id, Model model){
+        movieService.findById(id).ifPresent(m -> model.addAttribute("movie", m));
+        model.addAttribute("seances", seanceService.getUpcomingByMovie(id));
+        return "movie-detail";
     }
 }
