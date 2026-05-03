@@ -120,4 +120,19 @@ class CinemaServiceTest {
         verify(townRepository, never()).findById(any());
     }
 
+    //---------------------------tests du delete()---------------------------
+
+    @Test
+    @DisplayName("delete() - deletes cinema and soft-deletes orphaned movies")
+    void deleteShouldDeleteCinemaAndSoftDeletesOrphanedMovies() {
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+
+        cinemaService.delete(1L);
+
+        assertThat(movie.isDeleted()).isTrue();
+        verify(movieRepository).save(movie);
+        verify(cinemaRepository).delete(cinema);
+    }
+
+
 }
