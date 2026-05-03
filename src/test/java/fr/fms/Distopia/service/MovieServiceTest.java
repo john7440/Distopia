@@ -58,7 +58,7 @@ class MovieServiceTest {
 
     //------------------tests du softDelete() ----------------------------------
     @Test
-    @DisplayName("softDelete() -  marks movie as deleted andd sets all seance seats at 0")
+    @DisplayName("softDelete() -  marks movie as deleted and sets all seance seats at 0")
     void softDelete_shouldMarkMovieAsDeletedAndZeroOutSeats(){
         when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
 
@@ -68,5 +68,16 @@ class MovieServiceTest {
         assertThat(seance.getAvailableSeats()).isZero();
         verify(seanceRepository).saveAll(movie.getSeances());
         verify(movieRepository).save(movie);
+    }
+
+    @Test
+    @DisplayName("softDelete() - does nothing when movie id not found")
+    void softDelete_shouldDoNothingWhenMovieIdNotFound(){
+        when(movieRepository.findById(99L)).thenReturn(Optional.empty());
+
+        movieService.softDelete(99L);
+
+        verify(movieRepository, never()).save(any());
+        verify(seanceRepository,never()).saveAll(any());
     }
 }
