@@ -100,4 +100,26 @@ import static org.mockito.Mockito.*;
         assertThatThrownBy(() -> seanceService.save(null, futureDate, 200, 15.0,99L,1L))
             .isInstanceOf(NoSuchElementException.class);
     }
+
+    @Test
+    @DisplayName("save() - throws RuntimeException when cinemaId not found")
+    void save_shouldThrowRuntimeExceptionWhenCinemaIdNotFound() {
+        when(cinemaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> seanceService.save(null, futureDate, 200, 15.0,null,99L))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Cinéma introuvable");
+    }
+
+    @Test
+    @DisplayName("save() - skips movie assignment when movieId is null")
+    void save_shouldSkipMovieAssignmentWhenMovieIdIsNull() {
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(seanceRepository.save(any(Seance.class))).thenAnswer(i -> i.getArgument(0));
+
+        Seance result = seanceService.save(null, futureDate, 200, 15.0,null,1L);
+
+        assertThat(result.getMovie()).isNull();
+        verify(movieRepository, never()).findById(any());
+    }
 }
