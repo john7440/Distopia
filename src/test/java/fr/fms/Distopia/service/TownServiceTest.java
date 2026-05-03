@@ -81,4 +81,40 @@ class TownServiceTest {
 
         assertThat(result.getName()).isEqualTo("Ville fantôme");
     }
+
+    //---------------------test de la méthode delete()------------------------------------
+    @Test
+    @DisplayName("delete() - sets cinema town to null before deleting town")
+    void delete_shouldNullifyAssociatedCinemasTown_beforeDeletion() {
+        when(townRepository.findById(1L)).thenReturn(Optional.of(town));
+
+        townService.delete(1L);
+
+        assertThat(cinema.getTown()).isNull();
+        verify(cinemaRepository).save(cinema);
+        verify(townRepository).delete(town);
+    }
+
+    @Test
+    @DisplayName("delete() - does nothing when town id not found")
+    void delete_shouldDoNothing_whenTownNotFound() {
+        when(townRepository.findById(99L)).thenReturn(Optional.empty());
+
+        townService.delete(99L);
+
+        verify(cinemaRepository, never()).save(any());
+        verify(townRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("delete() - handles town with no cinemas gracefully")
+    void delete_shouldDeleteTown_whenNoCinemasAssociated() {
+        town.setCinemas(new ArrayList<>());
+        when(townRepository.findById(1L)).thenReturn(Optional.of(town));
+
+        townService.delete(1L);
+
+        verify(cinemaRepository, never()).save(any());
+        verify(townRepository).delete(town);
+    }
 }
