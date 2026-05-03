@@ -7,6 +7,8 @@ import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.entities.Town;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -14,10 +16,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
-public class CinemaServiceTest {
+class CinemaServiceTest {
 
     @Mock
     private CinemaRepository cinemaRepository;
@@ -59,5 +67,20 @@ public class CinemaServiceTest {
 
     }
 
+    //---------------------------tests du save()--------------------
+
+    @Test
+    @DisplayName("save() - creates a new cinema when id is null")
+    void saveShouldCreateNewCinemaWhenIdIsNull() {
+        when(townRepository.findById(1L)).thenReturn(Optional.of(town));
+        when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
+
+        Cinema result = cinemaService.save(null, "Nouveau Ciné", "2 rue du test", 1L);
+
+        assertThat(result.getName()).isEqualTo("Nouveau Ciné");
+        assertThat(result.getAddress()).isEqualTo("2 rue du test");
+        assertThat(result.getTown()).isEqualTo(town);
+        verify(cinemaRepository).save(any(Cinema.class));
+    }
 
 }
