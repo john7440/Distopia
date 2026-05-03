@@ -7,6 +7,8 @@ import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.entities.Seance;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -14,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,5 +54,19 @@ class MovieServiceTest {
         movie.setDeleted(false);
         movie.setSeances(new ArrayList<>(List.of(seance)));
         movie.setCinemas(new ArrayList<>(List.of(cinema)));
+    }
+
+    //------------------tests du softDelete() ----------------------------------
+    @Test
+    @DisplayName("softDelete() -  marks movie as deleted andd sets all seance seats at 0")
+    void softDelete_shouldMarkMovieAsDeletedAndZeroOutSeats(){
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+
+        movieService.softDelete(1L);
+
+        assertThat(movie.isDeleted()).isTrue();
+        assertThat(seance.getAvailableSeats()).isZero();
+        verify(seanceRepository).saveAll(movie.getSeances());
+        verify(movieRepository).save(movie);
     }
 }
