@@ -134,5 +134,19 @@ class CinemaServiceTest {
         verify(cinemaRepository).delete(cinema);
     }
 
+    @Test
+    @DisplayName("delete() - does not soft-delete movie when it still has other cinemas")
+    void deleteShouldNotSoftDeleteMoviesWhenMovieHasOtherCinemas() {
+        Cinema anotherCinema = new Cinema();
+        anotherCinema.setId(2L);
+        movie.getCinemas().add(anotherCinema);
+
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+
+        cinemaService.delete(1L);
+
+        assertThat(movie.isDeleted()).isFalse();
+        verify(cinemaRepository).delete(cinema);
+    }
 
 }
