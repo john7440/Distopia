@@ -5,6 +5,7 @@ import fr.fms.Distopia.dao.MovieRepository;
 import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
+import fr.fms.Distopia.entities.Reservation;
 import fr.fms.Distopia.entities.Seance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -121,5 +122,35 @@ import static org.mockito.Mockito.*;
 
         assertThat(result.getMovie()).isNull();
         verify(movieRepository, never()).findById(any());
+    }
+
+    //---------------------test de la méthode delete()--------------------
+    @Test
+    @DisplayName("delete() - deletes seance successfully when no reservations exists")
+    void delete_shouldDeleteSeanceSuccessfullyWhenNoReservationsExists() {
+        when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
+
+        seanceService.delete(1L);
+
+        verify(seanceRepository).delete(seance);
+    }
+
+    @Test
+    @DisplayName("delete() - throws IllegalStateException when seance has reservations")
+    void delete_shouldThrowIllegalStateExceptionWhenSeanceHasReservations() {
+        Reservation reservation = new Reservation();
+        seance.getReservations().add(reservation);
+        when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
+
+        assertThatThrownBy(() -> seanceService.delete(1L)).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("réservations");
+    }
+
+    @Test
+    @DisplayName("delete() - throws NoSuchElementException when seance id not found")
+    void delete_shouldThrowNoSuchElementExceptionWhenSeanceIdNotFound() {
+        when(seanceRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> seanceService.delete(99L)).isInstanceOf(NoSuchElementException.class);
     }
 }
