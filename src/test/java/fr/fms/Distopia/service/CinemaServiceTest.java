@@ -97,4 +97,16 @@ class CinemaServiceTest {
         verify(cinemaRepository).save(cinema);
     }
 
+    @Test
+    @DisplayName("save() - creates new cinema when id not found in database")
+    void  saveShouldCreateNewCinemaWhenIdNotFoundInDatabase() {
+        when(cinemaRepository.findById(99L)).thenReturn(Optional.empty());
+        when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
+
+        Cinema result = cinemaService.save(99L, "Ghost Ciné", "Nul part", null);
+
+        assertThat(result.getName()).isEqualTo("Ghost Ciné");
+        assertThat(result.getTown()).isNull();
+    }
+
 }
