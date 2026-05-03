@@ -21,7 +21,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -107,6 +107,17 @@ class CinemaServiceTest {
 
         assertThat(result.getName()).isEqualTo("Ghost Ciné");
         assertThat(result.getTown()).isNull();
+    }
+
+    @Test
+    @DisplayName("save() - does not set town when townId is null")
+    void saveShouldNotSetTownWhenTownIdIsNull() {
+        when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
+
+        Cinema result = cinemaService.save(null, "Sans Ville", "Adresse", null);
+
+        assertThat(result.getTown()).isNull();
+        verify(townRepository, never()).findById(any());
     }
 
 }
