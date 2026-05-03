@@ -71,7 +71,7 @@ class CinemaServiceTest {
 
     @Test
     @DisplayName("save() - creates a new cinema when id is null")
-    void saveShouldCreateNewCinemaWhenIdIsNull() {
+    void save_ShouldCreateNewCinemaWhenIdIsNull() {
         when(townRepository.findById(1L)).thenReturn(Optional.of(town));
         when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -85,7 +85,7 @@ class CinemaServiceTest {
 
     @Test
     @DisplayName("save() - updates existing cinema when id is found")
-    void saveShouldUpdateExistingCinemaWhenIdIsFound() {
+    void save_ShouldUpdateExistingCinemaWhenIdIsFound() {
         when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
         when(townRepository.findById(1L)).thenReturn(Optional.of(town));
         when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
@@ -99,7 +99,7 @@ class CinemaServiceTest {
 
     @Test
     @DisplayName("save() - creates new cinema when id not found in database")
-    void  saveShouldCreateNewCinemaWhenIdNotFoundInDatabase() {
+    void save_ShouldCreateNewCinemaWhenIdNotFoundInDatabase() {
         when(cinemaRepository.findById(99L)).thenReturn(Optional.empty());
         when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -111,7 +111,7 @@ class CinemaServiceTest {
 
     @Test
     @DisplayName("save() - does not set town when townId is null")
-    void saveShouldNotSetTownWhenTownIdIsNull() {
+    void save_ShouldNotSetTownWhenTownIdIsNull() {
         when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
 
         Cinema result = cinemaService.save(null, "Sans Ville", "Adresse", null);
@@ -124,7 +124,7 @@ class CinemaServiceTest {
 
     @Test
     @DisplayName("delete() - deletes cinema and soft-deletes orphaned movies")
-    void deleteShouldDeleteCinemaAndSoftDeletesOrphanedMovies() {
+    void delete_ShouldDeleteCinemaAndSoftDeletesOrphanedMovies() {
         when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
 
         cinemaService.delete(1L);
@@ -136,7 +136,7 @@ class CinemaServiceTest {
 
     @Test
     @DisplayName("delete() - does not soft-delete movie when it still has other cinemas")
-    void deleteShouldNotSoftDeleteMoviesWhenMovieHasOtherCinemas() {
+    void delete_ShouldNotSoftDeleteMoviesWhenMovieHasOtherCinemas() {
         Cinema anotherCinema = new Cinema();
         anotherCinema.setId(2L);
         movie.getCinemas().add(anotherCinema);
@@ -147,6 +147,17 @@ class CinemaServiceTest {
 
         assertThat(movie.isDeleted()).isFalse();
         verify(cinemaRepository).delete(cinema);
+    }
+
+    @Test
+    @DisplayName("delete() - does nothing when cinema id is not found")
+    void delete_ShouldDoNothingWhenCinemaIdIsNotFound() {
+        when(cinemaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        cinemaService.delete(99L);
+
+        verify(cinemaRepository, never()).delete(any());
+        verify(movieRepository, never()).save(any());
     }
 
 }
