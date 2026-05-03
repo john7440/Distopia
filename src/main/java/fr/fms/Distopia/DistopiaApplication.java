@@ -9,4 +9,8 @@ public class DistopiaApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(DistopiaApplication.class, args);
 	}
+//-----comptes: -----
+// - admin : admin123
+// - alice: password
+// - jonatemps : password
 }
