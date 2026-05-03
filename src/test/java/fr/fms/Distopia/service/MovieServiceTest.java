@@ -80,4 +80,55 @@ class MovieServiceTest {
         verify(movieRepository, never()).save(any());
         verify(seanceRepository,never()).saveAll(any());
     }
+
+    //-------------------test du save()-------------------------------------------
+
+    @Test
+    @DisplayName("save() - creates a new movie when id is null")
+    void save_shouldCreateNewMovie_whenIdIsNull() {
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(movieRepository.save(any(Movie.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Movie result = movieService.save(null, "Interstellar", "A space movie",
+                169, "Sci-Fi", "url.jpg", "trailer.mp4", List.of(1L));
+
+        assertThat(result.getTitle()).isEqualTo("Interstellar");
+        assertThat(result.getCinemas()).contains(cinema);
+        verify(movieRepository).save(any(Movie.class));
+    }
+
+    @Test
+    @DisplayName("save() - updates existing movie and resets cinema associations")
+    void save_shouldUpdateExistingMovieAndResetCinemas_whenIdExists() {
+        Cinema newCinema = new Cinema();
+        newCinema.setId(2L);
+
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(cinemaRepository.findById(2L)).thenReturn(Optional.of(newCinema));
+        when(movieRepository.save(any(Movie.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Movie result = movieService.save(1L, "Inception V2", "Updated", 148, "Thriller",
+                "new.jpg", "new_trailer.mp4", List.of(2L));
+
+        assertThat(result.getTitle()).isEqualTo("Inception V2");
+        assertThat(result.getCinemas()).containsOnly(newCinema);
+        assertThat(result.getCinemas()).doesNotContain(cinema);
+    }
+
+    //--------------------test de getByCinema()----------------------
+    @Test
+    @DisplayName("getByCinema() - returns only non-deleted movies for a cinema")
+    void findActiveByCinema_shouldReturnOnlyNonDeletedMovies() {
+        Movie deletedMovie = new Movie();
+        deletedMovie.setDeleted(true);
+
+        when(movieRepository.findByCinemasIdAndDeletedFalse(1L))
+                .thenReturn(List.of(movie));
+
+        List<Movie> result = movieService.getByCinema(1L);
+
+        assertThat(result).containsOnly(movie);
+        assertThat(result).doesNotContain(deletedMovie);
+    }
+
 }
