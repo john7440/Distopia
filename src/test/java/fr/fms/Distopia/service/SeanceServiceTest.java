@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,5 +75,29 @@ import static org.mockito.Mockito.*;
         assertThat(result.getCinema()).isEqualTo(cinema);
         assertThat(result.getMovie()).isEqualTo(movie);
         verify(seanceRepository).save(any(Seance.class));
+    }
+
+    @Test
+    @DisplayName("save() - updates existing seance when id is found")
+    void save_shouldUpdateExistingSeanceWhenIdIsFound() {
+        when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(seanceRepository.save(any(Seance.class))).thenAnswer(i -> i.getArgument(0));
+
+        Seance result = seanceService.save(1L, futureDate, 200, 15.0,1L,1L);
+
+        assertThat(result.getAvailableSeats()).isEqualTo(200);
+        assertThat(result.getPrice()).isEqualTo(15.0);
+        verify(seanceRepository).save(seance);
+    }
+
+    @Test
+    @DisplayName("save() - throws NoSuchElementException when movieId not found")
+    void save_shouldThrowNoSuchElementExceptionWhenMovieIdNotFound() {
+        when(movieRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> seanceService.save(null, futureDate, 200, 15.0,99L,1L))
+            .isInstanceOf(NoSuchElementException.class);
     }
 }
