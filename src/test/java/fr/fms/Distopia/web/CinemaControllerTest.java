@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -99,5 +100,53 @@ class CinemaControllerTest {
         cinemaController.cinemasByTown(null,null,model);
 
         verify(model).addAttribute("keyword", "");
+    }
+
+    //--------------------tests for adminCinemas()------------------
+    @Test
+    @DisplayName("adminCinemas() - return 'admin-cinemas' view for admin user")
+    void adminCinemas_ShouldReturnAdminCinemasView() {
+        when(httpSession.getAttribute("connectedUser")).thenReturn(adminUser);
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(townService.getAll()).thenReturn(List.of(town));
+
+        String view = cinemaController.adminCinemas(null,model,httpSession);
+
+        assertThat(view).isEqualTo("admin-cinemas");
+    }
+
+    @Test
+    @DisplayName("adminCinemas() - redirects non-admin user")
+    void adminCinemas_shouldRedirect_whenUserIsNotAdmin() {
+        when(httpSession.getAttribute("connectedUser")).thenReturn(regularUser);
+
+        String view = cinemaController.adminCinemas(null, model, httpSession);
+
+        assertThat(view).startsWith("redirect:");
+        verify(cinemaService, never()).getAll();
+    }
+
+    @Test
+    @DisplayName("adminCinemas() - adds editCinema to model when editId is provided")
+    void adminCinemas_shouldAddEditCinemaToModel_whenEditIdProvided() {
+        when(httpSession.getAttribute("connectedUser")).thenReturn(adminUser);
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(townService.getAll()).thenReturn(List.of(town));
+        when(cinemaService.findById(1L)).thenReturn(Optional.of(cinema));
+
+        cinemaController.adminCinemas(1L, model, httpSession);
+
+        verify(cinemaService).findById(1L);
+        verify(model).addAttribute("editCinema", cinema);
+    }
+
+    @Test
+    @DisplayName("adminCinemas() - redirects when no session user")
+    void adminCinemas_shouldRedirect_whenSessionIsEmpty() {
+        when(httpSession.getAttribute("connectedUser")).thenReturn(null);
+
+        String view = cinemaController.adminCinemas(null, model, httpSession);
+
+        assertThat(view).startsWith("redirect:");
     }
 }
