@@ -83,4 +83,18 @@ class CinemaServiceTest {
         verify(cinemaRepository).save(any(Cinema.class));
     }
 
+    @Test
+    @DisplayName("save() - updates existing cinema when id is found")
+    void saveShouldUpdateExistingCinemaWhenIdIsFound() {
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(townRepository.findById(1L)).thenReturn(Optional.of(town));
+        when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
+
+        Cinema result = cinemaService.save(1L, "Ciné update", "3 rue de la modif", 1L);
+
+        assertThat(result.getName()).isEqualTo("Ciné update");
+        assertThat(result.getAddress()).isEqualTo("3 rue de la modif");
+        verify(cinemaRepository).save(cinema);
+    }
+
 }
