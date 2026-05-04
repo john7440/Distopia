@@ -48,4 +48,29 @@ class SessionUtilsTest {
 
         assertThat(SessionUtils.isNotConnected(session)).isFalse();
     }
+
+    //----------------tests for isNotAdmin() --------------------------
+    @Test
+    @DisplayName("isNotAdmin() - returns false when the user in session is admin")
+    void isNotAdmin_shouldReturnFalseWhenUserInSessionIsAdmin() {
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+
+        assertThat(SessionUtils.isNotAdmin(session)).isFalse();
+    }
+
+    @Test
+    @DisplayName("isNotAdmin() - returns true when the user in session is not admin")
+    void isNotAdmin_shouldReturnTrueWhenUserIsNotAdmin() {
+        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
+
+        assertThat(SessionUtils.isNotAdmin(session)).isTrue();
+    }
+
+    @Test
+    @DisplayName("isNotAdmin() - returns true when there is no user in the session")
+    void isNotAdmin_shouldReturnTrueWhenThereIsNoUserInSession() {
+        when(session.getAttribute("connectedUser")).thenReturn(null);
+
+        assertThat(SessionUtils.isNotAdmin(session)).isTrue();
+    }
 }
