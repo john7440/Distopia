@@ -3,10 +3,7 @@ package fr.fms.Distopia.service;
 import fr.fms.Distopia.dao.ReservationRepository;
 import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.dao.UserRepository;
-import fr.fms.Distopia.entities.Movie;
-import fr.fms.Distopia.entities.Reservation;
-import fr.fms.Distopia.entities.Seance;
-import fr.fms.Distopia.entities.User;
+import fr.fms.Distopia.entities.*;
 import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -228,5 +225,28 @@ class ReservationServiceTest {
         when(seanceRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThat(reservationService.getMovieIdBySeance(1L)).isNull();
+    }
+
+    //---------------------tests getCinemaIdBySeance()------------------
+    @Test
+    @DisplayName("getCinemaBySeance() - returns the correct cinemaId of the seance")
+    void getCinemaIdBySeance_ShouldReturnCinemaIdBySeance() {
+        Cinema cinema = new Cinema();
+        cinema.setId(10L);
+
+        Seance seance = new Seance();
+        seance.setCinema(cinema);
+
+        when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
+
+        assertThat(reservationService.getCinemaIdBySeance(1L)).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("getCinemaBySeance() - returns ull if empty")
+    void getCinemaIdBySeance_ShouldReturnNullIfEmpty() {
+        when(seanceRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThat(reservationService.getCinemaIdBySeance(1L)).isNull();
     }
 }
