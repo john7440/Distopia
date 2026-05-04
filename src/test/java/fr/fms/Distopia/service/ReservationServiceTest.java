@@ -7,6 +7,7 @@ import fr.fms.Distopia.entities.Reservation;
 import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,6 +31,15 @@ public class ReservationServiceTest {
 
     @InjectMocks
     private ReservationService reservationService;
+
+    //------------test getByUser()----------------
+    @Test
+    @DisplayName("getByUser() - should calls findByUserIdOrderByReservedAtDesc()")
+    void getByUser_ShouldCallFindByUserIdOrderByReservedAtDesc() {
+        reservationService.getByUser(1L);
+
+        verify(reservationRepository).findByUserIdOrderByReservedAtDesc(1L);
+    }
 
     //--------------------helpers avec données réutilisables----------------
     private Seance buildSeance(int availableSeats) {
