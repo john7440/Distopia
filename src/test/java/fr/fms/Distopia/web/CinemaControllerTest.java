@@ -173,4 +173,27 @@ class CinemaControllerTest {
 
     }
 
+    //----------------tests for deleteCinema()------------------------------------
+
+    @Test
+    @DisplayName("deleteCinema() - deletes cinemas and redirects for admin user")
+    void deleteCinema_ShouldDeleteCinemasAndRedirectsForAdminUser() {
+        when(httpSession.getAttribute("connectedUser")).thenReturn(adminUser);
+
+        String view = cinemaController.deleteCinema(1L, httpSession);
+
+        assertThat(view).isEqualTo("redirect:/admin/cinemas");
+        verify(cinemaService).delete(1L);
+    }
+
+    @Test
+    @DisplayName("deleteCinema() - redirects without deleting when user is not admin")
+    void deleteCinema_ShouldRedirectWhenUserIsNotAdmin() {
+        when(httpSession.getAttribute("connectedUser")).thenReturn(regularUser);
+
+        String view = cinemaController.deleteCinema(1L, httpSession);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(cinemaService, never()).delete(any());
+    }
 }
