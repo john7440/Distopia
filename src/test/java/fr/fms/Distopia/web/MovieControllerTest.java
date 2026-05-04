@@ -79,4 +79,26 @@ class MovieControllerTest {
         assertThat(view).isEqualTo("movies");
     }
 
+    @Test
+    @DisplayName("moviesByCinema() - loads movies by cinema when cinemaId provided")
+    void moviesByCinema_ShouldLoadsMoviesByCinemaId(){
+        when(movieService.getByCinema(1L)).thenReturn(List.of(movie));
+
+        movieController.moviesByCinema(1L, model);
+
+        verify(movieService).getByCinema(1L);
+        verify(movieService, never()).getAllActive();
+        verify(model).addAttribute("movies", List.of(movie));
+    }
+
+    @Test
+    @DisplayName("moviesByCinema() - loads all active movies when no cinemaID")
+    void moviesByCinema_ShouldLoadsAllActiveMoviesWhenNoCinemaIdProvided(){
+        when(movieService.getAllActive()).thenReturn(List.of(movie));
+
+        movieController.moviesByCinema(null, model);
+
+        verify(movieService).getAllActive();
+        verify(movieService, never()).getByCinema(any());
+    }
 }
