@@ -165,4 +165,28 @@ class MovieControllerTest {
         assertThat(view).isEqualTo("redirect:/index");
         verify(movieService, never()).save(any(),any(),any(),anyInt(),any(),any(),any(),any());
     }
+
+    //---------------------------tests for deleteMovie()--------------------------
+    @Test
+    @DisplayName("deleteMovie() - soft-delete movie and redirects for admin user")
+    void deleteMovie_ShouldSoftDeleteMovieAndRedirectsForAdminUser(){
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+
+        String view = movieController.deleteMovie(1L, session);
+
+        assertThat(view).isEqualTo("redirect:/admin/movies");
+        verify(movieService).softDelete(1L);
+    }
+
+    @Test
+    @DisplayName("deleteMovie() - redirects without deleting when user is not admin")
+    void deleteMovie_ShouldRedirectsWithoutDeletingWhenUserIsNotAdmin(){
+        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
+
+        String view = movieController.deleteMovie(1L, session);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(movieService, never()).softDelete(1L);
+    }
 }
+
