@@ -4,6 +4,7 @@ package fr.fms.Distopia.web;
 import fr.fms.Distopia.entities.Reservation;
 import fr.fms.Distopia.entities.Role;
 import fr.fms.Distopia.entities.User;
+import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
 import fr.fms.Distopia.service.ReservationService;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,5 +78,45 @@ class ReservationControllerTest {
         reservationController.myReservations(model,session);
 
         verify(model).addAttribute("reservations", List.of(resa));
+    }
+
+    //--------------------------tests for reserveSeance()-----------------
+    @Test
+    @DisplayName("reserveSeance() - redirects to login when user is not connected")
+    void reserveSeance_ShouldRedirectToLogin_WhenUserIsNotConnected(){
+        when(session.getAttribute("connectedUser")).thenReturn(null);
+
+        String view = reservationController.reserveSeance(1L, 2,null,session,redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/login");
+        verify(reservationService,never()).createReservation(any(),any(),anyInt());
+    }
+
+    @Test
+    @DisplayName("reserveSeance() - creates reservation and redirect to my-reservations on success")
+    void reserveSeance_ShouldCreatesReservationAndRedirectToMyReservations_OnSuccess(){
+        when(session.getAttribute("connectedUser")).thenReturn(connectedUser);
+        when(reservationService.existsByUserAndSeance(1L,1L)).thenReturn(false);
+
+        String view = reservationController.reserveSeance(1L,2,null,session,redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/my-reservations");
+        verify(reservationService).createReservation(1L,1L,2);
+        verify(redirectAttributes).addFlashAttribute(eq("message"), any());
+
+    }
+
+    @Test
+    @DisplayName("reserveSeance() - adds error flash attribute when no seats available")
+    void reserveSeance_ShouldAddErrorFlashAttribute_WhenNoSeatsAvailable(){
+        when(session.getAttribute("connectedUser")).thenReturn(connectedUser);
+        when(reservationService.existsByUserAndSeance(1L,1L)).thenReturn(false);
+        doThrow(new NoSeatsAvailableException("Plus de places disponibles"))
+            .when(reservationService).createReservation(1L,1L,2);
+
+        String view = reservationController.reserveSeance(1L,2,null,session,redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/my-reservations");
+        verify(redirectAttributes).addFlashAttribute(eq("error"), eq("Plus de places disponibles"));
     }
 }
