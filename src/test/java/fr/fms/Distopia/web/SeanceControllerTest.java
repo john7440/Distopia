@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -126,4 +127,48 @@ class SeanceControllerTest {
         assertThat(view).isEqualTo("redirect:/index");
     }
 
+    @Test
+    @DisplayName("adminSeances() - adds seances, movies and cinemas to model")
+    void adminSeances_ShouldAddSeancesMoviesAndCinemasToModel() {
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        when(seanceService.getAll()).thenReturn(List.of(seance));
+        when(movieService.getAll()).thenReturn(List.of(movie));
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+
+        seanceController.adminSeances(null,model,session);
+
+        verify(model).addAttribute("seances", List.of(seance));
+        verify(model).addAttribute("movies", List.of(movie));
+        verify(model).addAttribute("cinemas", List.of(cinema));
+    }
+
+    @Test
+    @DisplayName("adminSeances() - adds editSeance to model when editId is provided")
+    void adminSeances_ShouldAddEditSeanceToModelWhenEditIdIsProvided() {
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        when(seanceService.getAll()).thenReturn(List.of(seance));
+        when(movieService.getAll()).thenReturn(List.of(movie));
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(seanceService.findById(1L)).thenReturn(Optional.of(seance));
+
+        seanceController.adminSeances(1L,model,session);
+
+        verify(model).addAttribute("editSeance", seance);
+        verify(seanceService).findById(1L);
+    }
+
+    @Test
+    @DisplayName("adminSeances() - does not add editSeance to model when editId is not found")
+    void adminSeances_ShouldNotAddEditSeanceToModelWhenEditIdIsNotFound() {
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        when(seanceService.getAll()).thenReturn(List.of());
+        when(movieService.getAll()).thenReturn(List.of());
+        when(cinemaService.getAll()).thenReturn(List.of());
+        when(seanceService.findById(99L)).thenReturn(Optional.empty());
+
+        seanceController.adminSeances(99L,model,session);
+
+        verify(model,never()).addAttribute(eq("editSeance"), any());
+
+    }
 }
