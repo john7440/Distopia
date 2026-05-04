@@ -56,6 +56,34 @@ class MovieServiceTest {
         movie.setCinemas(new ArrayList<>(List.of(cinema)));
     }
 
+    //--------test du findById()-------------------------
+    @Test
+    @DisplayName("findByID() - calls findById() Repository")
+    void findByID_ShouldCallFindByIdRepository() {
+        movieService.findById(1L);
+
+        verify(movieRepository).findById(1L);
+    }
+
+    //--------test du getAll()-------------------------
+    @Test
+    @DisplayName("getAll() - calls findAll() Repository")
+    void getAll_ShouldCallFindAllRepository() {
+        movieService.getAll();
+
+        verify(movieRepository).findAll();
+    }
+
+    //--------test du getAllActive()-------------------------
+    @Test
+    @DisplayName("getAllActive() - calls findByDeletedFalseOrderByTitleAsc Repository")
+    void getAllActive_ShouldCallTheCorrectRepository() {
+        movieService.getAllActive();
+
+        verify(movieRepository).findByDeletedFalseOrderByTitleAsc();
+    }
+
+
     //------------------tests du softDelete() ----------------------------------
     @Test
     @DisplayName("softDelete() -  marks movie as deleted and sets all seance seats at 0")
@@ -128,7 +156,6 @@ class MovieServiceTest {
         List<Movie> result = movieService.getByCinema(1L);
 
         assertThat(result).containsOnly(movie);
-        assertThat(result).doesNotContain(deletedMovie);
     }
 
 }
