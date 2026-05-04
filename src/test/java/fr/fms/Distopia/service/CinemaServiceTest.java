@@ -66,6 +66,42 @@ class CinemaServiceTest {
         cinema.getMovies().add(movie);
 
     }
+    //---------------------tests du search()----------------------------------
+    @Test
+    @DisplayName("search() - search with keyword and town should call correct Repo")
+    void search_WithKeywordAndTownShouldCallCorrectRepo() {
+        cinemaService.search("cinema", 1L);
+
+        verify(cinemaRepository).findByTownIdAndNameContainingIgnoreCaseOrTownIdAndAddressContainingIgnoreCase(
+                1L,"cinema", 1L,"cinema"
+        );
+    }
+
+    @Test
+    @DisplayName("search() - search with keyword only should call Keyword Repo")
+    void search_WithKeywordOnlyShouldCallKeywordRepo() {
+        cinemaService.search("cinema", null);
+
+        verify(cinemaRepository).findByNameContainingIgnoreCaseOrAddressContainingIgnoreCase(
+                "cinema", "cinema"
+        );
+    }
+
+    @Test
+    @DisplayName("search() - with town only should call Town Repo")
+    void search_WithTownOnlyShouldCallTownRepo() {
+        cinemaService.search(null, 1L);
+
+        verify(cinemaRepository).findByTownId(1L);
+    }
+
+    @Test
+    @DisplayName("search() - with nothing should returns all")
+    void search_WithNothingShouldReturnsAll() {
+        cinemaService.search(null, null);
+
+        verify(cinemaRepository).findAll();
+    }
 
     //---------------------------tests du save()--------------------
 
