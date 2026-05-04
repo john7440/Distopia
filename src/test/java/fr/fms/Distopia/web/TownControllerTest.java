@@ -157,4 +157,27 @@ class TownControllerTest {
 
         verify(townService).save(1L, "Paris-Updated");
     }
+
+    //---------------------------tests for deleteTown()---------------
+    @Test
+    @DisplayName("deleteTown() - deletes town and redirects for admin user")
+    void deleteTown_ShouldDeleteTownAndRedirectsForAdminUser() {
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+
+        String view = townController.deleteTown(1L,session);
+
+        assertThat(view).isEqualTo("redirect:/admin/towns");
+        verify(townService).delete(1L);
+    }
+
+    @Test
+    @DisplayName("deleteTown() - redirects to index without delete if non admin user")
+    void deleteTown_ShouldRedirectToIndexWithoutDeleteIfNonAdminUser() {
+        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
+
+        String view = townController.deleteTown(1L,session);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(townService,never()).delete(any());
+    }
 }
