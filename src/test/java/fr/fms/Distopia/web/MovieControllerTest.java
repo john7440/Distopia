@@ -139,4 +139,30 @@ class MovieControllerTest {
         verify(movieService).findById(1L);
         verify(model).addAttribute("editMovie", movie);
     }
+
+    //-----------------------------tests for saveMovie()------------------------
+    @Test
+    @DisplayName("saveMovie() - saves movie and redirects for admin user")
+    void saveMovie_ShouldSaveMovieAndRedirectsForAdminUser(){
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+
+        String view = movieController.saveMovie(null,"Inception","Description",
+                178, "Sci-Fi",List.of(1L), "image.url", "trailer.url",session);
+
+        assertThat(view).isEqualTo("redirect:/admin/movies");
+        verify(movieService).save(null,"Inception", "Description",178 ,"Sci-Fi","image.url",
+                "trailer.url", List.of(1L));
+    }
+
+    @Test
+    @DisplayName("saveMovie() - redirects without saving when user is not admin")
+    void saveMovie_ShouldRedirectsWithoutSavingWhenUserIsNotAdmin(){
+        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
+
+        String view = movieController.saveMovie(null,"Inception","Description",
+                178, "Sci-Fi",List.of(1L), "image.url", "trailer.url",session);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(movieService, never()).save(any(),any(),any(),anyInt(),any(),any(),any(),any());
+    }
 }
