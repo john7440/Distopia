@@ -208,4 +208,28 @@ class SeanceControllerTest {
         assertThat(view).isEqualTo("redirect:/index");
         verify(seanceService, never()).save(any(),any(),anyInt(),anyDouble(),any(),any());
     }
+
+    //---------------------------tests for deleteSeance()-----------------------------------
+    @Test
+    @DisplayName("deleteSeance() - deletes seance and redirect for admin user")
+    void deleteSeance_ShouldDeleteSeanceAndRedirectsForAdminUser() {
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+
+        String view = seanceController.deleteSeance(1L,session);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+        verify(seanceService).delete(1L);
+    }
+
+    @Test
+    @DisplayName("deleteSeance() - redirects without saving for non admin user")
+    void deleteSeance_ShouldRedirectsWithoutSavingForNonAdminUser() {
+        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
+
+        String view = seanceController.deleteSeance(1L,session);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(seanceService,never()).delete(any());
+    }
+
 }
