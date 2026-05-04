@@ -119,4 +119,34 @@ class ReservationControllerTest {
         assertThat(view).isEqualTo("redirect:/my-reservations");
         verify(redirectAttributes).addFlashAttribute(eq("error"), eq("Plus de places disponibles"));
     }
+
+    //--------------------------tests for reserveSeance() / with duplicate booking-----------------
+    @Test
+    @DisplayName("reserveSeance() - asks for confirmation when already booked and confirmed is null")
+    void reserveSeance_ShouldAddConfirmation_WhenAlreadyBookedAndConfirmedIsNull(){
+        when(session.getAttribute("connectedUser")).thenReturn(connectedUser);
+        when(reservationService.existsByUserAndSeance(1L,1L)).thenReturn(true);
+        when(reservationService.getMovieIdBySeance(1L)).thenReturn(10L);
+        when(reservationService.getCinemaIdBySeance(1L)).thenReturn(5L);
+
+        String view = reservationController.reserveSeance(1L,1,null,session,redirectAttributes);
+
+        assertThat(view).startsWith("redirect:/seances");
+        verify(redirectAttributes).addFlashAttribute("confirmNeeded", true);
+        verify(redirectAttributes).addFlashAttribute("pendingSeanceId", 1L);
+        verify(redirectAttributes).addFlashAttribute("pendingQuantity", 1);
+        verify(reservationService,never()).createReservation(any(),any(),anyInt());
+    }
+
+    @Test
+    @DisplayName("reserveSeance() - bypasses confirmation and books when confirmed is true")
+    void reserveSeance_ShouldAddConfirmation_WhenConfirmedIsTrue(){
+        when(session.getAttribute("connectedUser")).thenReturn(connectedUser);
+        when(reservationService.existsByUserAndSeance(1L,1L)).thenReturn(true);
+
+        String view =  reservationController.reserveSeance(1L,1,true,session,redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/my-reservations");
+        verify(reservationService).createReservation(1L,1L,1);
+    }
 }
