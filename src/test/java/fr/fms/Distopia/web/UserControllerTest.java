@@ -13,6 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -69,5 +71,42 @@ class UserControllerTest {
         userController.loginPage("/my-reservations",session,model);
 
         verify(session).setAttribute("redirectAfterLogin","/my-reservations");
+    }
+
+    //------------------tests for login() (POST)------------------------------
+    @Test
+    @DisplayName("login() - redirects to /index on successful login with no pending redirect")
+    void loginPage_ShouldRedirectToIndexOnSuccessfulLoginAndNoRedirectStored() {
+        when(userService.login("John","pass123")).thenReturn(Optional.of(user));
+        when(session.getAttribute("redirectAfterLogin")).thenReturn(null);
+
+        String view = userController.login("John","pass123", session,model);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(session).setAttribute("connectedUser",user);
+        verify(session).removeAttribute("redirectAfterLogin");
+    }
+
+    @Test
+    @DisplayName("login() - redirects to stored redirect Url on successful login")
+    void loginPage_ShouldRedirectToStoredRedirectUrlOnSuccessfulLogin() {
+        when(userService.login("John","pass123")).thenReturn(Optional.of(user));
+        when(session.getAttribute("redirectAfterLogin")).thenReturn("/my-reservations");
+
+        String view = userController.login("John","pass123", session,model);
+
+        assertThat(view).isEqualTo("redirect:/my-reservations");
+    }
+
+    @Test
+    @DisplayName("login() - returns 'login' view with error on wrong credentials")
+    void loginPage_ShouldReturnLoginViewWithErrorOnWrongCredentials() {
+        when(userService.login("John","pass123")).thenReturn(Optional.empty());
+
+        String view = userController.login("John","pass123",session, model);
+
+        assertThat(view).isEqualTo("login");
+        verify(model).addAttribute("error","Identifiants incorrects");
+        verify(session,never()).setAttribute(eq("connectedUser"),any());
     }
 }
