@@ -61,6 +61,42 @@ import static org.mockito.Mockito.*;
         seance.setReservations(new ArrayList<>());
     }
 
+    //--------------------test getByMovieAndCinema() ------------------------------
+    @Test
+    @DisplayName("getByMovieAndCinema() - should call findByMovieIdAndCinemaIdOrderByDateTimeAsc Repo")
+    void getByMovieAndCinema_ShouldCallsTheCorrectRepo() {
+        seanceService.getByMovieAndCinema(1L,1L);
+
+        verify(seanceRepository).findByMovieIdAndCinemaIdOrderByDateTimeAsc(1L,1L);
+    }
+
+    //-------------test findById()-------------------
+    @Test
+    @DisplayName("findById() - should call findById() Repo")
+    void getByMovieAndCinema_ShouldCallsFindByIdRepo() {
+        seanceService.findById(1L);
+
+        verify(seanceRepository).findById(1L);
+    }
+
+    //-------------test getAll()-------------------
+    @Test
+    @DisplayName("getAll() - should call findAll() Repository")
+    void getByMovieAndCinema_ShouldCallsFindAllRepository() {
+        seanceService.getAll();
+
+        verify(seanceRepository).findAll();
+    }
+
+    //-------------test getUpcomingByMovie()-------------------
+    @Test
+    @DisplayName("getUpcomingByMovie() - should call findByMovieAndDateTimeAfterOrderByDateTimeAsc Repo")
+    void getUpcomingByMovie_ShouldCallsTheCorrectRepo() {
+        seanceService.getUpcomingByMovie(1L);
+
+        verify(seanceRepository).findByMovieIdAndDateTimeAfterOrderByDateTimeAsc(eq(1L),any(LocalDateTime.class));
+    }
+
     //------------------tests du save()-----------------------
     @Test
     @DisplayName("save() - creates a new seance when id is null")
