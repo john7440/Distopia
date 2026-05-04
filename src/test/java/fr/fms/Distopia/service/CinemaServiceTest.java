@@ -66,6 +66,34 @@ class CinemaServiceTest {
         cinema.getMovies().add(movie);
 
     }
+
+    //------------------------test du getByTown()-------------------
+    @Test
+    @DisplayName("getByTown() - calls findByTownId() Repository")
+    void getByTownId_ShouldCallFindByTownIdRepository() {
+        cinemaService.getByTown(1L);
+
+        verify(cinemaRepository).findByTownId(1L);
+    }
+
+    //------------------------test du findById()-------------------
+    @Test
+    @DisplayName("findById() - calls findById() Repository")
+    void findById_ShouldCallFindByIdRepository() {
+        cinemaService.findById(1L);
+
+        verify(cinemaRepository).findById(1L);
+    }
+
+    //------------------------test du getAll()-------------------
+    @Test
+    @DisplayName("getAll() - calls findAll() Repository")
+    void getAll_ShouldCallFindAllRepository() {
+        cinemaService.getAll();
+
+        verify(cinemaRepository).findAll();
+    }
+
     //---------------------tests du search()----------------------------------
     @Test
     @DisplayName("search() - search with keyword and town should call correct Repo")
