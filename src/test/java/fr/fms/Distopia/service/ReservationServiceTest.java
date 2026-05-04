@@ -3,6 +3,7 @@ package fr.fms.Distopia.service;
 import fr.fms.Distopia.dao.ReservationRepository;
 import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.dao.UserRepository;
+import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.entities.Reservation;
 import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.entities.User;
@@ -24,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ReservationServiceTest {
+class ReservationServiceTest {
 
     @Mock private SeanceRepository seanceRepository;
     @Mock private ReservationRepository reservationRepository;
@@ -158,7 +159,7 @@ public class ReservationServiceTest {
 
         //THEN
         assertThat(result.getQuantity()).isEqualTo(1);
-        assertThat(seance.getAvailableSeats()).isEqualTo(0);
+        assertThat(seance.getAvailableSeats()).isZero();
     }
 
     //----------------------test réservation en trop supprimées----------------
@@ -204,5 +205,28 @@ public class ReservationServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThat(reservationService.existsByUserAndSeance(1L,1L)).isFalse();
+    }
+
+    //--------------test getMovieIdBySeance()-------------------------------
+    @Test
+    @DisplayName("getMovieIdBySeance() - returns the correct movieId of the seance")
+    void getMovieIdBySeance_ShouldReturnMovieIdBySeance() {
+        Movie movie = new Movie();
+        movie.setId(10L);
+
+        Seance seance = new Seance();
+        seance.setMovie(movie);
+
+        when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
+
+        assertThat(reservationService.getMovieIdBySeance(1L)).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("getMovieIdBySeance() - returns null if empty")
+    void getMovieIdBySeance_ShouldReturnNullIfEmpty() {
+        when(seanceRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThat(reservationService.getMovieIdBySeance(1L)).isNull();
     }
 }
