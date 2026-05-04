@@ -1,9 +1,6 @@
 package fr.fms.Distopia.web;
 
-import fr.fms.Distopia.entities.Cinema;
-import fr.fms.Distopia.entities.Movie;
-import fr.fms.Distopia.entities.Role;
-import fr.fms.Distopia.entities.User;
+import fr.fms.Distopia.entities.*;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
@@ -187,6 +184,45 @@ class MovieControllerTest {
 
         assertThat(view).isEqualTo("redirect:/index");
         verify(movieService, never()).softDelete(1L);
+    }
+
+    //-----------------------tests for movieDetail()----------------------
+
+    @Test
+    @DisplayName("movieDetail() - returns 'movie-detail' view")
+    void movieDetail_ShouldReturnMovieDetailView(){
+        when(movieService.findById(1L)).thenReturn(Optional.of(movie));
+        when(seanceService.getUpcomingByMovie(1L)).thenReturn(List.of());
+
+        String view = movieController.movieDetail(1L, model);
+
+        assertThat(view).isEqualTo("movie-detail");
+    }
+
+    @Test
+    @DisplayName("movieDetail() - adds movie and upcoming seances to model")
+    void movieDetail_ShouldAddMovieAndUpcomingSeancesToModel(){
+        Seance seance = new Seance();
+        seance.setId(1L);
+
+        when(movieService.findById(1L)).thenReturn(Optional.of(movie));
+        when(seanceService.getUpcomingByMovie(1L)).thenReturn(List.of(seance));
+
+        movieController.movieDetail(1L,model);
+
+        verify(model).addAttribute("movie", movie);
+        verify(model).addAttribute("seances", List.of(seance));
+    }
+
+    @Test
+    @DisplayName("movieDetail() - does not add movie to model when id not found")
+    void movieDetail_ShouldNotAddMovieToModelWhenIdNotFound(){
+        when(movieService.findById(99L)).thenReturn(Optional.empty());
+        when(seanceService.getUpcomingByMovie(99L)).thenReturn(List.of());
+
+        movieController.movieDetail(99L,model);
+
+        verify(model, never()).addAttribute(eq("movie"), any());
     }
 }
 
