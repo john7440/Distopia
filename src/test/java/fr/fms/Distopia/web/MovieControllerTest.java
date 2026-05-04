@@ -125,4 +125,18 @@ class MovieControllerTest {
         assertThat(view).isEqualTo("redirect:/index");
         verify(movieService, never()).getAll();
     }
+
+    @Test
+    @DisplayName("adminMovies() - adds editMovie to model when editId is provided")
+    void adminMovies_ShouldAddEditMovieToModelWhenEditIdIsProvided(){
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        when(movieService.getAll()).thenReturn(List.of(movie));
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(movieService.findById(1L)).thenReturn(Optional.of(movie));
+
+        movieController.adminMovies(1L, model, session);
+
+        verify(movieService).findById(1L);
+        verify(model).addAttribute("editMovie", movie);
+    }
 }
