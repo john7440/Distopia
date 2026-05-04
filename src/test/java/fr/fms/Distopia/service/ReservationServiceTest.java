@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -158,5 +159,31 @@ public class ReservationServiceTest {
         //THEN
         assertThat(result.getQuantity()).isEqualTo(1);
         assertThat(seance.getAvailableSeats()).isEqualTo(0);
+    }
+
+    //----------------------test réservation en trop supprimées----------------
+    @Test
+    @DisplayName("createReservation() - merges and delete duplicate booking")
+    void createReservation_ShouldMergeAndDeleteDuplicatedBooking() {
+        Seance seance = new Seance();
+        seance.setAvailableSeats(10);
+
+        Reservation r1 = new Reservation();
+        r1.setQuantity(2);
+
+        Reservation r2 = new Reservation();
+        r2.setQuantity(3);
+
+        List<Reservation> existingList =  new ArrayList<>(List.of(r1,r2));
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(buildUser()));
+        when(reservationRepository.findAllByUserIdAndSeanceId(1L, 1L)).thenReturn(existingList);
+
+        reservationService.createReservation(1L,1L,2);
+
+        verify(reservationRepository).deleteAll(existingList.subList(1, existingList.size()));
+        assertThat(r1.getQuantity()).isEqualTo(4);
+        verify(reservationRepository).save(r1);
     }
 }
