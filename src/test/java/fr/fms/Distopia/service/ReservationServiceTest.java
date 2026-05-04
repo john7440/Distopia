@@ -186,4 +186,23 @@ public class ReservationServiceTest {
         assertThat(r1.getQuantity()).isEqualTo(4);
         verify(reservationRepository).save(r1);
     }
+
+    //---------------------tests existsByUserAndSeance()--------------------
+    @Test
+    @DisplayName("existsByUserAndSeance() - return true if the booking exist")
+    void existsByUserAndSeance_ShouldReturnTrueIfBookingExist() {
+        when(reservationRepository.findByUserIdAndSeanceId(1L,1L))
+                .thenReturn(Optional.of(new Reservation()));
+
+        assertThat(reservationService.existsByUserAndSeance(1L,1L)).isTrue();
+    }
+
+    @Test
+    @DisplayName("existsByUserAndSeance() - return false if the booking not exist")
+    void existsByUserAndSeance_ShouldReturnFalseIfBookingNotExist() {
+        when(reservationRepository.findByUserIdAndSeanceId(1L,1L))
+                .thenReturn(Optional.empty());
+
+        assertThat(reservationService.existsByUserAndSeance(1L,1L)).isFalse();
+    }
 }
