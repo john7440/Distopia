@@ -101,4 +101,28 @@ class MovieControllerTest {
         verify(movieService).getAllActive();
         verify(movieService, never()).getByCinema(any());
     }
+
+    //-----------------------------tests for adminMovies()-------------------------
+    @Test
+    @DisplayName("adminMovies() - returns 'admin-movies' view for admin user")
+    void adminMovies_ShouldReturnAdminMoviesView(){
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        when(movieService.getAll()).thenReturn(List.of(movie));
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+
+        String view = movieController.adminMovies(null, model, session);
+
+        assertThat(view).isEqualTo("admin-movies");
+    }
+
+    @Test
+    @DisplayName("adminMovies() - should redirects non-admin user")
+    void adminMovies_ShouldRedirectNonAdminUser(){
+        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
+
+        String view = movieController.adminMovies(null, model, session);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(movieService, never()).getAll();
+    }
 }
