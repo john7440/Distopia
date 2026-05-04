@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -170,5 +171,41 @@ class SeanceControllerTest {
 
         verify(model,never()).addAttribute(eq("editSeance"), any());
 
+    }
+
+    //----------------------tests for saveSeance()--------------------
+    @Test
+    @DisplayName("saveSeance() - saves seance and redirects for admin user")
+    void saveSeance_ShouldSaveSeanceAndRedirectsForAdminUser() {
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        String dateTime = LocalDateTime.now().toString();
+
+        String view = seanceController.saveSeance(null, dateTime,100,9.50,1L,1L,session);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+        verify(seanceService).save(null,LocalDateTime.parse(dateTime),100,9.50,1L,1L);
+    }
+
+    @Test
+    @DisplayName("saveSeance() - updates existing seance when id is provided")
+    void saveSeance_ShouldUpdateExistingSeanceWhenIdIsProvided() {
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        String dateTime = LocalDateTime.now().toString();
+
+        seanceController.saveSeance(1L, dateTime,57,12.0,2L,2L,session);
+
+        verify(seanceService).save(1L,LocalDateTime.parse(dateTime),57,12.0,2L,2L);
+    }
+
+    @Test
+    @DisplayName("saveSeance() - redirects without saving when user is not admin")
+    void saveSeance_ShouldRedirectsWithoutSavingWhenUserIsNotAdmin() {
+        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
+        String dateTime = LocalDateTime.now().toString();
+
+        String view = seanceController.saveSeance(null, dateTime,100,9.50,1L,1L,session);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(seanceService, never()).save(any(),any(),anyInt(),anyDouble(),any(),any());
     }
 }
