@@ -1,6 +1,5 @@
 package fr.fms.Distopia.web;
 
-import fr.fms.Distopia.dao.CinemaRepository;
 import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Role;
 import fr.fms.Distopia.entities.Town;
@@ -122,7 +121,7 @@ class CinemaControllerTest {
 
         String view = cinemaController.adminCinemas(null, model, httpSession);
 
-        assertThat(view).startsWith("redirect:");
+        assertThat(view).isEqualTo("redirect:/index");
         verify(cinemaService, never()).getAll();
     }
 
@@ -147,6 +146,31 @@ class CinemaControllerTest {
 
         String view = cinemaController.adminCinemas(null, model, httpSession);
 
-        assertThat(view).startsWith("redirect:");
+        assertThat(view).isEqualTo("redirect:/index");
     }
+
+    //--------------------tests for saveCinema()--------------------------------
+    @Test
+    @DisplayName("saveCinema() - saves cinemas and redirects to admin page for admin user")
+    void saveCinema_ShouldSaveAndRedirectToAdminUserPage() {
+        when(httpSession.getAttribute("connectedUser")).thenReturn(adminUser);
+
+        String view = cinemaController.saveCinema(null, "Test", "Adresse", 1L, httpSession);
+
+        assertThat(view).isEqualTo("redirect:/admin/cinemas");
+        verify(cinemaService).save(null,"Test","Adresse",1L);
+    }
+
+    @Test
+    @DisplayName("saveCinema() - redirects without saving when user is not admin")
+    void saveCinema_ShouldRedirectWhenUserIsNotAdmin() {
+        when(httpSession.getAttribute("connectedUser")).thenReturn(regularUser);
+
+        String view = cinemaController.saveCinema(null, "Test", "Adresse", 1L, httpSession);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(cinemaService, never()).save(any(),any(),any(),any());
+
+    }
+
 }
