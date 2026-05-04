@@ -124,4 +124,37 @@ class TownControllerTest {
 
         verify(model, never()).addAttribute("editTown", town);
     }
+
+    //-----------------------tests for saveTown()-----------------------------------
+    @Test
+    @DisplayName("saveTown() - saves town and redirects for admin user")
+    void saveTown_ShouldSaveTownAndRedirectsForAdminUser() {
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+
+        String view = townController.saveTown(null,"Paris", session);
+
+        assertThat(view).isEqualTo("redirect:/admin/towns");
+        verify(townService).save(null, "Paris");
+    }
+
+    @Test
+    @DisplayName("saveTown() - redirect to index non admin user")
+    void saveTown_ShouldRedirectToIndexNonAdminUser() {
+        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
+
+        String view = townController.saveTown(null,"Paris", session);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(townService,never()).save(any(), any());
+    }
+
+    @Test
+    @DisplayName("saveTown() - updates existing town when id is provided")
+    void saveTown_ShouldUpdateExistingTownWhenIdIsProvided() {
+        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+
+        townController.saveTown(1L,"Paris-Updated", session);
+
+        verify(townService).save(1L, "Paris-Updated");
+    }
 }
