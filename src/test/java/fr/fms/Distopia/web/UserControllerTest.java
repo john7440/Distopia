@@ -109,4 +109,46 @@ class UserControllerTest {
         verify(model).addAttribute("error","Identifiants incorrects");
         verify(session,never()).setAttribute(eq("connectedUser"),any());
     }
+
+    //-----------------test for registerPage()-----------------
+    @Test
+    @DisplayName("registerPage() - return 'register' view")
+    void registerPage_ShouldReturnRegisterView() {
+        assertThat(userController.registerPage()).isEqualTo("register");
+    }
+
+    //------------------------tests for register() (POST) --------------------------
+    @Test
+    @DisplayName("register() - stores user in session and redirects to /index on success")
+    void registerPage_ShouldStoresUserInSessionAndRedirectToIndexOnSuccess() {
+        when(userService.register("John","pass123")).thenReturn(Optional.of(user));
+
+        String view = userController.register("John","pass123", session,model);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(session).setAttribute("connectedUser",user);
+    }
+
+    @Test
+    @DisplayName("register() - returns 'register' view with error when username is taken")
+    void registerPage_ShouldReturnRegisterViewWithErrorWhenUsernameIsTaken() {
+        when(userService.register("John","pass123")).thenReturn(Optional.empty());
+
+        String view = userController.register("John","pass123", session,model);
+
+        assertThat(view).isEqualTo("register");
+        verify(model).addAttribute("error","Ce nom d'utilisateur est déjà pris");
+        verify(session, never()).setAttribute(eq("connectedUser"),any());
+    }
+
+    //-------------------------------------test for logout()------------------
+
+    @Test
+    @DisplayName("logout() - invalidates session and redirect to /index")
+    void logout_ShouldInvalidatesSessionAndRedirectToIndexOnSuccess() {
+        String view = userController.logout(session);
+
+        assertThat(view).isEqualTo("redirect:/index");
+        verify(session).invalidate();
+    }
 }
