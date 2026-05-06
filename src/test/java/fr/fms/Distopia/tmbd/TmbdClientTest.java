@@ -49,4 +49,14 @@ class TmbdClientTest {
         assertThat(results).hasSize(1);
         assertThat(results.get(0).getTitle()).isEqualTo("Inception");
     }
+
+    @Test
+    @DisplayName("search() - return an empty list when tmdb responds null")
+    void search_ShouldReturnEmptyListWhenTmdbRespondsNull() {
+        when(restTemplate.getForObject(contains("search/movie"), eq(TmdbSearchResponse.class))).thenReturn(null);
+        List<TmdbMovieDto> results = tmdbClient.search("film inexistant");
+
+        assertThat(results).isEmpty();
+    }
+
 }
