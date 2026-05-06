@@ -9,7 +9,6 @@
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-md-5">
-
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-4">
 
@@ -20,16 +19,19 @@
                             Accédez à votre espace Distopia
                         </p>
 
-                        <div th:if="${error}"
+                        <div th:if="${param.error}"
                              class="alert alert-danger d-flex align-items-center gap-2">
                             <i class="bi bi-exclamation-triangle"></i>
-                            <span th:text="${error}"></span>
+                            <span>Identifiants incorrects</span>
+                        </div>
+
+                        <div th:if="${param.registered}"
+                             class="alert alert-success d-flex align-items-center gap-2">
+                            <i class="bi bi-check-circle"></i>
+                            <span>Compte créé ! Vous pouvez vous connecter</span>
                         </div>
 
                         <form th:action="@{/login}" method="post">
-                            <input type="hidden" name="redirect"
-                                   th:if="${redirect != null}"
-                                   th:value="${redirect}">
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Nom d'utilisateur</label>
                                 <div class="input-group">
@@ -41,7 +43,6 @@
                                            required autofocus>
                                 </div>
                             </div>
-
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Mot de passe</label>
                                 <div class="input-group">
@@ -54,12 +55,14 @@
                                 </div>
                             </div>
                             <div class="container d-flex justify-content-space-between me-3">
-                                <button type="submit" class="btn btn-success w-50 me-3">Se connecter</button>
+                                <button type="submit" class="btn btn-success w-50 me-3">
+                                    Se connecter
+                                </button>
                                 <a th:href="@{/index}" class="btn btn-danger w-50">Annuler</a>
                             </div>
                         </form>
 
-                        <p class="text-center text-muted small mb-0">
+                        <p class="text-center text-muted small mb-0 mt-3">
                             Pas encore de compte ?
                             <a th:href="@{/register}" class="text-primary fw-semibold">
                                 S'inscrire
@@ -68,7 +71,6 @@
 
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
