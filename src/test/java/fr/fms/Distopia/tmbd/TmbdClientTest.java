@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +58,19 @@ class TmbdClientTest {
         List<TmdbMovieDto> results = tmdbClient.search("film inexistant");
 
         assertThat(results).isEmpty();
+    }
+
+    @Test
+    @DisplayName("search() - url contains the correct language(fr-FR)")
+    void search_ShouldCallApiWithFrenchLanguage() {
+        TmdbSearchResponse emptyResponse = new TmdbSearchResponse();
+        emptyResponse.setResults(List.of());
+        when(restTemplate.getForObject(anyString(), eq(TmdbSearchResponse.class)))
+                .thenReturn(emptyResponse);
+
+        tmdbClient.search("Inception");
+
+        verify(restTemplate).getForObject(argThat((String url) -> url.contains("language=fr-FR")), eq(TmdbSearchResponse.class));
     }
 
 }
