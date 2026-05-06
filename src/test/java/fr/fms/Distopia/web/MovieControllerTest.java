@@ -4,7 +4,7 @@ import fr.fms.Distopia.entities.*;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
-import jakarta.servlet.http.HttpSession;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +12,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 
 import java.util.List;
@@ -35,8 +38,6 @@ class MovieControllerTest {
     @Mock
     private Model model;
 
-    @Mock
-    private HttpSession session;
 
     @InjectMocks
     private MovieController movieController;
@@ -63,6 +64,21 @@ class MovieControllerTest {
         cinema = new Cinema();
         cinema.setId(1L);
         cinema.setName("Cinema Test");
+    }
+
+    @AfterEach
+    void clearContext() {
+        // Nettoie le SecurityContext après chaque test pour éviter les effets de bord
+        SecurityContextHolder.clearContext();
+    }
+
+    private void authenticate(User user) {
+        var auth = new UsernamePasswordAuthenticationToken(
+                user,
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
     //----------------------test for moviesByCinema()-----------------------------
@@ -103,35 +119,25 @@ class MovieControllerTest {
     @Test
     @DisplayName("adminMovies() - returns 'admin-movies' view for admin user")
     void adminMovies_ShouldReturnAdminMoviesView(){
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        String view = movieController.adminMovies(null, model, session);
+        String view = movieController.adminMovies(null, model);
 
         assertThat(view).isEqualTo("admin-movies");
     }
 
-    @Test
-    @DisplayName("adminMovies() - should redirects non-admin user")
-    void adminMovies_ShouldRedirectNonAdminUser(){
-        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
-
-        String view = movieController.adminMovies(null, model, session);
-
-        assertThat(view).isEqualTo("redirect:/index");
-        verify(movieService, never()).getAll();
-    }
 
     @Test
     @DisplayName("adminMovies() - adds editMovie to model when editId is provided")
     void adminMovies_ShouldAddEditMovieToModelWhenEditIdIsProvided(){
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
         when(movieService.findById(1L)).thenReturn(Optional.of(movie));
 
-        movieController.adminMovies(1L, model, session);
+        movieController.adminMovies(1L, model);
 
         verify(movieService).findById(1L);
         verify(model).addAttribute("editMovie", movie);
@@ -141,50 +147,29 @@ class MovieControllerTest {
     @Test
     @DisplayName("saveMovie() - saves movie and redirects for admin user")
     void saveMovie_ShouldSaveMovieAndRedirectsForAdminUser(){
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
 
         String view = movieController.saveMovie(null,"Inception","Description",
-                178, "Sci-Fi",List.of(1L), "image.url", "trailer.url",session);
+                178, "Sci-Fi",List.of(1L), "image.url", "trailer.url");
 
         assertThat(view).isEqualTo("redirect:/admin/movies");
         verify(movieService).save(null,"Inception", "Description",178 ,"Sci-Fi","image.url",
                 "trailer.url", List.of(1L));
     }
 
-    @Test
-    @DisplayName("saveMovie() - redirects without saving when user is not admin")
-    void saveMovie_ShouldRedirectsWithoutSavingWhenUserIsNotAdmin(){
-        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
-
-        String view = movieController.saveMovie(null,"Inception","Description",
-                178, "Sci-Fi",List.of(1L), "image.url", "trailer.url",session);
-
-        assertThat(view).isEqualTo("redirect:/index");
-        verify(movieService, never()).save(any(),any(),any(),anyInt(),any(),any(),any(),any());
-    }
 
     //---------------------------tests for deleteMovie()--------------------------
     @Test
     @DisplayName("deleteMovie() - soft-delete movie and redirects for admin user")
     void deleteMovie_ShouldSoftDeleteMovieAndRedirectsForAdminUser(){
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
 
-        String view = movieController.deleteMovie(1L, session);
+        String view = movieController.deleteMovie(1L);
 
         assertThat(view).isEqualTo("redirect:/admin/movies");
         verify(movieService).softDelete(1L);
     }
 
-    @Test
-    @DisplayName("deleteMovie() - redirects without deleting when user is not admin")
-    void deleteMovie_ShouldRedirectsWithoutDeletingWhenUserIsNotAdmin(){
-        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
-
-        String view = movieController.deleteMovie(1L, session);
-
-        assertThat(view).isEqualTo("redirect:/index");
-        verify(movieService, never()).softDelete(1L);
-    }
 
     //-----------------------tests for movieDetail()----------------------
 
