@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
@@ -127,8 +128,8 @@
 
                         <!-- bouton réserver -->
                         <div>
-                            <form th:if="${seance.availableSeats > 0
-                                       and session.connectedUser != null}"
+                            <form th:if="${seance.availableSeats > 0}"
+                                  sec:authorize="isAuthenticated()"
                                   th:action="@{/reserve}" method="post"
                                   class="d-flex gap-2 align-items-center">
                                 <input type="hidden" name="seanceId"
@@ -143,8 +144,8 @@
                                 </button>
                             </form>
 
-                            <span th:if="${seance.availableSeats > 0
-                                       and session.connectedUser == null}">
+                            <span th:if="${seance.availableSeats > 0}"
+                                  sec:authorize="!isAuthenticated()">
                             <a th:href="@{/login(redirect=${'/movie?id=' + movie.id})}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-person-circle"></i> Connexion pour réserver
                             </a>
