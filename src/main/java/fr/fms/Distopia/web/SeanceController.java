@@ -3,8 +3,6 @@ package fr.fms.Distopia.web;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
-import fr.fms.Distopia.utils.SessionUtils;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -64,12 +62,10 @@ public class SeanceController {
      *
      * @param editId  the unique identifier of the seance to edit (optional)
      * @param model   the Spring {@link Model} used to pass data to the view
-     * @param session the current {@link HttpSession} used to verify the user's role
      * @return the view name "admin-seances", or a redirection URL if unauthorized
      */
     @GetMapping("/admin/seances")
-    public String adminSeances(@RequestParam(required = false)Long editId, Model model, HttpSession session){
-        if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+    public String adminSeances(@RequestParam(required = false)Long editId, Model model){
         model.addAttribute(SEANCES, seanceService.getAll());
         model.addAttribute("movies", movieService.getAll());
         model.addAttribute("cinemas", cinemaService.getAll());
@@ -95,14 +91,12 @@ public class SeanceController {
      * @param price          the ticket price for this screening
      * @param movieId        the identifier of the movie to be screened
      * @param cinemaId       the identifier of the cinema
-     * @param session        the current {@link HttpSession} used to verify the user's role
      * @return a redirection URL to the admin seances page, or the default redirection if unauthorized
      * @throws java.time.format.DateTimeParseException if the {@code dateTime} string cannot be parsed
      */
     @PostMapping("/admin/saveSeance")
     public String saveSeance(@RequestParam(required = false) Long id, @RequestParam String dateTime,@RequestParam int availableSeats,
-                             @RequestParam double price, @RequestParam Long movieId,@RequestParam Long cinemaId, HttpSession session){
-        if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+                             @RequestParam double price, @RequestParam Long movieId,@RequestParam Long cinemaId){
         seanceService.save(id, LocalDateTime.parse(dateTime), availableSeats, price, movieId,cinemaId);
         return "redirect:/admin/seances";
     }
@@ -117,12 +111,10 @@ public class SeanceController {
      * an exception if the seance already has active reservations
      *
      * @param id      the unique identifier of the seance to delete
-     * @param session the current {@link HttpSession} used to verify the user's role
      * @return a redirection URL to the admin seances page, or the default redirection if unauthorized
      */
     @GetMapping("/admin/deleteSeance")
-    public String deleteSeance(@RequestParam Long id, HttpSession session){
-        if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+    public String deleteSeance(@RequestParam Long id){
         seanceService.delete(id);
         return "redirect:/admin/seances";
     }
