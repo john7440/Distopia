@@ -1,9 +1,7 @@
 package fr.fms.Distopia.tmbd;
 
 import fr.fms.Distopia.tmdb.TmdbClient;
-import fr.fms.Distopia.tmdb.dto.TmdbGenreDto;
-import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
-import fr.fms.Distopia.tmdb.dto.TmdbSearchResponse;
+import fr.fms.Distopia.tmdb.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -104,4 +102,24 @@ class TmbdClientTest {
 
         assertThat(tmdbClient.getDetail(999L)).isNull();
     }
+
+    //-----------------------tests for getTrailerUrl()----------------
+    @Test
+    @DisplayName("getTrailerUrl() - returns embed url Youtube trailer")
+    void getTrailerUrl_ShouldReturnEmbedTrailerUrl() {
+        TmdbVideoDto trailer =  new TmdbVideoDto();
+        trailer.setKey("s5CkFFnFuWs");
+        trailer.setSite("YouTube");
+        trailer.setType("Trailer");
+
+        TmdbVideosResponse response =  new TmdbVideosResponse();
+        response.setResults(List.of(trailer));
+
+        when(restTemplate.getForObject(contains("/videos"), eq(TmdbVideosResponse.class))).thenReturn(response);
+
+        String url =  tmdbClient.getTrailerUrl(27205L);
+
+        assertThat(url).isEqualTo("https://www.youtube.com/embed/s5CkFFnFuWs");
+    }
+
 }
