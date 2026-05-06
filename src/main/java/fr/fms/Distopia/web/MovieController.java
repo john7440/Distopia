@@ -3,8 +3,6 @@ package fr.fms.Distopia.web;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
-import fr.fms.Distopia.utils.SessionUtils;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -60,12 +58,10 @@ public class MovieController {
      *
      * @param editId  the unique identifier of the movie to edit (optional)
      * @param model   the Spring {@link Model} used to pass data to the view
-     * @param session the current {@link HttpSession} used to verify the user's role
      * @return the view name "admin-movies", or a redirection URL if unauthorized
      */
     @GetMapping("/admin/movies")
-    public String adminMovies(@RequestParam(required = false) Long editId, Model model, HttpSession session) {
-        if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+    public String adminMovies(@RequestParam(required = false) Long editId, Model model) {
         model.addAttribute(MOVIES, movieService.getAll());
         model.addAttribute("cinemas", cinemaService.getAll());
         if (editId != null) {
@@ -91,16 +87,13 @@ public class MovieController {
      * @param genre       the genre of the movie (Action, Sci-Fi)
      * @param cinemaIds   a list of cinema identifiers where the movie will be screened (optional)
      * @param imageUrl    the URL pointing to the movie's poster or cover image (optional)
-     * @param session     the current {@link HttpSession} used to verify the user's role
      * @return a redirection URL to the admin movies page, or the default redirection if unauthorized
      */
     @PostMapping("/admin/saveMovie")
     public String saveMovie(@RequestParam(required = false) Long id, @RequestParam String title,
                             @RequestParam String description, @RequestParam int duration, @RequestParam String genre,
                             @RequestParam(required = false) List<Long> cinemaIds,
-                            @RequestParam(required = false) String imageUrl,@RequestParam(required = false) String trailerUrl,
-                            HttpSession session){
-        if(SessionUtils.isNotAdmin(session)) return  SessionUtils.REDIRECTION;
+                            @RequestParam(required = false) String imageUrl,@RequestParam(required = false) String trailerUrl){
         movieService.save(id, title, description, duration, genre, imageUrl,trailerUrl,cinemaIds);
         return "redirect:/admin/movies";
     }
@@ -116,12 +109,10 @@ public class MovieController {
      * as deleted and disables its upcoming scheduled seances.
      *
      * @param id      the unique identifier of the movie to soft-delete
-     * @param session the current {@link HttpSession} used to verify the user's role
      * @return a redirection URL to the admin movies page, or the default redirection if unauthorized
      */
     @GetMapping("/admin/deleteMovie")
-    public String deleteMovie(@RequestParam Long id, HttpSession session){
-        if(SessionUtils.isNotAdmin(session)) return  SessionUtils.REDIRECTION;
+    public String deleteMovie(@RequestParam Long id){
         movieService.softDelete(id);
         return "redirect:/admin/movies";
     }
