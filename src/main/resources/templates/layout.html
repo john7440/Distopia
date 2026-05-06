@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
@@ -39,11 +40,13 @@
         <div class="d-flex gap-2 align-items-center">
 
             <!--utilisateur connecté-->
-            <div th:if="${session.connectedUser != null}" class="dropdown">
+            <div sec:authorize="isAuthenticated" class="dropdown">
                 <button class="btn btn-dark btn-sm dropdown-toggle"
                         type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-person-circle"></i>
-                    <span th:text="${#strings.capitalize(session.connectedUser.username)}"></span>
+                    <div sec:authorize="isAuthenticated()" class="dropdown">
+                        <span sec:authentication="name"></span>
+                    </div>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
 
@@ -54,28 +57,28 @@
                     </li>
 
                     <!--menu admin -->
-                    <li th:if="${session.connectedUser.role.name() == 'ADMIN'}">
+                    <li sec:authorize:="hasRole('ADMIN')">
                         <hr class="dropdown-divider">
                     </li>
-                    <li th:if="${session.connectedUser.role.name() == 'ADMIN'}">
+                    <li sec:authorize:="hasRole('ADMIN')">
                         <span class="dropdown-header">Administration</span>
                     </li>
-                    <li th:if="${session.connectedUser.role.name() == 'ADMIN'}">
+                    <li sec:authorize:="hasRole('ADMIN')">
                         <a class="dropdown-item" th:href="@{/admin/towns}">
                             <i class="bi bi-building me-2"></i> Villes
                         </a>
                     </li>
-                    <li th:if="${session.connectedUser.role.name() == 'ADMIN'}">
+                    <li sec:authorize:="hasRole('ADMIN')">
                         <a class="dropdown-item" th:href="@{/admin/cinemas}">
                             <i class="bi bi-camera-reels me-2"></i> Cinémas
                         </a>
                     </li>
-                    <li th:if="${session.connectedUser.role.name() == 'ADMIN'}">
+                    <li sec:authorize:="hasRole('ADMIN')">
                         <a class="dropdown-item" th:href="@{/admin/movies}">
                             <i class="bi bi-film me-2"></i> Films
                         </a>
                     </li>
-                    <li th:if="${session.connectedUser.role.name() == 'ADMIN'}">
+                    <li sec:authorize:="hasRole('ADMIN')">
                         <a class="dropdown-item" th:href="@{/admin/seances}">
                             <i class="bi bi-calendar3 me-2"></i> Séances
                         </a>
@@ -91,7 +94,7 @@
             </div>
 
             <!--visiteur -->
-            <div th:if="${session.connectedUser == null}" class="d-flex gap-2">
+            <div sec:authorize="!isAuthenticated()" class="d-flex gap-2">
                 <a th:href="@{/register}" class="btn btn-outline-dark btn-sm">
                     <i class="bi bi-person-plus"></i> Inscription
                 </a>
