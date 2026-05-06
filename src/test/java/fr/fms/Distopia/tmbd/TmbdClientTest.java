@@ -96,4 +96,12 @@ class TmbdClientTest {
         assertThat(result.getGenres()).hasSize(1);
         assertThat(result.getGenres().get(0).getName()).isEqualTo("Sci-Fi");
     }
+
+    @Test
+    @DisplayName("getDetail() - returns null if the movie is not found on tmbd")
+    void getDetail_ShouldReturnsNullIfMovieWithNotFound() {
+        when(restTemplate.getForObject(contains("/movie/999"), eq(TmdbMovieDto.class))).thenReturn(null);
+
+        assertThat(tmdbClient.getDetail(999L)).isNull();
+    }
 }
