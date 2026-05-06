@@ -6,7 +6,7 @@ import fr.fms.Distopia.entities.Town;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.TownService;
-import jakarta.servlet.http.HttpSession;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 
 import java.util.List;
@@ -30,8 +33,6 @@ class CinemaControllerTest {
     private TownService townService;
     @Mock
     private Model model;
-    @Mock
-    private HttpSession httpSession;
     @InjectMocks
     private CinemaController cinemaController;
 
@@ -61,6 +62,21 @@ class CinemaControllerTest {
         cinema.setName("Cinema Test");
         cinema.setAddress("57 rue du Test");
         cinema.setTown(town);
+    }
+
+    @AfterEach
+    void clearContext() {
+        // Nettoie le SecurityContext après chaque test pour éviter les effets de bord
+        SecurityContextHolder.clearContext();
+    }
+
+    private void authenticate(User user) {
+        var auth = new UsernamePasswordAuthenticationToken(
+                user,
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
     //---------------------tests for cinemasByTown()--------------------------
@@ -105,95 +121,55 @@ class CinemaControllerTest {
     @Test
     @DisplayName("adminCinemas() - return 'admin-cinemas' view for admin user")
     void adminCinemas_ShouldReturnAdminCinemasView() {
-        when(httpSession.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
         when(townService.getAll()).thenReturn(List.of(town));
 
-        String view = cinemaController.adminCinemas(null,model,httpSession);
+        String view = cinemaController.adminCinemas(null,model);
 
         assertThat(view).isEqualTo("admin-cinemas");
     }
 
-    @Test
-    @DisplayName("adminCinemas() - redirects non-admin user")
-    void adminCinemas_shouldRedirect_whenUserIsNotAdmin() {
-        when(httpSession.getAttribute("connectedUser")).thenReturn(regularUser);
-
-        String view = cinemaController.adminCinemas(null, model, httpSession);
-
-        assertThat(view).isEqualTo("redirect:/index");
-        verify(cinemaService, never()).getAll();
-    }
 
     @Test
     @DisplayName("adminCinemas() - adds editCinema to model when editId is provided")
     void adminCinemas_shouldAddEditCinemaToModel_whenEditIdProvided() {
-        when(httpSession.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
         when(townService.getAll()).thenReturn(List.of(town));
         when(cinemaService.findById(1L)).thenReturn(Optional.of(cinema));
 
-        cinemaController.adminCinemas(1L, model, httpSession);
+        cinemaController.adminCinemas(1L, model);
 
         verify(cinemaService).findById(1L);
         verify(model).addAttribute("editCinema", cinema);
     }
 
-    @Test
-    @DisplayName("adminCinemas() - redirects when no session user")
-    void adminCinemas_shouldRedirect_whenSessionIsEmpty() {
-        when(httpSession.getAttribute("connectedUser")).thenReturn(null);
-
-        String view = cinemaController.adminCinemas(null, model, httpSession);
-
-        assertThat(view).isEqualTo("redirect:/index");
-    }
 
     //--------------------tests for saveCinema()--------------------------------
     @Test
     @DisplayName("saveCinema() - saves cinemas and redirects to admin page for admin user")
     void saveCinema_ShouldSaveAndRedirectToAdminUserPage() {
-        when(httpSession.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
 
-        String view = cinemaController.saveCinema(null, "Test", "Adresse", 1L, httpSession);
+        String view = cinemaController.saveCinema(null, "Test", "Adresse", 1L);
 
         assertThat(view).isEqualTo("redirect:/admin/cinemas");
         verify(cinemaService).save(null,"Test","Adresse",1L);
     }
 
-    @Test
-    @DisplayName("saveCinema() - redirects without saving when user is not admin")
-    void saveCinema_ShouldRedirectWhenUserIsNotAdmin() {
-        when(httpSession.getAttribute("connectedUser")).thenReturn(regularUser);
-
-        String view = cinemaController.saveCinema(null, "Test", "Adresse", 1L, httpSession);
-
-        assertThat(view).isEqualTo("redirect:/index");
-        verify(cinemaService, never()).save(any(),any(),any(),any());
-
-    }
 
     //----------------tests for deleteCinema()------------------------------------
 
     @Test
     @DisplayName("deleteCinema() - deletes cinemas and redirects for admin user")
     void deleteCinema_ShouldDeleteCinemasAndRedirectsForAdminUser() {
-        when(httpSession.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
 
-        String view = cinemaController.deleteCinema(1L, httpSession);
+        String view = cinemaController.deleteCinema(1L);
 
         assertThat(view).isEqualTo("redirect:/admin/cinemas");
         verify(cinemaService).delete(1L);
     }
 
-    @Test
-    @DisplayName("deleteCinema() - redirects without deleting when user is not admin")
-    void deleteCinema_ShouldRedirectWhenUserIsNotAdmin() {
-        when(httpSession.getAttribute("connectedUser")).thenReturn(regularUser);
-
-        String view = cinemaController.deleteCinema(1L, httpSession);
-
-        assertThat(view).isEqualTo("redirect:/index");
-        verify(cinemaService, never()).delete(any());
-    }
 }
