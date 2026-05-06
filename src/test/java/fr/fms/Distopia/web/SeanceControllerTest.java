@@ -31,8 +31,6 @@ class SeanceControllerTest {
     private CinemaService cinemaService;
     @Mock
     private Model model;
-    @Mock
-    private HttpSession session;
 
     @InjectMocks
     private SeanceController seanceController;
@@ -108,35 +106,24 @@ class SeanceControllerTest {
     @Test
     @DisplayName("adminSeances() - return 'admin-seances' view for admin user")
     void adminSeances_ShouldReturnAdminSeancesViewForAdminUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
         when(seanceService.getAll()).thenReturn(List.of(seance));
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        String view = seanceController.adminSeances(null,model,session);
+        String view = seanceController.adminSeances(null,model);
 
         assertThat(view).isEqualTo("admin-seances");
     }
 
-    @Test
-    @DisplayName("adminSeances() - return 'index' view for non-admin user")
-    void adminSeances_ShouldReturnIndexViewForNonAdminUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
-
-        String view = seanceController.adminSeances(null,model,session);
-
-        assertThat(view).isEqualTo("redirect:/index");
-    }
 
     @Test
     @DisplayName("adminSeances() - adds seances, movies and cinemas to model")
     void adminSeances_ShouldAddSeancesMoviesAndCinemasToModel() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
         when(seanceService.getAll()).thenReturn(List.of(seance));
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        seanceController.adminSeances(null,model,session);
+        seanceController.adminSeances(null,model);
 
         verify(model).addAttribute("seances", List.of(seance));
         verify(model).addAttribute("movies", List.of(movie));
@@ -146,13 +133,12 @@ class SeanceControllerTest {
     @Test
     @DisplayName("adminSeances() - adds editSeance to model when editId is provided")
     void adminSeances_ShouldAddEditSeanceToModelWhenEditIdIsProvided() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
         when(seanceService.getAll()).thenReturn(List.of(seance));
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
         when(seanceService.findById(1L)).thenReturn(Optional.of(seance));
 
-        seanceController.adminSeances(1L,model,session);
+        seanceController.adminSeances(1L,model);
 
         verify(model).addAttribute("editSeance", seance);
         verify(seanceService).findById(1L);
@@ -161,13 +147,12 @@ class SeanceControllerTest {
     @Test
     @DisplayName("adminSeances() - does not add editSeance to model when editId is not found")
     void adminSeances_ShouldNotAddEditSeanceToModelWhenEditIdIsNotFound() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
         when(seanceService.getAll()).thenReturn(List.of());
         when(movieService.getAll()).thenReturn(List.of());
         when(cinemaService.getAll()).thenReturn(List.of());
         when(seanceService.findById(99L)).thenReturn(Optional.empty());
 
-        seanceController.adminSeances(99L,model,session);
+        seanceController.adminSeances(99L,model);
 
         verify(model,never()).addAttribute(eq("editSeance"), any());
 
@@ -177,10 +162,9 @@ class SeanceControllerTest {
     @Test
     @DisplayName("saveSeance() - saves seance and redirects for admin user")
     void saveSeance_ShouldSaveSeanceAndRedirectsForAdminUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
         String dateTime = LocalDateTime.now().toString();
 
-        String view = seanceController.saveSeance(null, dateTime,100,9.50,1L,1L,session);
+        String view = seanceController.saveSeance(null, dateTime,100,9.50,1L,1L);
 
         assertThat(view).isEqualTo("redirect:/admin/seances");
         verify(seanceService).save(null,LocalDateTime.parse(dateTime),100,9.50,1L,1L);
@@ -189,47 +173,23 @@ class SeanceControllerTest {
     @Test
     @DisplayName("saveSeance() - updates existing seance when id is provided")
     void saveSeance_ShouldUpdateExistingSeanceWhenIdIsProvided() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
         String dateTime = LocalDateTime.now().toString();
 
-        seanceController.saveSeance(1L, dateTime,57,12.0,2L,2L,session);
+        seanceController.saveSeance(1L, dateTime,57,12.0,2L,2L);
 
         verify(seanceService).save(1L,LocalDateTime.parse(dateTime),57,12.0,2L,2L);
     }
 
-    @Test
-    @DisplayName("saveSeance() - redirects without saving when user is not admin")
-    void saveSeance_ShouldRedirectsWithoutSavingWhenUserIsNotAdmin() {
-        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
-        String dateTime = LocalDateTime.now().toString();
-
-        String view = seanceController.saveSeance(null, dateTime,100,9.50,1L,1L,session);
-
-        assertThat(view).isEqualTo("redirect:/index");
-        verify(seanceService, never()).save(any(),any(),anyInt(),anyDouble(),any(),any());
-    }
 
     //---------------------------tests for deleteSeance()-----------------------------------
     @Test
     @DisplayName("deleteSeance() - deletes seance and redirect for admin user")
     void deleteSeance_ShouldDeleteSeanceAndRedirectsForAdminUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
 
-        String view = seanceController.deleteSeance(1L,session);
+        String view = seanceController.deleteSeance(1L);
 
         assertThat(view).isEqualTo("redirect:/admin/seances");
         verify(seanceService).delete(1L);
-    }
-
-    @Test
-    @DisplayName("deleteSeance() - redirects without saving for non admin user")
-    void deleteSeance_ShouldRedirectsWithoutSavingForNonAdminUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
-
-        String view = seanceController.deleteSeance(1L,session);
-
-        assertThat(view).isEqualTo("redirect:/index");
-        verify(seanceService,never()).delete(any());
     }
 
 }
