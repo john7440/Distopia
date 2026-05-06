@@ -6,7 +6,7 @@ import fr.fms.Distopia.entities.Role;
 import fr.fms.Distopia.entities.Town;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.service.TownService;
-import jakarta.servlet.http.HttpSession;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 
 import java.util.List;
@@ -29,9 +32,6 @@ class TownControllerTest {
 
     @Mock
     private TownRepository townRepository;
-
-    @Mock
-    private HttpSession session;
 
     @Mock
     private Model model;
@@ -58,45 +58,41 @@ class TownControllerTest {
         town.setName("Dax");
     }
 
+    @AfterEach
+    void clearContext() {
+        // Nettoie le SecurityContext après chaque test pour éviter les effets de bord
+        SecurityContextHolder.clearContext();
+    }
+
+    private void authenticate(User user) {
+        var auth = new UsernamePasswordAuthenticationToken(
+                user,
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
     //---------------------------test for towns()--------------------
     @Test
     @DisplayName("towns() - returns 'admin-towns' view for admin user")
     void towns_ShouldReturnAdminTownsViewForAdminUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+
         when(townService.getAll()).thenReturn(List.of(town));
 
-        String view = townController.towns(null,model,session);
+        String view = townController.towns(null,model);
 
         assertThat(view).isEqualTo("admin-towns");
     }
 
-    @Test
-    @DisplayName("towns() - redirects to index view non admin user")
-    void towns_ShouldRedirectToIndexViewNonAdminUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
-
-        String view = townController.towns(null,model,session);
-
-        assertThat(view).isEqualTo("redirect:/index");
-    }
-
-    @Test
-    @DisplayName("towns() - redirects if no current user")
-    void towns_ShouldRedirectIfNoCurrentUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(null);
-
-        String view = townController.towns(null,model,session);
-
-        assertThat(view).isEqualTo("redirect:/index");
-    }
 
     @Test
     @DisplayName("towns() - adds all towns to model")
     void towns_ShouldAddAllTownsToModel() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
         when(townService.getAll()).thenReturn(List.of(town));
 
-        townController.towns(null,model,session);
+        townController.towns(null,model);
 
         verify(model).addAttribute("towns", List.of(town));
     }
@@ -104,11 +100,11 @@ class TownControllerTest {
     @Test
     @DisplayName("towns() - adds editTown to model when editId is found")
     void towns_ShouldAddEitTownToModelWhenEditIdIsFound() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
         when(townService.getAll()).thenReturn(List.of(town));
         when(townRepository.findById(1L)).thenReturn(Optional.of(town));
 
-        townController.towns(1L,model,session);
+        townController.towns(1L,model);
 
         verify(model).addAttribute("editTown", town);
     }
@@ -116,11 +112,11 @@ class TownControllerTest {
     @Test
     @DisplayName("towns() - does not add editTown to model when editId is not found")
     void towns_ShouldNotAddEitTownToModelWhenEditIdIsNotFound() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
         when(townService.getAll()).thenReturn(List.of(town));
         when(townRepository.findById(99L)).thenReturn(Optional.empty());
 
-        townController.towns(99L,model,session);
+        townController.towns(99L,model);
 
         verify(model, never()).addAttribute("editTown", town);
     }
@@ -129,31 +125,20 @@ class TownControllerTest {
     @Test
     @DisplayName("saveTown() - saves town and redirects for admin user")
     void saveTown_ShouldSaveTownAndRedirectsForAdminUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
 
-        String view = townController.saveTown(null,"Paris", session);
+        String view = townController.saveTown(null,"Paris");
 
         assertThat(view).isEqualTo("redirect:/admin/towns");
         verify(townService).save(null, "Paris");
     }
 
     @Test
-    @DisplayName("saveTown() - redirect to index non admin user")
-    void saveTown_ShouldRedirectToIndexNonAdminUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
-
-        String view = townController.saveTown(null,"Paris", session);
-
-        assertThat(view).isEqualTo("redirect:/index");
-        verify(townService,never()).save(any(), any());
-    }
-
-    @Test
     @DisplayName("saveTown() - updates existing town when id is provided")
     void saveTown_ShouldUpdateExistingTownWhenIdIsProvided() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
 
-        townController.saveTown(1L,"Paris-Updated", session);
+        townController.saveTown(1L,"Paris-Updated");
 
         verify(townService).save(1L, "Paris-Updated");
     }
@@ -162,22 +147,12 @@ class TownControllerTest {
     @Test
     @DisplayName("deleteTown() - deletes town and redirects for admin user")
     void deleteTown_ShouldDeleteTownAndRedirectsForAdminUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(adminUser);
+        authenticate(adminUser);
 
-        String view = townController.deleteTown(1L,session);
+        String view = townController.deleteTown(1L);
 
         assertThat(view).isEqualTo("redirect:/admin/towns");
         verify(townService).delete(1L);
     }
 
-    @Test
-    @DisplayName("deleteTown() - redirects to index without delete if non admin user")
-    void deleteTown_ShouldRedirectToIndexWithoutDeleteIfNonAdminUser() {
-        when(session.getAttribute("connectedUser")).thenReturn(regularUser);
-
-        String view = townController.deleteTown(1L,session);
-
-        assertThat(view).isEqualTo("redirect:/index");
-        verify(townService,never()).delete(any());
-    }
 }
