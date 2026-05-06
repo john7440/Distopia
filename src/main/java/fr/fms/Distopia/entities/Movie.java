@@ -29,6 +29,7 @@ public class Movie implements Serializable {
     private Long id;
     @Column(nullable = false)
     private String title;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private int duration;
     private String genre;
