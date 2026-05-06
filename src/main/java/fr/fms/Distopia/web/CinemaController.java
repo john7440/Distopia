@@ -2,8 +2,6 @@ package fr.fms.Distopia.web;
 
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.TownService;
-import fr.fms.Distopia.utils.SessionUtils;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Controller;
@@ -63,13 +61,10 @@ public class CinemaController {
      *
      * @param editId  the unique identifier of the cinema to edit (optional)
      * @param model   the Spring {@link Model} used to pass data to the view
-     * @param session the current {@link HttpSession} used to verify the user's role
      * @return the view name "admin-cinemas", or a redirection URL if unauthorized
      */
     @GetMapping("/admin/cinemas")
-    public String adminCinemas(@RequestParam(required = false) Long editId,
-                               Model model, HttpSession session) {
-        if (SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+    public String adminCinemas(@RequestParam(required = false) Long editId, Model model) {
         model.addAttribute(CINEMAS, cinemaService.getAll());
         model.addAttribute("towns", townService.getAll());
         if (editId != null) {
@@ -91,13 +86,11 @@ public class CinemaController {
      * @param name    the name of the cinema
      * @param address the physical address of the cinema
      * @param townId  the identifier of the town where the cinema is located (optional)
-     * @param session the current {@link HttpSession} used to verify the user's role
      * @return a redirection URL to the admin cinemas page, or the default redirection if unauthorized
      */
     @PostMapping("/admin/saveCinema")
     public String saveCinema(@RequestParam(required = false) Long id, @RequestParam String name,
-                             @RequestParam String address, @RequestParam(required = false) Long townId, HttpSession session){
-        if(SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+                             @RequestParam String address, @RequestParam(required = false) Long townId){
         cinemaService.save(id, name, address, townId);
         return "redirect:/admin/cinemas";
     }
@@ -109,14 +102,11 @@ public class CinemaController {
      * <p>
      * After attempting to delete the cinema by its ID, the user is redirected
      * back to the cinema management dashboard.
-     *
      * @param id      the unique identifier of the cinema to delete
-     * @param session the current {@link HttpSession} used to verify the user's role
      * @return a redirection URL to the admin cinemas page, or the default redirection if unauthorized
      */
     @GetMapping("/admin/deleteCinema")
-    public String deleteCinema(@RequestParam Long id, HttpSession session){
-        if(SessionUtils.isNotAdmin(session)) return SessionUtils.REDIRECTION;
+    public String deleteCinema(@RequestParam Long id){
         cinemaService.delete(id);
         return "redirect:/admin/cinemas";
     }
