@@ -1,6 +1,7 @@
 package fr.fms.Distopia.tmbd;
 
 import fr.fms.Distopia.tmdb.TmdbClient;
+import fr.fms.Distopia.tmdb.dto.TmdbGenreDto;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import fr.fms.Distopia.tmdb.dto.TmdbSearchResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,4 +74,26 @@ class TmbdClientTest {
         verify(restTemplate).getForObject(argThat((String url) -> url.contains("language=fr-FR")), eq(TmdbSearchResponse.class));
     }
 
+    //------------------------------------tests for getDetail()-------------------------
+
+    @Test
+    @DisplayName("getDetail() - returns the movie with runtime and genres")
+    void getDetail_ShouldReturnMovieWithRuntimeAndGenres() {
+        TmdbGenreDto genre =  new TmdbGenreDto();
+        genre.setName("Sci-Fi");
+
+        TmdbMovieDto movie = new TmdbMovieDto();
+        movie.setId(26L);
+        movie.setTitle("Inception");
+        movie.setRuntime(148);
+        movie.setGenres(List.of(genre));
+
+        when(restTemplate.getForObject(contains("/movie/26"), eq(TmdbMovieDto.class))).thenReturn(movie);
+        TmdbMovieDto result = tmdbClient.getDetail(26L);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getRuntime()).isEqualTo(148);
+        assertThat(result.getGenres()).hasSize(1);
+        assertThat(result.getGenres().get(0).getName()).isEqualTo("Sci-Fi");
+    }
 }
