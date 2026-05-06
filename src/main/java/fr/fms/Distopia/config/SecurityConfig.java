@@ -1,10 +1,13 @@
 package fr.fms.Distopia.config;
 
-import fr.fms.Distopia.exceptions.SecurityFilterException;
+import fr.fms.Distopia.service.DistopiaUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -13,31 +16,45 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    /**
-     * Configures the security filter chain for the application
-     * <p>
-     * This configuration intentionally disables standard Spring Security protections:
-     * <ul>
-     * <li>Permits all incoming HTTP requests without authentication</li>
-     * <li>Disables Cross-Site Request Forgery (CSRF) protection</li>
-     * <li>Disables the default form-based login</li>
-     * <li>Disables the default logout functionality</li>
-     * </ul>
-     * <strong>Warning:</strong> This is a completely permissive configuration. It should
-     * typically only be used for development, testing environments, or specific public
-     * APIs where security is handled at a different layer
-     *
-     * @param http the {@link HttpSecurity} builder used to configure web based security
-     * @return the configured {@link SecurityFilterChain}
-     * @throws Exception if an error occurs while building the security configuration
-     */
+    @Autowired
+    private DistopiaUserDetailsService userDetailsService;
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws SecurityFilterException {
-        http.authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll())
-                .csrf(csrf -> csrf.disable())
-                .formLogin(form -> form.disable())
-                .logout(logout -> logout.disable());
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                // CSRF désactivé car nos formulaires Thymeleaf n'envoient pas encore de token CSRF!!!
+                // À réactiver en production en ajoutant th:action dans chaque <form>
+                .csrf(AbstractHttpConfigurer::disable)
+
+                .userDetailsService(userDetailsService)
+
+                .authorizeHttpRequests(auth -> auth
+                        // Accès admin uniquement
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                        // Accès utilisateur connecté
+                        .requestMatchers("/my-reservations", "/reserve").authenticated()
+
+                        // Tout le reste : libre (visiteurs, pages publiques, assets)
+                        .anyRequest().permitAll()
+                )
+
+                .formLogin(form -> form
+                        .loginPage("/login")           // vue Thymeleaf
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/index", true)
+                        .failureUrl("/login?error=true")
+                        .permitAll()
+                )
+
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/index")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                );
+
         return http.build();
     }
 
