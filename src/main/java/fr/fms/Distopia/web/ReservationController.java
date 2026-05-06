@@ -4,7 +4,6 @@ import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
 import fr.fms.Distopia.service.ReservationService;
 import fr.fms.Distopia.utils.SessionUtils;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,13 +28,11 @@ public class ReservationController {
      * If the user is not authenticated, they are automatically redirected to the login page
      *
      * @param model   the Spring {@link Model} used to pass data to the view
-     * @param session the current {@link HttpSession} used to retrieve the authenticated user
      * @return the view name "my-reservations", or a redirection URL to the login page if unauthenticated
      */
     @GetMapping("/my-reservations")
-    public String myReservations(Model model, HttpSession session){
-        if (SessionUtils.isNotConnected(session)) return "redirect:/login";
-        User user = SessionUtils.getUser(session);
+    public String myReservations(Model model){
+        User user = SessionUtils.getConnectedUser();
         model.addAttribute("reservations", reservationService.getByUser(user.getId()));
         return "my-reservations";
     }
@@ -53,16 +50,14 @@ public class ReservationController {
      *
      * @param seanceId           the unique identifier of the seance being booked
      * @param quantity           the number of seats to reserve (defaults to 1 if not explicitly provided)
-     * @param session            the current {@link HttpSession} used to retrieve the authenticated user
      * @param redirectAttributes the Spring {@link RedirectAttributes} used to pass flash messages across the redirect
      * @return a redirection URL to the user's reservations page, or to the login page if unauthenticated
      */
     @PostMapping("/reserve")
     public String reserveSeance(@RequestParam Long seanceId, @RequestParam(defaultValue = "1") int quantity,
-                                @RequestParam(required = false) Boolean confirmed,
-                                HttpSession session, RedirectAttributes redirectAttributes){
-        if (SessionUtils.isNotConnected(session)) return "redirect:/login";
-        User user = SessionUtils.getUser(session);
+                                @RequestParam(required = false) Boolean confirmed, RedirectAttributes redirectAttributes){
+
+        User user = SessionUtils.getConnectedUser();
 
         boolean alreadyBooked = reservationService.existsByUserAndSeance(user.getId(), seanceId);
 
