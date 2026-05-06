@@ -35,8 +35,8 @@
         </h2>
 
         <!-- liste films -->
-        <div class="row g-4">
-        <div class="col-md-4 col-lg-3" th:each="movie : ${movies}">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
+        <div class="col" th:each="movie : ${movies}">
             <a th:href="@{/movie(id=${movie.id})}"
                class="text-decoration-none movie-card-link">
                 <div class="card h-100 shadow-sm border-0 movie-card">
@@ -46,7 +46,7 @@
                          th:src="${movie.imageUrl}"
                          th:alt="${movie.title}"
                          class="card-img-top object-fit-cover"
-                         style="height: 320px;">
+                         style="height: 280px;">
                     <div th:if="${movie.imageUrl == null or movie.imageUrl.isBlank()}"
                          class="bg-dark d-flex align-items-center justify-content-center"
                          style="height: 320px;">
