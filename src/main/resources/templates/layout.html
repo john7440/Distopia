@@ -44,9 +44,7 @@
                 <button class="btn btn-dark btn-sm dropdown-toggle"
                         type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-person-circle"></i>
-                    <div sec:authorize="isAuthenticated()" class="dropdown">
-                        <span sec:authentication="name"></span>
-                    </div>
+                    <span sec:authentication="name"></span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
 
@@ -81,6 +79,11 @@
                     <li sec:authorize:="hasRole('ADMIN')">
                         <a class="dropdown-item" th:href="@{/admin/seances}">
                             <i class="bi bi-calendar3 me-2"></i> Séances
+                        </a>
+                    </li>
+                    <li sec:authorize:="hasRole('ADMIN')">
+                        <a th:href="@{/admin/import-movies}" class="dropdown-item">
+                            <i class="bi bi-cloud-download"></i>   Importer Films
                         </a>
                     </li>
 
