@@ -105,7 +105,7 @@ class TmbdClientTest {
 
     //-----------------------tests for getTrailerUrl()----------------
     @Test
-    @DisplayName("getTrailerUrl() - returns embed url Youtube trailer")
+    @DisplayName("getTrailerUrl() - returns embed Youtube trailer url")
     void getTrailerUrl_ShouldReturnEmbedTrailerUrl() {
         TmdbVideoDto trailer =  new TmdbVideoDto();
         trailer.setKey("s5CkFFnFuWs");
@@ -120,6 +120,31 @@ class TmbdClientTest {
         String url =  tmdbClient.getTrailerUrl(27205L);
 
         assertThat(url).isEqualTo("https://www.youtube.com/embed/s5CkFFnFuWs");
+    }
+
+    @Test
+    @DisplayName("getTrailerUrl() - returns null if no trailer found")
+    void getTrailerUrl_ShouldReturnNullIfNoTrailerFound() {
+        TmdbVideoDto teaser =  new TmdbVideoDto();
+        teaser.setKey("test123");
+        teaser.setSite("Vimeo");
+        teaser.setType("Teaser");
+
+        TmdbVideosResponse response =  new TmdbVideosResponse();
+        response.setResults(List.of(teaser));
+
+        when(restTemplate.getForObject(contains("/videos"), eq(TmdbVideosResponse.class))).thenReturn(response);
+
+        assertThat(tmdbClient.getTrailerUrl(27205L)).isNull();
+    }
+
+    @Test
+    @DisplayName("getTrailerUrl() - returns null if tmdb returns null")
+    void getTrailerUrl_shouldReturnNullIfTmdbReturnsNull() {
+        when(restTemplate.getForObject(contains("/videos"), eq(TmdbVideosResponse.class)))
+                .thenReturn(null);
+
+        assertThat(tmdbClient.getTrailerUrl(27205L)).isNull();
     }
 
 }
