@@ -147,4 +147,16 @@ class TmdbControllerTest {
         verify(movieService).save(
                 isNull(), anyString(), anyString(), eq(0), any(), any(), any(), isNull());
     }
+
+    @Test
+    @DisplayName("importMovie() - keep query in redirection when query provided")
+    void importMovie_ShouldKeepQueryInRedirectionWhenQueryProvided() {
+        when(tmdbClient.getDetail(1L)).thenReturn(validDetail);
+        when(tmdbClient.getTrailerUrl(1L)).thenReturn(null);
+        when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any())).thenReturn(new Movie());
+
+        String view = tmbdController.importMovie(1L,"Inception",redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/import-movies?query=Inception");
+    }
 }
