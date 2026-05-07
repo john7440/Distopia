@@ -8,13 +8,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.assertj.core.api.Assertions.as;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -97,5 +100,18 @@ class SecurityConfigTest {
     @DisplayName("GET /my-reservations - accessible for authenticated user")
     void myReservations_ShouldBeAccessibleForAuthenticatedUser() throws Exception {
         mockMvc.perform(get("/my-reservations")).andExpect(status().isOk());
+    }
+
+    //---------------------------test PasswordEncoder---------------------
+    @Test
+    @DisplayName("passwordEncoder - encode and verify password")
+    void passwordEncoder_ShouldEncodeAndVerifyPassword() throws Exception {
+        PasswordEncoder encoder =  new BCryptPasswordEncoder();
+        String raw = "Louvre";
+        String encoded = encoder.encode(raw);
+
+        assertThat(encoder.matches(raw, encoded)).isTrue();
+        assertThat(encoder.matches("PasLouvre", encoded)).isFalse();
+
     }
 }
