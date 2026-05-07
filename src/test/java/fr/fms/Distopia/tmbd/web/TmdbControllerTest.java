@@ -1,5 +1,6 @@
 package fr.fms.Distopia.tmbd.web;
 
+import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbGenreDto;
@@ -91,4 +92,19 @@ class TmdbControllerTest {
         verify(model).addAttribute("imgBase",TmdbClient.IMG_BASE);
     }
 
+    //-------------------------test for importMovie()--------------------------------
+    @Test
+    @DisplayName("importMovie() - imports movie and redirect with success message")
+    void importMovie_ShouldImportMovieAndRedirectWithSuccessMessage() {
+        when(tmdbClient.getDetail(1L)).thenReturn(validDetail);
+        when(tmdbClient.getTrailerUrl(1L)).thenReturn("https://www.youtube.com/embed/test");
+        when(movieService.save(any(),any(),any(),anyInt(),any(),any(),any(),any())).thenReturn(new Movie());
+
+        String view = tmbdController.importMovie(1L, null, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/import-movies");
+        verify(movieService).save(null, "Inception", "Description Inception", 148, "Sci-Fi",
+                TmdbClient.IMG_BASE + "/inception.jpg","https://www.youtube.com/embed/test", null );
+        verify(redirectAttributes).addFlashAttribute(eq("message"), contains("Inception"));
+    }
 }
