@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CinemaController.class)
@@ -38,6 +39,8 @@ class SecurityConfigTest {
     private UserController userController;
     @MockitoBean
     private IndexController indexController;
+    @MockitoBean
+    private ReservationController reservationController;
     @MockitoBean
     private DistopiaUserDetailsService userDetailsService;
 
@@ -79,5 +82,20 @@ class SecurityConfigTest {
     @DisplayName("GET admin/cinemas - should allow admin user ")
     void adminCinemas_ShouldAllowAdminUser() throws Exception {
         mockMvc.perform(get("/admin/cinemas")).andExpect(status().isOk());
+    }
+
+    //------------------------tests my-reservations---------------------------
+    @Test
+    @DisplayName("GET /my-reservations - redirect to login if user not authenticated")
+    void myReservations_shouldRedirectToLogin_whenNotAuthenticated() throws Exception {
+        mockMvc.perform(get("/my-reservations")).andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    @DisplayName("GET /my-reservations - accessible for authenticated user")
+    void myReservations_ShouldBeAccessibleForAuthenticatedUser() throws Exception {
+        mockMvc.perform(get("/my-reservations")).andExpect(status().isOk());
     }
 }
