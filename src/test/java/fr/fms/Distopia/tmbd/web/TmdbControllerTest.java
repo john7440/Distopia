@@ -6,6 +6,8 @@ import fr.fms.Distopia.tmdb.dto.TmdbGenreDto;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import fr.fms.Distopia.tmdb.web.TmbdController;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -15,6 +17,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TmdbControllerTest {
@@ -45,4 +51,44 @@ class TmdbControllerTest {
         validDetail.setPosterPath("/inception.jpg");
         validDetail.setGenres(List.of(genre));
     }
+
+    //-------------------------------tests for importPage()--------------
+    @Test
+    @DisplayName("importPage() - returns admin-import-movies view")
+    void importPage_ShouldReturnAdminImportMovieView() {
+        String view = tmbdController.importPage(null,model);
+
+        assertThat(view).isEqualTo("admin-import-movies");
+    }
+
+    @Test
+    @DisplayName("importPage() - does not call tmdb if the query is null")
+    void importPage_ShouldNotCallTmdb_WhenQueryIsNull() {
+        tmbdController.importPage(null,model);
+
+        verify(tmdbClient, never()).search(any());
+    }
+
+    @Test
+    @DisplayName("importPage() - calls tmdb and add result to model if there is a query")
+    void importPage_ShouldCallTmdbAndAddResultToModel() {
+        TmdbMovieDto movie =  new TmdbMovieDto();
+        movie.setTitle("Inception");
+        when(tmdbClient.search("Inception")).thenReturn(List.of(movie));
+
+        tmbdController.importPage("Inception",model);
+
+        verify(tmdbClient).search("Inception");
+        verify(model).addAttribute("results",List.of(movie));
+        verify(model).addAttribute("query","Inception");
+    }
+
+    @Test
+    @DisplayName("importPage() - always adds imgBase to the model")
+    void importPage_ShouldAlwaysAddImgBaseToModel() {
+        tmbdController.importPage(null,model);
+
+        verify(model).addAttribute("imgBase",TmdbClient.IMG_BASE);
+    }
+
 }
