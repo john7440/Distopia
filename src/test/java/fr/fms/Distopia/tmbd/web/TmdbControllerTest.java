@@ -107,4 +107,16 @@ class TmdbControllerTest {
                 TmdbClient.IMG_BASE + "/inception.jpg","https://www.youtube.com/embed/test", null );
         verify(redirectAttributes).addFlashAttribute(eq("message"), contains("Inception"));
     }
+
+    @Test
+    @DisplayName("importMovie() - adds flash error when tmdb returns null")
+    void importMovie_ShouldAddFlashErrorWhenTmdbReturnsNull() {
+        when(tmdbClient.getDetail(99L)).thenReturn(null);
+
+        String view = tmbdController.importMovie(99L, null, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/import-movies");
+        verify(redirectAttributes).addFlashAttribute(eq("error"), anyString());
+        verify(movieService, never()).save(any(), any(), any(), anyInt(), any(), any(), any(), any());
+    }
 }
