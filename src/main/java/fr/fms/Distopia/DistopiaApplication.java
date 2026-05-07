@@ -13,4 +13,6 @@ public class DistopiaApplication {
 // - admin : admin123
 // - alice: password
 // - jonatemps : password
+// - test123 : pass123
+// - test3456 : test3456
 }
