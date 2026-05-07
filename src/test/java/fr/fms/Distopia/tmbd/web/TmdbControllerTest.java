@@ -133,4 +133,18 @@ class TmdbControllerTest {
 
         verify(movieService).save(isNull(), anyString(),anyString(),anyInt(),eq("Inconnu"),any(), any(), isNull());
     }
+
+    @Test
+    @DisplayName("importMovie() - should use zero duration when runtime is null")
+    void importMovie_ShouldUseZeroDurationWhenRuntimeIsNull() {
+        validDetail.setRuntime(null);
+        when(tmdbClient.getDetail(1L)).thenReturn(validDetail);
+        when(tmdbClient.getTrailerUrl(1L)).thenReturn(null);
+        when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any())).thenReturn(new Movie());
+
+        tmbdController.importMovie(1L,null,redirectAttributes);
+
+        verify(movieService).save(
+                isNull(), anyString(), anyString(), eq(0), any(), any(), any(), isNull());
+    }
 }
