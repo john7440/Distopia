@@ -1,6 +1,7 @@
 package fr.fms.Distopia.tmdb.web;
 
 import fr.fms.Distopia.service.MovieService;
+import fr.fms.Distopia.service.SeanceGeneratorService;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ public class TmbdController {
 
     @Autowired
     private MovieService movieService;
+
+    @Autowired
+    private SeanceGeneratorService seanceGeneratorService;
 
     /// -----------------admin import-movies---------------------
     @GetMapping("/admin/import-movies")
@@ -56,5 +60,20 @@ public class TmbdController {
         ra.addFlashAttribute("message", title + "\" importé avec succès !");
         return "redirect:/admin/import-movies" + (query != null ? "?query=" + query : "");
 
+    }
+
+    //-----------------------POST - import auto (de films à l'affiche) + génération de séances (fictives)-------------------------
+    @PostMapping("/admin/generate-now-playing")
+    public String generateNowPlaying(RedirectAttributes ra) {
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
+
+        String message = String.format("%d films importés et %d séances générées sur 21 jours", result.moviesImported(), result.seancesCreated());
+        ra.addFlashAttribute("message", message);
+
+        if (result.hasErrors()){
+            String errors = String.join(" | ", result.errors());
+            ra.addFlashAttribute("warning" + "Avertissements" + errors);
+        }
+        return "redirect:/admin/seances";
     }
 }
