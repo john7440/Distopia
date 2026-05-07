@@ -147,4 +147,26 @@ class TmbdClientTest {
         assertThat(tmdbClient.getTrailerUrl(27205L)).isNull();
     }
 
+    @Test
+    @DisplayName("getTrailerUrl() - ignore Vimeo videos and accept only YouTube's one")
+    void getTrailerUrl_ShouldIgnoreOtherVideoThanYoutube() {
+        TmdbVideoDto vimeo =  new TmdbVideoDto();
+        vimeo.setKey("vimeo123");
+        vimeo.setSite("Vimeo");
+        vimeo.setType("Trailer");
+
+        TmdbVideoDto youtube =  new TmdbVideoDto();
+        youtube.setKey("youtube123");
+        youtube.setSite("YouTube");
+        youtube.setType("Trailer");
+
+        TmdbVideosResponse response =  new TmdbVideosResponse();
+        response.setResults(List.of(vimeo,youtube));
+
+        when(restTemplate.getForObject(contains("/videos"), eq(TmdbVideosResponse.class)))
+            .thenReturn(response);
+
+        assertThat(tmdbClient.getTrailerUrl(1L)).isEqualTo("https://www.youtube.com/embed/youtube123");
+    }
+
 }
