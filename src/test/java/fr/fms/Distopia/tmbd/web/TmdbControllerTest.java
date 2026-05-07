@@ -119,4 +119,18 @@ class TmdbControllerTest {
         verify(redirectAttributes).addFlashAttribute(eq("error"), anyString());
         verify(movieService, never()).save(any(), any(), any(), anyInt(), any(), any(), any(), any());
     }
+
+    @Test
+    @DisplayName("importMovie() - use 'Inconnu' when genres are null")
+    void importMovie_ShouldUseInconnuWhenGenresAreNull() {
+        validDetail.setGenres(null);
+        when(tmdbClient.getDetail(1L)).thenReturn(validDetail);
+        when(tmdbClient.getTrailerUrl(1L)).thenReturn(null);
+        when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any()))
+                .thenReturn(new Movie());
+
+        tmbdController.importMovie(1L,null,redirectAttributes);
+
+        verify(movieService).save(isNull(), anyString(),anyString(),anyInt(),eq("Inconnu"),any(), any(), isNull());
+    }
 }
