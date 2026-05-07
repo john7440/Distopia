@@ -52,5 +52,12 @@ public class TmdbClient {
                 .orElse(null);
     }
 
+    //-------------Films a l'affiche en France-----------------------------------
+    public List<TmdbMovieDto> getNowPlaying(){
+        String url = BASE_URL + "/movie/now_playing?api_key=" + apiKey +  "&language=fr-FR&region=FR&page=1";
+        TmdbSearchResponse response = restTemplate.getForObject(url, TmdbSearchResponse.class);
+        return response !=null ? response.getResults() : List.of();
+    }
+
 
 }
