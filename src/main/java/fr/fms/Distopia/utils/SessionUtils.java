@@ -3,7 +3,6 @@ package fr.fms.Distopia.utils;
 
 import fr.fms.Distopia.entities.Role;
 import fr.fms.Distopia.entities.User;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -20,7 +19,7 @@ public class SessionUtils {
     public static final String REDIRECTION = "redirect:/index";
 
     public static User getConnectedUser() {
-        @Nullable Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated())return null;
         Object principal = auth.getPrincipal();
         if (principal instanceof User user) {
@@ -35,6 +34,4 @@ public class SessionUtils {
         User user = getConnectedUser();
         return user == null || user.getRole() != Role.ADMIN;
     }
-
-
 }
