@@ -38,8 +38,8 @@ public class MovieService {
      * @param cinemaId the unique identifier of the cinema
      * @return a list of non-deleted {@link Movie} objects associated with the given cinema
      */
-    public List<Movie> getByCinema(Long cinemaId) {
-        return movieRepository.findByCinemasIdAndDeletedFalse(cinemaId);
+    public List<Movie> getByCinema(Long cinemaId, Sort sort) {
+        return movieRepository.findByCinemasIdAndDeletedFalse(cinemaId, sort);
     }
 
     //----------find by id----------------------
@@ -135,7 +135,11 @@ public class MovieService {
 
     //-------------chercher tous les films actifs---------------
     public List<Movie> getAllActive(){
-        return movieRepository.findByDeletedFalseOrderByTitleAsc();
+        return movieRepository.findByDeletedFalse(Sort.by("title"));
+    }
+
+    public List<Movie> getAllActive(Sort sort) {
+        return movieRepository.findByDeletedFalse(sort);
     }
 
     //---------------------pagination pour admin---------------------------------
