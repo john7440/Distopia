@@ -6,6 +6,7 @@ import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,13 +40,21 @@ public class MovieController {
      * @return the view name "movies"
      */
     @GetMapping("/movies")
-    public String moviesByCinema(@RequestParam(required = false) Long cinemaId, Model model){
+    public String moviesByCinema(@RequestParam(required = false) Long cinemaId,
+                                 @RequestParam(defaultValue = "title") String sort,
+                                 @RequestParam(defaultValue = "asc")String dir, Model model){
+
+        Sort.Direction direction = dir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sortObj = Sort.by(direction, sort);
+
         if (cinemaId != null){
-            model.addAttribute(MOVIES, movieService.getByCinema(cinemaId));
+            model.addAttribute(MOVIES, movieService.getByCinema(cinemaId, sortObj));
         } else {
-            model.addAttribute(MOVIES, movieService.getAllActive());
+            model.addAttribute(MOVIES, movieService.getAllActive(sortObj));
         }
         model.addAttribute("cinemaId", null);
+        model.addAttribute("sort", sort);
+        model.addAttribute("dir", dir);
         return MOVIES;
     }
 
