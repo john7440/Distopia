@@ -3,151 +3,356 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
-<head><title>Distopia — Gestion des films</title></head>
-<body>
-<section layout:fragment="content">
-    <div class="container py-5">
 
-        <h2 class="fw-bold mb-4">
-            <i class="bi bi-film text-dark"></i> Gestion des films
-        </h2>
+<div layout:fragment="content">
 
-        <div class="row g-4">
+    <div class="container py-4">
 
-            <!-- formulaire -->
-            <div class="col-md-4">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <h5 class="fw-bold mb-3">
-                            <i class="bi bi-plus text-dark"></i>
-                            Ajouter / Modifier
-                        </h5>
-                        <form th:action="@{/admin/saveMovie}" method="post">
-                            <input type="hidden" name="id"
-                                   th:if="${editMovie != null}"
-                                   th:value="${editMovie.id}">
-                            <div class="mb-2">
-                                <label class="form-label fw-semibold">Titre</label>
-                                <input type="text" name="title" class="form-control"
-                                       th:value="${editMovie != null ? editMovie.title : ''}"
-                                       placeholder="Titre du film" required>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label fw-semibold">Genre</label>
-                                <input type="text" name="genre" class="form-control"
-                                       th:value="${editMovie != null ? editMovie.genre : ''}"
-                                       placeholder="Ex: Action, Comédie...">
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label fw-semibold">Durée (min)</label>
-                                <input type="number" name="duration" class="form-control"
-                                       th:value="${editMovie != null ? editMovie.duration : ''}"
-                                       placeholder="120" min="1">
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label fw-semibold">Description</label>
-                                <textarea name="description" class="form-control" rows="2"
-                                          placeholder="Synopsis..."
-                                          th:text="${editMovie != null ? editMovie.description : ''}">
-                                </textarea>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label fw-semibold">URL de l'affiche</label>
-                                <!-- aperçu si image existante -->
-                                <div th:if="${editMovie != null
-                      and editMovie.imageUrl != null
-                      and !editMovie.imageUrl.isBlank()}"
-                                     class="mb-2">
-                                    <img th:src="${editMovie.imageUrl}"
-                                         th:alt="${editMovie.title}"
-                                         style="height: 80px; border-radius: 6px; object-fit: cover;">
-                                </div>
-                                <input type="text" name="imageUrl" class="form-control"
-                                       th:value="${editMovie != null ? editMovie.imageUrl : ''}"
-                                       placeholder="https://...">
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label fw-semibold">URL Bande-annonce YouTube</label>
-                                <input type="text" name="trailerUrl" class="form-control"
-                                       th:value="${editMovie != null ? editMovie.trailerUrl : ''}"
-                                       placeholder="https://www.youtube.com/embed/XXXXXXXX">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">
-                                    Cinémas
-                                    <span class="text-muted small fw-normal">(Ctrl+clic pour sélection multiple)</span>
-                                </label>
-                                <select name="cinemaIds" class="form-select" multiple size="5">
-                                    <option th:each="cinema : ${cinemas}"
-                                            th:value="${cinema.id}"
-                                            th:text="${cinema.name}"
-                                            th:selected="${editMovie != null
-                               and editMovie.cinemas != null
-                               and editMovie.cinemas.contains(cinema)}">
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-save"></i>
-                                    <span th:text="${editMovie != null ? 'Modifier' : 'Ajouter'}"></span>
-                                </button>
-                                <a th:if="${editMovie != null}"
-                                   th:href="@{/admin/movies}"
-                                   class="btn btn-outline-danger">Annuler</a>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+        <!-- header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">
+                <i class="bi bi-film"></i>
+                Gestion des films
+            </h2>
+
+            <a th:href="@{/admin/import-movies}"
+               class="btn btn-success">
+
+                <i class="bi bi-cloud-download"></i>
+                Importer TMDB
+            </a>
+        </div>
+
+        <!-- flash msg-->
+        <div th:if="${message}"
+             class="alert alert-success alert-dismissible fade show">
+
+            <span th:text="${message}"></span>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+
+        <!-- Search  -->
+        <form th:action="@{/admin/movies}"
+              method="get"
+              class="row g-3 mb-4">
+
+            <div class="col-md-10">
+
+                <input type="text"
+                       name="keyword"
+                       class="form-control"
+                       placeholder="Rechercher un film..."
+                       th:value="${keyword}">
             </div>
 
-            <!-- liste -->
-            <div class="col-md-8">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-0">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-dark">
-                            <tr>
-                                <th>Titre</th>
-                                <th>Genre</th>
-                                <th>Durée</th>
-                                <th>Statut</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="movie : ${movies}"
-                                th:classappend="${movie.deleted} ? 'table-secondary text-muted' : ''">
-                                <td class="fw-semibold" th:text="${movie.title}"></td>
-                                <td th:text="${movie.genre}"></td>
-                                <td th:text="${movie.duration} + ' min'"></td>
-                                <td>
-                                        <span th:if="${!movie.deleted}"
-                                              class="badge bg-success">Actif</span>
-                                    <span th:if="${movie.deleted}"
-                                          class="badge bg-danger">Supprimé</span>
-                                </td>
-                                <td class="text-end">
-                                    <a th:if="${!movie.deleted}"
-                                       th:href="@{/admin/movies(editId=${movie.id})}"
-                                       class="btn btn-sm btn-outline-primary me-1">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a th:if="${!movie.deleted}"
-                                       th:href="@{/admin/deleteMovie(id=${movie.id})}"
-                                       class="btn btn-sm btn-outline-danger"
-                                       onclick="return confirm('Supprimer ce film ?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="col-md-2 d-grid">
+
+                <button class="btn btn-dark">
+                    <i class="bi bi-search"></i>
+                    Rechercher
+                </button>
+            </div>
+
+        </form>
+
+        <!--resume -->
+        <div class="mb-3 text-muted small">
+
+            <span th:text="${moviePage.totalElements}"></span>
+            film(s) - page
+            <span th:text="${currentPage + 1}"></span>
+
+            /
+
+            <span th:text="${moviePage.totalPages > 0 ? moviePage.totalPages : 1}"></span>
+
+        </div>
+
+        <!-- table -->
+        <div class="card shadow-sm border-0">
+
+            <div class="card-body p-0">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-dark">
+
+                    <tr>
+                        <th width="80"></th>
+                        <th>Titre</th>
+                        <th>Genre</th>
+                        <th>Durée</th>
+                        <th>Cinémas</th>
+                        <th>Statut</th>
+                        <th width="180">Actions</th>
+                    </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    <!-- if empty -->
+                    <tr th:if="${#lists.isEmpty(movies)}">
+                        <td colspan="7"
+                            class="text-center py-5 text-muted">
+                            <i class="bi bi-film fs-1 d-block mb-2"></i>
+                            Aucun film trouvé
+                        </td>
+                    </tr>
+
+                    <!-- movies -->
+                    <tr th:each="m : ${movies}">
+                        <!-- affiches -->
+                        <td>
+                            <img th:if="${m.imageUrl != null}"
+                                 th:src="${m.imageUrl}"
+                                 th:alt="${m.title}"
+                                 style="width:50px;
+                                        height:70px;
+                                        object-fit:cover;
+                                        border-radius:6px;">
+
+                            <div th:if="${m.imageUrl == null}"
+                                 class="bg-secondary text-white d-flex
+                                        align-items-center justify-content-center"
+                                 style="width:50px;
+                                        height:70px;
+                                        border-radius:6px;">
+
+                                <i class="bi bi-film"></i>
+                            </div>
+                        </td>
+                        <!-- titles -->
+                        <td>
+                            <div class="fw-semibold"
+                                 th:text="${m.title}">
+                            </div>
+
+                            <div th:if="${m.trailerUrl != null}"
+                                 class="mt-1">
+
+                                <a th:href="${m.trailerUrl}" target="_blank"
+                                   class="badge bg-danger text-decoration-none">
+                                    <i class="bi bi-youtube"></i>
+                                    Trailer
+                                </a>
+                            </div>
+                        </td>
+                        <!-- genre -->
+                        <td>
+
+                            <span class="badge bg-secondary"
+                                  th:text="${m.genre}">
+                            </span>
+                        </td>
+                        <!-- duration -->
+                        <td th:text="${m.duration > 0 ? m.duration + ' min' : '—'}">
+                        </td>
+
+                        <!--cinemas -->
+                        <td>
+                            <span th:if="${m.cinemas.isEmpty()}"
+                                  class="text-muted">
+                                —
+                            </span>
+
+                            <span th:each="c : ${m.cinemas}"
+                                  class="badge bg-light text-dark border me-1"
+                                  th:text="${c.name}">
+                            </span>
+                        </td>
+
+                        <!-- status -->
+                        <td>
+                            <span th:if="${!m.deleted}"
+                                  class="badge bg-success">Actif
+                            </span>
+
+                            <span th:if="${m.deleted}"
+                                  class="badge bg-danger">Supprimé
+                            </span>
+
+                        </td>
+                        <!-- --------------------------ACTIONS--------------------------------->
+                        <td>
+                            <!-- edit -->
+                            <button class="btn btn-warning btn-sm"
+                                    data-bs-toggle="modal"
+                                    th:data-bs-target="'#editMovieModal' + ${m.id}"> Modifier
+                            </button>
+
+                            <!-- del -->
+                            <a th:href="@{/admin/deleteMovie(id=${m.id})}"
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Supprimer ce film ?')"> Supprimer
+                            </a>
+
+                            <!-----------------------------------------EDIT MODAL------------------------------->
+                            <div class="modal fade"
+                                 th:id="'editMovieModal' + ${m.id}"
+                                 tabindex="-1">
+
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <form method="post"
+                                              th:action="@{/admin/saveMovie}">
+
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Modifier le film</h5>
+
+                                                <button type="button"
+                                                        class="btn-close"
+                                                        data-bs-dismiss="modal">
+                                                </button>
+
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <input type="hidden" name="id"
+                                                       th:value="${m.id}">
+
+                                                <div class="row g-3">
+                                                    <!-- titre-->
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Titre</label>
+
+                                                        <input type="text" name="title"
+                                                               class="form-control"
+                                                               th:value="${m.title}"
+                                                               required>
+                                                    </div>
+
+                                                    <!-- genre -->
+                                                    <div class="col-md-6">
+
+                                                        <label class="form-label">Genre</label>
+
+                                                        <input type="text"
+                                                               name="genre"
+                                                               class="form-control"
+                                                               th:value="${m.genre}">
+
+                                                    </div>
+
+                                                    <!-- durée -->
+                                                    <div class="col-md-4">
+
+                                                        <label class="form-label">Durée</label>
+                                                        <input type="number"
+                                                               name="duration"
+                                                               class="form-control"
+                                                               th:value="${m.duration}">
+                                                    </div>
+
+                                                    <!-- image -->
+                                                    <div class="col-md-8">
+
+                                                        <label class="form-label">Image URL</label>
+
+                                                        <input type="text"
+                                                               name="imageUrl"
+                                                               class="form-control"
+                                                               th:value="${m.imageUrl}">
+                                                    </div>
+
+                                                    <!-- le trailer -->
+                                                    <div class="col-12">
+                                                        <label class="form-label">Trailer URL</label>
+
+                                                        <input type="text" name="trailerUrl"
+                                                               class="form-control"
+                                                               th:value="${m.trailerUrl}">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="modal-footer">
+
+                                                <button type="button"
+                                                        class="btn btn-danger"
+                                                        data-bs-dismiss="modal">
+                                                    Annuler
+                                                </button>
+
+                                                <button class="btn btn-success">
+                                                    Sauvegarder
+                                                </button>
+
+                                            </div>
+                                        </form>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
+
+        <!--------------------------- PAGINATION --------------------------->
+        <nav class="mt-4"
+             th:if="${moviePage.totalPages > 1}">
+
+            <ul class="pagination justify-content-center">
+
+                <!-- PREV -->
+                <li class="page-item"
+                    th:classappend="${currentPage == 0} ? 'disabled'">
+
+                    <a class="page-link"
+                       th:href="@{/admin/movies(
+                       page=${currentPage - 1},
+                       keyword=${keyword})}">
+
+                        &laquo;
+
+                    </a>
+
+                </li>
+
+                <!-- WINDOW PAGINATION -->
+                <li class="page-item"
+
+                    th:each="i : ${#numbers.sequence(
+                    currentPage > 2 ? currentPage - 2 : 0,
+                    currentPage + 2 < moviePage.totalPages - 1 ?
+                    currentPage + 2 :
+                    moviePage.totalPages - 1)}"
+
+                    th:classappend="${i == currentPage} ? 'active'">
+
+                    <a class="page-link"
+                       th:text="${i + 1}"
+
+                       th:href="@{/admin/movies(
+                       page=${i},
+                       keyword=${keyword})}">
+                    </a>
+
+                </li>
+
+                <!-- NEXT -->
+                <li class="page-item"
+
+                    th:classappend="${currentPage >= moviePage.totalPages - 1}
+                    ? 'disabled'">
+
+                    <a class="page-link" th:href="@{/admin/movies(
+                       page=${currentPage + 1},
+                       keyword=${keyword})}">
+                        &raquo;
+                    </a>
+                </li>
+            </ul>
+        </nav>
     </div>
-</section>
-</body>
+</div>
+
 </html>
+
