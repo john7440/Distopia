@@ -3,144 +3,480 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
-<head><title>Distopia — Gestion des séances</title></head>
-<body>
-<section layout:fragment="content">
-    <div class="container py-5">
 
-        <h2 class="fw-bold mb-4">
-            <i class="bi bi-calendar3 text-dark"></i> Gestion des séances
-        </h2>
+<div layout:fragment="content">
 
-        <div class="row g-4">
+    <div class="container py-4">
 
-            <!-- formulaire -->
-            <div class="col-md-4">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <h5 class="fw-bold mb-3">
-                            <i class="bi bi-plus text-dark"></i>
-                            Ajouter / Modifier
-                        </h5>
-                        <form th:action="@{/admin/saveSeance}" method="post">
-                            <input type="hidden" name="id"
-                                   th:if="${editSeance != null}"
-                                   th:value="${editSeance.id}">
+        <!-- header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
 
-                            <div class="mb-2">
-                                <label class="form-label fw-semibold">Film</label>
-                                <select name="movieId" class="form-select" required>
-                                    <option value="">-- Choisir un film --</option>
-                                    <option th:each="movie : ${movies}"
-                                            th:if="${!movie.deleted}"
-                                            th:value="${movie.id}"
-                                            th:text="${movie.title}"
-                                            th:selected="${editSeance != null
-                                   and editSeance.movie.id == movie.id}">
-                                    </option>
-                                </select>
-                            </div>
+            <h2 class="fw-bold">
+                <i class="bi bi-calendar3"></i> Gestion des séances
+            </h2>
 
-                            <div class="mb-2">
-                                <label class="form-label fw-semibold">Date et heure</label>
-                                <input type="datetime-local" name="dateTime"
-                                       class="form-control"
-                                       th:value="${editSeance != null ?
-                   #temporals.format(editSeance.dateTime, 'yyyy-MM-dd''T''HH:mm') : ''}"
-                                       required>
-                            </div>
+            <button type="button"
+                    class="btn btn-success"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addSeanceModal">
+                <i class="bi bi-plus"></i> Ajouter une séance
+            </button>
 
-                            <div class="mb-2">
-                                <label class="form-label fw-semibold">Places disponibles</label>
-                                <input type="number" name="availableSeats" class="form-control"
-                                       min="0"
-                                       th:value="${editSeance != null ? editSeance.availableSeats : 100}"
-                                       required>
-                            </div>
+        </div>
 
-                            <div class="mb-2">
-                                <label class="form-label fw-semibold">Cinéma</label>
-                                <select name="cinemaId" class="form-select" required>
-                                    <option value="">-- Choisir un cinéma --</option>
-                                    <option th:each="cinema : ${cinemas}"
-                                            th:value="${cinema.id}"
-                                            th:text="${cinema.name}"
-                                            th:selected="${editSeance != null
-                               and editSeance.cinema.id == cinema.id}">
-                                    </option>
-                                </select>
-                            </div>
+        <!-- search-->
+        <form method="get"
+              th:action="@{/admin/seances}"
+              class="row g-3 mb-4">
 
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Prix (€)</label>
-                                <input type="number" name="price" step="0.01"
-                                       class="form-control" min="0"
-                                       th:value="${editSeance != null ? editSeance.price : ''}"
-                                       placeholder="9.50" required>
-                            </div>
+            <div class="col-md-5">
 
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-save"></i>
-                                    <span th:text="${editSeance != null ? 'Modifier' : 'Ajouter'}"></span>
-                                </button>
-                                <a th:if="${editSeance != null}"
-                                   th:href="@{/admin/seances}"
-                                   class="btn btn-outline-danger">Annuler
-                                </a>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <input type="text"
+                       name="keyword"
+                       class="form-control"
+                       placeholder="Rechercher un film..."
+                       th:value="${keyword}">
             </div>
 
-            <!-- liste -->
-            <div class="col-md-8">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-0">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-dark">
-                            <tr>
-                                <th>Film</th>
-                                <th>Date</th>
-                                <th>Heure</th>
-                                <th>Places</th>
-                                <th>Prix</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="seance : ${seances}">
-                                <td class="fw-semibold"
-                                    th:text="${seance.movie.title}"></td>
-                                <td th:text="${#temporals.format(seance.dateTime, 'dd/MM/yyyy')}"></td>
-                                <td th:text="${#temporals.format(seance.dateTime, 'HH:mm')}"></td>
-                                <td>
-                                        <span th:text="${seance.availableSeats}"
-                                              th:classappend="${seance.availableSeats == 0}
-                                                  ? 'text-danger fw-bold' : ''">
-                                        </span>
-                                </td>
-                                <td th:text="${seance.price} + ' €'"></td>
-                                <td class="text-end">
-                                    <a th:href="@{/admin/seances(editId=${seance.id})}"
-                                       class="btn btn-sm btn-outline-primary me-1">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a th:href="@{/admin/deleteSeance(id=${seance.id})}"
-                                       class="btn btn-sm btn-outline-danger"
-                                       onclick="return confirm('Supprimer cette séance ?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+            <!-- cinemas -->
+            <div class="col-md-5">
+
+                <select name="cinemaId"
+                        class="form-select">
+
+                    <option value="">
+                        Tous les cinémas
+                    </option>
+
+                    <option th:each="c : ${cinemas}"
+                            th:value="${c.id}"
+                            th:text="${c.name}"
+                            th:selected="${cinemaId == c.id}">
+                    </option>
+                </select>
+
+            </div>
+
+            <!-- search btn -->
+            <div class="col-md-2 d-grid">
+                <button class="btn btn-dark">
+                    <i class="bi bi-search"></i>
+                    Rechercher
+                </button>
+            </div>
+
+        </form>
+
+        <div class="mb-3 text-muted small">
+
+            <span th:text="${seancePage.totalElements}"></span>
+            séance(s) - page
+            <span th:text="${currentPage + 1}"></span>
+            /
+            <span th:text="${seancePage.totalPages > 0 ?
+                            seancePage.totalPages : 1}">
+            </span>
+        </div>
+
+        <!-- table-->
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body p-0">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-dark">
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Film</th>
+                        <th>Cinéma</th>
+                        <th>Date</th>
+                        <th>Places</th>
+                        <th>Prix</th>
+                        <th width="180">Actions</th>
+                    </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    <!-- if empty -->
+                    <tr th:if="${#lists.isEmpty(seances)}">
+
+                        <td colspan="7"
+                            class="text-center py-5 text-muted">
+                            <i class="bi bi-calendar-event fs-1 d-block mb-2"></i>
+                            Aucune séance trouvée
+                        </td>
+
+                    </tr>
+
+                    <!-- seances----->
+                    <tr th:each="s : ${seances}">
+                        <td th:text="${s.id}"></td>
+
+                        <!-- movie -->
+                        <td>
+                            <div class="fw-semibold"
+                                 th:text="${s.movie.title}">
+                            </div>
+
+                            <div class="small text-muted"
+                                 th:text="${s.movie.genre}">
+                            </div>
+                        </td>
+
+                        <!-- cinema -->
+                        <td th:text="${s.cinema.name}"></td>
+
+                        <!-- date -->
+                        <td>
+                            <span th:text="${#temporals.format(
+                                  s.dateTime,
+                                  'dd/MM/yyyy HH:mm')}">
+                            </span>
+                        </td>
+                        <!-- Seats -->
+                        <td th:text="${s.availableSeats}"></td>
+
+                        <!--price -->
+                        <td>
+                            <span th:text="${s.price + ' €'}"></span>
+                        </td>
+
+                        <!-- actions -->
+                        <td>
+                            <!--edit button -->
+                            <button class="btn btn-warning btn-sm"
+                                    data-bs-toggle="modal"
+                                    th:data-bs-target="'#editSeanceModal' + ${s.id}">
+                                Modifier
+                            </button>
+
+                            <!-- delete -->
+                            <a th:href="@{/admin/deleteSeance(id=${s.id})}"
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Supprimer cette séance ?')">
+                                Supprimer
+                            </a>
+
+                            <!-----------------------------MODAL EDIT--------------------------->
+                            <div class="modal fade"
+                                 th:id="'editSeanceModal' + ${s.id}"
+                                 tabindex="-1">
+
+                                <div class="modal-dialog modal-lg">
+
+                                    <div class="modal-content">
+
+                                        <form method="post"
+                                              th:action="@{/admin/saveSeance}">
+                                            <!-- header -->
+                                            <div class="modal-header">
+
+                                                <h5 class="modal-title">Modifier la séance</h5>
+
+                                                <button type="button"
+                                                        class="btn-close"
+                                                        data-bs-dismiss="modal">
+                                                </button>
+                                            </div>
+
+                                            <!-- body -->
+                                            <div class="modal-body">
+
+                                                <input type="hidden"
+                                                       name="id"
+                                                       th:value="${s.id}">
+
+                                                <div class="row g-3">
+                                                    <!-- movie-->
+                                                    <div class="col-md-6">
+
+                                                        <label class="form-label">Film</label>
+
+                                                        <select name="movieId"
+                                                                class="form-select"
+                                                                required>
+
+                                                            <option th:each="m : ${movies}"
+                                                                    th:value="${m.id}"
+                                                                    th:text="${m.title}"
+                                                                    th:selected="${m.id == s.movie.id}">
+                                                            </option>
+
+                                                        </select>
+
+                                                    </div>
+
+                                                    <!-- cinemas -->
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Cinéma</label>
+
+                                                        <select name="cinemaId"
+                                                                class="form-select"
+                                                                required>
+
+                                                            <option th:each="c : ${cinemas}"
+                                                                    th:value="${c.id}"
+                                                                    th:text="${c.name}"
+                                                                    th:selected="${c.id == s.cinema.id}">
+                                                            </option>
+
+                                                        </select>
+
+                                                    </div>
+
+                                                    <!-- Date -->
+                                                    <div class="col-md-6">
+
+                                                        <label class="form-label">Date</label>
+
+                                                        <input type="datetime-local"
+                                                               name="dateTime"
+                                                               class="form-control"
+                                                               th:value="${#temporals.format(
+                                                               s.dateTime,
+                                                               'yyyy-MM-dd''T''HH:mm')}"
+                                                               required>
+
+                                                    </div>
+
+                                                    <!-- seats-->
+                                                    <div class="col-md-3">
+
+                                                        <label class="form-label">Places</label>
+                                                        <input type="number"
+                                                               name="availableSeats"
+                                                               class="form-control"
+                                                               th:value="${s.availableSeats}"
+                                                               required>
+                                                    </div>
+
+                                                    <!-- the price -->
+                                                    <div class="col-md-3">
+                                                        <label class="form-label">
+                                                            Prix
+                                                        </label>
+
+                                                        <input type="number"
+                                                               step="0.01"
+                                                               name="price"
+                                                               class="form-control"
+                                                               th:value="${s.price}"
+                                                               required>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+                                            <!-- modal footer -->
+                                            <div class="modal-footer">
+
+                                                <button type="button"
+                                                        class="btn btn-danger"
+                                                        data-bs-dismiss="modal">Annuler
+                                                </button>
+
+                                                <button class="btn btn-success">Sauvegarder</button>
+
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!---------------------------- PAGINATION ------------------------------>
+        <nav class="mt-4"
+             th:if="${seancePage.totalPages > 1}">
+
+            <ul class="pagination justify-content-center">
+
+                <!-- PREV -->
+                <li class="page-item"
+                    th:classappend="${currentPage == 0} ? 'disabled'">
+
+                    <a class="page-link"
+                       th:href="@{/admin/seances(
+                       page=${currentPage - 1},
+                       keyword=${keyword},
+                       cinemaId=${cinemaId})}">
+                        &laquo;
+                    </a>
+
+                </li>
+
+                <!-- WINDOW -->
+                <li class="page-item"
+
+                    th:each="i : ${#numbers.sequence(
+                    currentPage > 2 ? currentPage - 2 : 0,
+                    currentPage + 2 < seancePage.totalPages - 1 ?
+                    currentPage + 2 :
+                    seancePage.totalPages - 1)}"
+
+                    th:classappend="${i == currentPage} ? 'active'">
+
+                    <a class="page-link"
+                       th:text="${i + 1}"
+
+                       th:href="@{/admin/seances(
+                       page=${i},
+                       keyword=${keyword},
+                       cinemaId=${cinemaId})}">
+                    </a>
+
+                </li>
+
+                <!-- NEXT -->
+                <li class="page-item"
+
+                    th:classappend="${currentPage >= seancePage.totalPages - 1}
+                    ? 'disabled'">
+
+                    <a class="page-link"
+
+                       th:href="@{/admin/seances(
+                       page=${currentPage + 1},
+                       keyword=${keyword},
+                       cinemaId=${cinemaId})}">
+                        &raquo;
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </nav>
+
+    </div>
+
+    <!---------------------------------------ADD MODAL-------->
+    <div class="modal fade"
+         id="addSeanceModal"
+         tabindex="-1">
+
+        <div class="modal-dialog modal-lg">
+
+            <div class="modal-content">
+
+                <form method="post"
+                      th:action="@{/admin/saveSeance}">
+
+                    <!-- header -->
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-plus-circle"></i>
+                            Ajouter une séance
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal">
+                        </button>
                     </div>
-                </div>
+
+                    <!-- body -->
+                    <div class="modal-body">
+                        <div class="row g-3">
+
+                            <!-- movie -->
+                            <div class="col-md-6">
+
+                                <label class="form-label">Film</label>
+
+                                <select name="movieId"
+                                        class="form-select"
+                                        required>
+
+                                    <option value="">-- Choisir un film --</option>
+                                    <option th:each="m : ${movies}"
+                                            th:value="${m.id}"
+                                            th:text="${m.title}">
+                                    </option>
+
+                                </select>
+                            </div>
+
+                            <!-- Cinema -->
+                            <div class="col-md-6">
+                                <label class="form-label">Cinéma</label>
+
+                                <select name="cinemaId"
+                                        class="form-select"
+                                        required>
+
+                                    <option value="">-- Choisir un cinéma --</option>
+
+                                    <option th:each="c : ${cinemas}"
+                                            th:value="${c.id}"
+                                            th:text="${c.name}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- date -->
+                            <div class="col-md-6">
+
+                                <label class="form-label">Date</label>
+
+                                <input type="datetime-local"
+                                       name="dateTime"
+                                       class="form-control"
+                                       required>
+                            </div>
+
+                            <!-- Seats -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">Places</label>
+
+                                <input type="number"
+                                       name="availableSeats"
+                                       class="form-control"
+                                       min="1"
+                                       required>
+                            </div>
+
+                            <!-- price-->
+                            <div class="col-md-3">
+
+                                <label class="form-label">Prix</label>
+                                <input type="number"
+                                       step="0.01"
+                                       name="price"
+                                       class="form-control"
+                                       min="0"
+                                       required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- modal footer-->
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-danger"
+                                data-bs-dismiss="modal">Annuler
+                        </button>
+
+                        <button class="btn btn-success">
+                            <i class="bi bi-save"></i>
+                            Sauvegarder
+                        </button>
+
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</section>
-</body>
+</div>
+
 </html>
