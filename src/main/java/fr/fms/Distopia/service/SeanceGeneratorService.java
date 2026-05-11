@@ -7,6 +7,7 @@ import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,8 +72,9 @@ public class SeanceGeneratorService {
                         .anyMatch(m -> m.getTitle().equalsIgnoreCase(title));
 
                 if (!alreadyExists) {
+                    LocalDate releaseDate = null;
                     movieService.save(null, title, overview, runtime,
-                            genre, imageUrl, trailer, null);
+                            genre, imageUrl, trailer, null, releaseDate);
                     moviesImported++;
                 }
             } catch (Exception e) {
