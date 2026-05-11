@@ -47,15 +47,17 @@ public class UserService {
      * @return an {@link Optional} containing the newly registered {@link User},
      * or empty if the username is already in use
      */
-    public Optional<User> register(String username, String rawPassword) {
+    public Optional<User> register(String username, String email,String rawPassword) {
         if (userRepository.findByUsername(username).isPresent()) {
             return Optional.empty();
         }
         User user = new User();
         user.setUsername(username);
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setRole(Role.USER);
         return Optional.of(userRepository.save(user));
     }
+
 
 }
