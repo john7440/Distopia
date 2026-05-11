@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Controller
@@ -26,7 +27,7 @@ public class TmbdController {
     @Autowired
     private SeanceGeneratorService seanceGeneratorService;
 
-    /// -----------------admin import-movies---------------------
+    // -----------------admin import-movies---------------------
     @GetMapping("/admin/import-movies")
     public String importPage(@RequestParam(required = false)String query, Model model) {
         if (query != null && !query.isBlank()) {
@@ -55,7 +56,13 @@ public class TmbdController {
                 ? TmdbClient.IMG_BASE + detail.getPosterPath() : null;
         String trailerUrl  = tmdbClient.getTrailerUrl(tmdbId);
 
-        movieService.save(null, title, description, duration, genre, imageUrl, trailerUrl, null);
+        LocalDate releaseDate  = null;
+        String raw = detail.getReleaseDate();
+        if (raw != null && !raw.isBlank()) {
+            try { releaseDate = LocalDate.parse(raw); } catch (Exception ignored) {}
+        }
+
+        movieService.save(null, title, description, duration, genre, imageUrl, trailerUrl, null, releaseDate);
 
         ra.addFlashAttribute("message", title + "\" importé avec succès !");
         return "redirect:/admin/import-movies" + (query != null ? "?query=" + query : "");
