@@ -1,112 +1,134 @@
+
 <!DOCTYPE html>
 <html lang="fr"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
-<head><title>Distopia — Gestion des cinémas</title></head>
-<body>
-<section layout:fragment="content">
-    <div class="container py-5">
 
-        <h2 class="fw-bold mb-4">
-            <i class="bi bi-camera-reels text-dark"></i> Gestion des cinémas
-        </h2>
+<head>
+    <title>Distopia - Gestion des cinémas</title>
+
+</head>
+
+<body>
+
+<section layout:fragment="content">
+
+    <div class="container py-4">
+
+        <!--header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold">
+                    <i class="bi bi-camera-reels"></i> Gestion des cinémas
+                </h2>
+
+                <button type="button"
+                       class="btn btn-success"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalAddCinema">
+                    <i class="bi bi-plus"></i> Ajouter un cinéma
+                </button>
+        </div>
 
         <div class="row g-4">
 
-            <!-- formulaire -->
-            <div class="col-md-4">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <h5 class="fw-bold mb-3">
-                            <i class="bi bi-plus text-dark"></i>
-                            Ajouter / Modifier
-                        </h5>
-                        <form th:action="@{/admin/saveCinema}" method="post">
-                            <input type="hidden" name="id"
-                                   th:if="${editCinema != null}"
-                                   th:value="${editCinema.id}">
+            <div class="card shadow-sm border-0">
 
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Nom</label>
-                                <input type="text" name="name" class="form-control"
-                                       th:value="${editCinema != null ? editCinema.name : ''}"
-                                       placeholder="Nom du cinéma" required>
-                            </div>
+                <div class="table-container">
+                    <div class="p-3 border-bottom bg-white">
 
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Adresse</label>
-                                <input type="text" name="address" class="form-control"
-                                       th:value="${editCinema != null ? editCinema.address : ''}"
-                                       placeholder="Adresse complète">
-                            </div>
+                        <div class="d-flex justify-content-between align-items-center">
 
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Ville</label>
-                                <select name="townId" class="form-select">
-                                    <option value="">-- Aucune ville --</option>
-                                    <option th:each="town : ${towns}"
-                                            th:value="${town.id}"
-                                            th:text="${town.name}"
-                                            th:selected="${editCinema != null
-                                   and editCinema.town != null
-                                   and editCinema.town.id == town.id}">
-                                    </option>
-                                </select>
+                            <div>
+                                <small class="text-muted">
+                                    <span th:text="${#lists.size(cinemas)}"></span>
+                                    cinéma(s)
+                                </small>
                             </div>
-
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-save"></i>
-                                    <span th:text="${editCinema != null ? 'Modifier' : 'Ajouter'}"></span>
-                                </button>
-                                <a th:if="${editCinema != null}"
-                                   th:href="@{/admin/cinemas}"
-                                   class="btn btn-outline-danger">Annuler
-                                </a>
-                            </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- liste -->
-            <div class="col-md-8">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-0">
+                    <!-- table -->
+                    <div class="table-responsive">
+
                         <table class="table table-hover align-middle mb-0">
+
                             <thead class="table-dark">
+
                             <tr>
                                 <th>Cinéma</th>
                                 <th>Adresse</th>
                                 <th>Ville</th>
-                                <th class="text-end">Actions</th>
+                                <th class="text-center" style="width:180px">Actions</th>
                             </tr>
+
                             </thead>
+
                             <tbody>
-                            <tr th:each="cinema : ${cinemas}">
-                                <td class="fw-semibold" th:text="${cinema.name}"></td>
-                                <td class="text-muted small" th:text="${cinema.address}"></td>
-                                <td>
-                                        <span th:if="${cinema.town != null}"
-                                              th:text="${cinema.town.name}"
-                                              class="badge bg-secondary">
-                                        </span>
-                                    <span th:if="${cinema.town == null}"
-                                          class="badge bg-warning text-dark">
-                                            Sans ville
-                                        </span>
+
+                            <!-- if empty -->
+                            <tr th:if="${#lists.isEmpty(cinemas)}">
+
+                                <td colspan="4"
+                                    class="text-center py-5 text-muted">
+                                    <i class="bi bi-camera-reels fs-1 d-block mb-3 opacity-50"></i>
+                                    Aucun cinéma disponible
                                 </td>
+
+                            </tr>
+
+                            <!--data -->
+                            <tr th:each="cinema : ${cinemas}">
+
+                                <!-- name-->
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="cinema-icon">
+                                            <i class="bi bi-building"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold"
+                                                 th:text="${cinema.name}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!--Address -->
+                                <td>
+                                    <span class="text-muted small"
+                                          th:text="${cinema.address != null && !#strings.isEmpty(cinema.address)
+                                          ? cinema.address
+                                          : '—'}">
+                                    </span>
+                                </td>
+
+                                <!-- town -->
+                                <td>
+                                    <span th:if="${cinema.town != null}"
+                                          class="badge bg-secondary badge-town"
+                                          th:text="${cinema.town.name}">
+                                    </span>
+
+                                    <span th:if="${cinema.town == null}"
+                                          class="badge bg-warning text-dark badge-town">
+                                        Sans ville
+                                    </span>
+                                </td>
+
+                                <!-------------- ACTIONS ------------------->
                                 <td class="text-end">
+
                                     <a th:href="@{/admin/cinemas(editId=${cinema.id})}"
-                                       class="btn btn-sm btn-outline-primary me-1">
-                                        <i class="bi bi-pencil"></i>
+                                       class="btn btn-sm btn-warning me-1">
+                                        Modifier
                                     </a>
-                                    <a th:href="@{/admin/deleteCinema(id=${cinema.id})}"
-                                       class="btn btn-sm btn-outline-danger"
-                                       onclick="return confirm('Supprimer ce cinéma ?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+                                    <button th:href="@{/admin/deleteCinema(id=${cinema.id})}"
+                                       class="btn btn-sm btn-danger"
+                                            th:onclick="'window.location.href=\'/admin/deleteCinema?id=' + ${cinema.id} + '\';
+                                            return confirm(\'Supprimer ce cinéma ?\')'">
+                                        Supprimer
+                                    </button>
                                 </td>
                             </tr>
                             </tbody>
@@ -116,6 +138,158 @@
             </div>
         </div>
     </div>
+
+    <!-------------------------------- MODAL EDIT ---------------------------------------------->
+    <div class="modal fade show"
+         th:if="${editCinema != null}"
+         style="display:block; background:rgba(0,0,0,0.5);"
+         tabindex="-1">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content border-0 shadow">
+
+                <!-- header -->
+                <div class="modal-header">
+
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-pencil-square"></i> Modifier le cinéma
+                    </h5>
+
+                </div>
+
+                <!-- FORM -->
+                <form th:action="@{/admin/saveCinema}" method="post">
+
+                    <div class="modal-body">
+
+                        <input type="hidden"
+                               name="id"
+                               th:value="${editCinema.id}">
+
+                        <!-- name -->
+                        <div class="mb-3">
+
+                            <label class="form-label fw-semibold">
+                                Nom
+                            </label>
+
+                            <input type="text"
+                                   name="name"
+                                   class="form-control"
+                                   required
+                                   th:value="${editCinema.name}">
+                        </div>
+
+                        <!-- address -->
+                        <div class="mb-3">
+
+                            <label class="form-label fw-semibold">
+                                Adresse
+                            </label>
+
+                            <input type="text"
+                                   name="address"
+                                   class="form-control"
+                                   th:value="${editCinema.address}">
+                        </div>
+
+                        <!-- town -->
+                        <div class="mb-3">
+
+                            <label class="form-label fw-semibold">
+                                Ville
+                            </label>
+
+                            <select name="townId" class="form-select">
+
+                                <option value="">
+                                    -- Aucune ville --
+                                </option>
+
+                                <option th:each="town : ${towns}"
+                                        th:value="${town.id}"
+                                        th:text="${town.name}"
+                                        th:selected="${editCinema.town != null
+                                            and editCinema.town.id == town.id}">
+                                </option></select>
+
+                        </div>
+                    </div>
+
+                    <!-- modal footer -->
+                    <div class="modal-footer">
+
+                        <a th:href="@{/admin/cinemas}"
+                           class="btn btn-danger"> Annuler
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-success">
+                            <i class="bi bi-save"></i>Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!------------------------------------- ADD MODAL ------------------------------------->
+    <div class="modal fade"
+         id="modalAddCinema"
+         tabindex="-1">
+
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-plus-circle"></i> Ajouter un cinéma
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form th:action="@{/admin/saveCinema}" method="post">
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nom</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Adresse</label>
+                            <input type="text" name="address" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Ville</label>
+                            <select name="townId" class="form-select">
+                                <option value="">-- Aucune ville --</option>
+                                <option th:each="town : ${towns}"
+                                        th:value="${town.id}"
+                                        th:text="${town.name}">
+                                </option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                            Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-save"></i> Enregistrer
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
 </section>
+
 </body>
 </html>
