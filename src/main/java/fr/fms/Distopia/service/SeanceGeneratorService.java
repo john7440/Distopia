@@ -68,11 +68,16 @@ public class SeanceGeneratorService {
                         ? TmdbClient.IMG_BASE + detail.getPosterPath() : null;
                 String trailer  = tmdbClient.getTrailerUrl(tmdbMovie.getId());
 
+                LocalDate releaseDate = null;
+                String raw = detail.getReleaseDate();
+                if (raw != null && !raw.isBlank()) {
+                    try { releaseDate = LocalDate.parse(raw); } catch (Exception ignored) {}
+                }
+
                 boolean alreadyExists = movieService.getAllActive().stream()
                         .anyMatch(m -> m.getTitle().equalsIgnoreCase(title));
 
                 if (!alreadyExists) {
-                    LocalDate releaseDate = null;
                     movieService.save(null, title, overview, runtime,
                             genre, imageUrl, trailer, null, releaseDate);
                     moviesImported++;
