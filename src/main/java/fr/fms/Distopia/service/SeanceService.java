@@ -7,6 +7,9 @@ import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.entities.Seance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,6 +24,8 @@ public class SeanceService {
     private MovieRepository movieRepository;
     @Autowired
     private CinemaRepository cinemaRepository;
+
+    private static final int PAGE_SIZE_ADMIN = 20;
 
     //---------------les séances d'un film---------------------
     /**
@@ -112,5 +117,11 @@ public class SeanceService {
     //------------------séances a venir pour un film ----------------
     public List<Seance> getUpcomingByMovie(Long movieId) {
         return seanceRepository.findByMovieIdAndDateTimeAfterOrderByDateTimeAsc(movieId, LocalDateTime.now());
+    }
+
+    //--------------recherche paginé admin-----------------
+    public Page<Seance> searchAdmin(String keyword, Long cinemaId, int page) {
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE_ADMIN);
+        return seanceRepository.searchAdmin(keyword, cinemaId, pageable);
     }
 }
