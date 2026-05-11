@@ -1,9 +1,11 @@
 package fr.fms.Distopia.web;
 
+import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,9 +63,18 @@ public class MovieController {
      * @return the view name "admin-movies", or a redirection URL if unauthorized
      */
     @GetMapping("/admin/movies")
-    public String adminMovies(@RequestParam(required = false) Long editId, Model model) {
-        model.addAttribute(MOVIES, movieService.getAll());
-        model.addAttribute("cinemas", cinemaService.getAll());
+    public String adminMovies(@RequestParam(required = false) String keyword,
+                              @RequestParam(defaultValue = "0")   int    page,
+                              @RequestParam(required = false)      Long   editId,
+                              Model model) {
+        Page<Movie> moviePage = movieService.searchAdmin(keyword,page);
+
+        model.addAttribute("moviePage",moviePage);
+        model.addAttribute("movies",moviePage.getContent());
+        model.addAttribute("pages", new int[moviePage.getTotalPages()]);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("cinemas",cinemaService.getAll());
         if (editId != null) {
             movieService.findById(editId).ifPresent(m -> model.addAttribute("editMovie", m));
         }
