@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -85,7 +86,7 @@ public class MovieService {
     @Transactional
     public Movie save(Long id, String title, String description,
                       int duration, String genre, String imageUrl, String trailerUrl,
-                      List<Long> cinemaIds) {
+                      List<Long> cinemaIds, LocalDate releaseDate) {
 
         Movie movie = (id != null)
                 ? movieRepository.findById(id).orElse(new Movie())
@@ -97,6 +98,7 @@ public class MovieService {
         movie.setGenre(genre);
         movie.setImageUrl(imageUrl);
         movie.setTrailerUrl(trailerUrl);
+        movie.setReleaseDate(releaseDate);
 
         movie.getCinemas().forEach(c -> c.getMovies().remove(movie));
         movie.getCinemas().clear();
@@ -137,8 +139,10 @@ public class MovieService {
     }
 
     //---------------------pagination pour admin---------------------------------
-    public Page<Movie> searchAdmin(@Param("keyword") String keyword, int page) {
-        Pageable pageable = PageRequest.of(page , PAGE_SIZE_ADMIN, Sort.by("title").ascending());
-        return movieRepository.searchAdmin(keyword, pageable);
+    public Page<Movie> searchAdmin(@Param("keyword") String keyword,boolean showDeleted, String sortField,
+                                   String sortDir,int page) {
+        Sort sort = sortDir.equals("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, 12, sort);
+        return movieRepository.searchAdmin(keyword, showDeleted,pageable);
     }
 }
