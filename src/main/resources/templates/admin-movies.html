@@ -4,6 +4,8 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 
+<title>Distopia - admin-movies</title>
+
 <div layout:fragment="content">
 
     <div class="container py-4">
@@ -17,7 +19,6 @@
 
             <a th:href="@{/admin/import-movies}"
                class="btn btn-success">
-
                 <i class="bi bi-cloud-download"></i>
                 Importer TMDB
             </a>
@@ -26,13 +27,8 @@
         <!-- flash msg-->
         <div th:if="${message}"
              class="alert alert-success alert-dismissible fade show">
-
             <span th:text="${message}"></span>
-
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert">
-            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
         <!-- Search  -->
@@ -40,8 +36,8 @@
               method="get"
               class="row g-3 mb-4">
 
-            <div class="col-md-10">
-
+            <!--keyword -->
+            <div class="col-md-8">
                 <input type="text"
                        name="keyword"
                        class="form-control"
@@ -49,8 +45,23 @@
                        th:value="${keyword}">
             </div>
 
-            <div class="col-md-2 d-grid">
+            <!-- checkboxes (deleted movies)  -->
+            <div class="col-md-2 d-flex align-items-center gap-2">
+                <input type="checkbox"
+                       name="showDeleted"
+                       value="true"
+                       id="showDeleted"
+                       class="form-check-input"
+                       th:checked="${showDeleted}">
+                <label for="showDeleted" class="form-check-label small text-muted">
+                    Afficher les supprimés
+                </label>
+                <input type="hidden" name="sortField" th:value="${sortField}">
+                <input type="hidden" name="sortDir"   th:value="${sortDir}">
+            </div>
 
+            <!-- btn search -->
+            <div class="col-md-2 d-grid">
                 <button class="btn btn-dark">
                     <i class="bi bi-search"></i>
                     Rechercher
@@ -59,107 +70,126 @@
 
         </form>
 
-        <!--resume -->
         <div class="mb-3 text-muted small">
-
             <span th:text="${moviePage.totalElements}"></span>
             film(s) - page
             <span th:text="${currentPage + 1}"></span>
-
             /
-
             <span th:text="${moviePage.totalPages > 0 ? moviePage.totalPages : 1}"></span>
-
         </div>
 
         <!-- table -->
         <div class="card shadow-sm border-0">
-
             <div class="card-body p-0">
-
                 <table class="table table-hover align-middle mb-0">
 
                     <thead class="table-dark">
-
                     <tr>
                         <th style="width:80px"></th>
-                        <th>Titre</th>
+
+                        <!-- title - can sort -->
+                        <th>
+                            <a th:href="@{/admin/movies(
+                               keyword=${keyword},
+                               showDeleted=${showDeleted},
+                               sortField='title',
+                               sortDir=${sortField == 'title' ? reverseSortDir : 'asc'})}"
+                               class="text-white text-decoration-none d-flex align-items-center gap-1">
+                                Titre
+                                <i th:if="${sortField == 'title'}"
+                                   class="bi ms-1"
+                                   th:classappend="${sortDir == 'asc'} ? 'bi-caret-up-fill' : 'bi-caret-down-fill'">
+                                </i>
+                                <i th:if="${sortField != 'title'}"
+                                   class="bi bi-chevron-expand ms-1 opacity-50">
+                                </i>
+                            </a>
+                        </th>
+
                         <th>Genre</th>
                         <th>Durée</th>
+
+                        <!-- release Date - sort-->
+                        <th >
+                            <a th:href="@{/admin/movies(
+                               keyword=${keyword},
+                               showDeleted=${showDeleted},
+                               sortField='releaseDate',
+                               sortDir=${sortField == 'releaseDate' ? reverseSortDir : 'asc'})}"
+                               class="text-white text-decoration-none d-flex align-items-center gap-1">Sortie
+                                <i th:if="${sortField == 'releaseDate'}"
+                                   class="bi ms-1"
+                                   th:classappend="${sortDir == 'asc'} ? 'bi-caret-up-fill' : 'bi-caret-down-fill'">
+                                </i>
+                                <i th:if="${sortField != 'releaseDate'}"
+                                   class="bi bi-chevron-expand ms-1 opacity-50">
+                                </i>
+                            </a>
+                        </th>
+
                         <th>Cinémas</th>
                         <th>Statut</th>
                         <th class="text-center" style="width:180px">Actions</th>
                     </tr>
-
                     </thead>
 
                     <tbody>
 
                     <!-- if empty -->
                     <tr th:if="${#lists.isEmpty(movies)}">
-                        <td colspan="7"
-                            class="text-center py-5 text-muted">
+                        <td colspan="8" class="text-center py-5 text-muted">
                             <i class="bi bi-film fs-1 d-block mb-2"></i>
                             Aucun film trouvé
                         </td>
                     </tr>
 
                     <!-- movies -->
-                    <tr th:each="m : ${movies}">
-                        <!-- affiches -->
+                    <tr th:each="m : ${movies}"
+                        th:classappend="${m.deleted} ? 'table-secondary opacity-75'">
+
+                        <!-- image -->
                         <td>
                             <img th:if="${m.imageUrl != null}"
                                  th:src="${m.imageUrl}"
                                  th:alt="${m.title}"
-                                 style="width:50px;
-                                        height:70px;
-                                        object-fit:cover;
-                                        border-radius:6px;">
-
+                                 style="width:50px; height:70px; object-fit:cover; border-radius:6px;">
                             <div th:if="${m.imageUrl == null}"
-                                 class="bg-secondary text-white d-flex
-                                        align-items-center justify-content-center"
-                                 style="width:50px;
-                                        height:70px;
-                                        border-radius:6px;">
-
+                                 class="bg-secondary text-white d-flex align-items-center justify-content-center"
+                                 style="width:50px; height:70px; border-radius:6px;">
                                 <i class="bi bi-film"></i>
                             </div>
                         </td>
+
                         <!-- titles -->
                         <td>
-                            <div class="fw-semibold"
-                                 th:text="${m.title}">
-                            </div>
-
-                            <div th:if="${m.trailerUrl != null}"
-                                 class="mt-1">
-
+                            <div class="fw-semibold" th:text="${m.title}"></div>
+                            <div th:if="${m.trailerUrl != null}" class="mt-1">
                                 <a th:href="${m.trailerUrl}" target="_blank"
                                    class="badge bg-danger text-decoration-none">
-                                    <i class="bi bi-youtube"></i>
-                                    Trailer
+                                    <i class="bi bi-youtube"></i> Trailer
                                 </a>
                             </div>
                         </td>
+
                         <!-- genre -->
                         <td>
-
-                            <span class="badge bg-secondary"
-                                  th:text="${m.genre}">
-                            </span>
+                            <span class="badge bg-secondary" th:text="${m.genre}"></span>
                         </td>
+
                         <!-- duration -->
-                        <td th:text="${m.duration > 0 ? m.duration + ' min' : '—'}">
+                        <td th:text="${m.duration + 'min'}"></td>
+
+                        <!--release date -->
+                        <td>
+                            <span th:if="${m.releaseDate != null}"
+                                  th:text="${#temporals.format(m.releaseDate, 'dd/MM/yyyy')}">
+                            </span>
+                            <span th:if="${m.releaseDate == null}" class="text-muted">—</span>
                         </td>
 
                         <!--cinemas -->
                         <td>
-                            <span th:if="${m.cinemas.isEmpty()}"
-                                  class="text-muted">
-                                —
-                            </span>
-
+                            <span th:if="${m.cinemas.isEmpty()}" class="text-muted">—</span>
                             <span th:each="c : ${m.cinemas}"
                                   class="badge bg-light text-dark border me-1"
                                   th:text="${c.name}">
@@ -168,184 +198,160 @@
 
                         <!-- status -->
                         <td>
-                            <span th:if="${!m.deleted}"
-                                  class="badge bg-success">Actif
-                            </span>
-
-                            <span th:if="${m.deleted}"
-                                  class="badge bg-danger">Supprimé
-                            </span>
-
+                            <span th:if="${!m.deleted}" class="badge bg-success">Actif</span>
+                            <span th:if="${m.deleted}"  class="badge bg-danger">Supprimé</span>
                         </td>
+
                         <!-- --------------------------ACTIONS--------------------------------->
-                        <td>
                             <!-- edit -->
+                        <td class="text-center">
+                            <!-- edit btn -->
                             <button class="btn btn-warning btn-sm"
                                     data-bs-toggle="modal"
-                                    th:data-bs-target="'#editMovieModal' + ${m.id}"> Modifier
+                                    th:data-bs-target="'#editMovieModal' + ${m.id}">
+                                Modifier
                             </button>
 
                             <!-- del -->
                             <a th:href="@{/admin/deleteMovie(id=${m.id})}"
                                class="btn btn-danger btn-sm"
-                               onclick="return confirm('Supprimer ce film ?')"> Supprimer
+                               onclick="return confirm('Supprimer ce film ?')">
+                                Supprimer
                             </a>
 
                             <!-----------------------------------------EDIT MODAL------------------------------->
-                            <div class="modal fade"
+                        <div class="modal fade"
                                  th:id="'editMovieModal' + ${m.id}"
                                  tabindex="-1">
-
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
-                                        <form method="post"
-                                              th:action="@{/admin/saveMovie}">
+                                        <form method="post" th:action="@{/admin/saveMovie}">
 
                                             <div class="modal-header">
                                                 <h5 class="modal-title">Modifier le film</h5>
-
-                                                <button type="button"
-                                                        class="btn-close"
-                                                        data-bs-dismiss="modal">
-                                                </button>
-
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
 
                                             <div class="modal-body">
-                                                <input type="hidden" name="id"
-                                                       th:value="${m.id}">
-
+                                                <input type="hidden" name="id" th:value="${m.id}">
                                                 <div class="row g-3">
-                                                    <!-- titre-->
+
+                                                    <!-- title-->
                                                     <div class="col-md-6">
                                                         <label class="form-label">Titre</label>
-
-                                                        <input type="text" name="title"
-                                                               class="form-control"
-                                                               th:value="${m.title}"
-                                                               required>
+                                                        <input type="text" name="title" class="form-control"
+                                                               th:value="${m.title}" required>
                                                     </div>
 
                                                     <!-- genre -->
                                                     <div class="col-md-6">
-
                                                         <label class="form-label">Genre</label>
-
-                                                        <input type="text"
-                                                               name="genre"
-                                                               class="form-control"
+                                                        <input type="text" name="genre" class="form-control"
                                                                th:value="${m.genre}">
-
                                                     </div>
 
-                                                    <!-- durée -->
+                                                    <!-- duration -->
                                                     <div class="col-md-4">
-
-                                                        <label class="form-label">Durée</label>
-                                                        <input type="number"
-                                                               name="duration"
-                                                               class="form-control"
+                                                        <label class="form-label">Durée (min)</label>
+                                                        <input type="number" name="duration" class="form-control"
                                                                th:value="${m.duration}">
                                                     </div>
 
+                                                    <!-- release date-->
+                                                    <div class="col-md-4">
+                                                        <label class="form-label">Date de sortie</label>
+                                                        <input type="date" name="releaseDate" class="form-control"
+                                                               th:value="${m.releaseDate != null ?
+                                                               #temporals.format(m.releaseDate, 'yyyy-MM-dd') : ''}">
+                                                    </div>
+
                                                     <!-- image -->
-                                                    <div class="col-md-8">
-
+                                                    <div class="col-md-4">
                                                         <label class="form-label">Image URL</label>
-
-                                                        <input type="text"
-                                                               name="imageUrl"
-                                                               class="form-control"
+                                                        <input type="text" name="imageUrl" class="form-control"
                                                                th:value="${m.imageUrl}">
                                                     </div>
 
-                                                    <!-- le trailer -->
-                                                    <div class="col-12">
+                                                    <!-- Trailer -->
+                                                    <div class="col-md-6">
                                                         <label class="form-label">Trailer URL</label>
-
-                                                        <input type="text" name="trailerUrl"
-                                                               class="form-control"
+                                                        <input type="text" name="trailerUrl" class="form-control"
                                                                th:value="${m.trailerUrl}">
                                                     </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Description</label>
+                                                        <input type="text" name="description" class="form-control"
+                                                               th:value="${m.description}">
+                                                    </div>
+
                                                 </div>
                                             </div>
 
                                             <div class="modal-footer">
-
-                                                <button type="button"
-                                                        class="btn btn-danger"
-                                                        data-bs-dismiss="modal">
+                                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
                                                     Annuler
                                                 </button>
-
-                                                <button class="btn btn-success">
-                                                    Sauvegarder
-                                                </button>
-
+                                                <button class="btn btn-success">Sauvegarder</button>
                                             </div>
-                                        </form>
 
+                                        </form>
                                     </div>
                                 </div>
                             </div>
+
                         </td>
                     </tr>
+
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!--------------------------- PAGINATION --------------------------->
-        <nav class="mt-4"
-             th:if="${moviePage.totalPages > 1}">
-
+        <!-- PAGINATION -->
+        <nav class="mt-4" th:if="${moviePage.totalPages > 1}">
             <ul class="pagination justify-content-center">
 
                 <!-- PREV -->
-                <li class="page-item"
-                    th:classappend="${currentPage == 0} ? 'disabled'">
-
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                     <a class="page-link"
                        th:href="@{/admin/movies(
                        page=${currentPage - 1},
-                       keyword=${keyword})}">
-
+                       keyword=${keyword},
+                       showDeleted=${showDeleted},
+                       sortField=${sortField},
+                       sortDir=${sortDir})}">
                         &laquo;
-
                     </a>
-
                 </li>
 
-                <!-- WINDOW PAGINATION -->
+                <!-- WINDOW -->
                 <li class="page-item"
-
                     th:each="i : ${#numbers.sequence(
                     currentPage > 2 ? currentPage - 2 : 0,
                     currentPage + 2 < moviePage.totalPages - 1 ?
-                    currentPage + 2 :
-                    moviePage.totalPages - 1)}"
-
+                    currentPage + 2 : moviePage.totalPages - 1)}"
                     th:classappend="${i == currentPage} ? 'active'">
-
                     <a class="page-link"
                        th:text="${i + 1}"
-
                        th:href="@{/admin/movies(
                        page=${i},
-                       keyword=${keyword})}">
+                       keyword=${keyword},
+                       showDeleted=${showDeleted},
+                       sortField=${sortField},
+                       sortDir=${sortDir})}">
                     </a>
-
                 </li>
 
                 <!-- NEXT -->
                 <li class="page-item"
-
-                    th:classappend="${currentPage >= moviePage.totalPages - 1}
-                    ? 'disabled'">
-
-                    <a class="page-link" th:href="@{/admin/movies(
+                    th:classappend="${currentPage >= moviePage.totalPages - 1} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/admin/movies(
                        page=${currentPage + 1},
-                       keyword=${keyword})}">
+                       keyword=${keyword},
+                       showDeleted=${showDeleted},
+                       sortField=${sortField},
+                       sortDir=${sortDir})}">
                         &raquo;
                     </a>
                 </li>
@@ -353,6 +359,4 @@
         </nav>
     </div>
 </div>
-
 </html>
-
