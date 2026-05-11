@@ -1,9 +1,11 @@
 package fr.fms.Distopia.web;
 
+import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,18 +62,25 @@ public class SeanceController {
      * If an {@code editId} is provided, it fetches that specific seance and adds it to the
      * model to pre-populate the edit form
      *
-     * @param editId  the unique identifier of the seance to edit (optional)
      * @param model   the Spring {@link Model} used to pass data to the view
      * @return the view name "admin-seances", or a redirection URL if unauthorized
      */
     @GetMapping("/admin/seances")
-    public String adminSeances(@RequestParam(required = false)Long editId, Model model){
-        model.addAttribute(SEANCES, seanceService.getAll());
-        model.addAttribute("movies", movieService.getAll());
+    public String adminSeances(@RequestParam(required = false)    String  keyword,
+                               @RequestParam(required = false)    Long    cinemaId,
+                               @RequestParam(defaultValue = "0")  int     page,
+                               Model model){
+
+        Page<Seance> seancePage = seanceService.searchAdmin(keyword, cinemaId, page);
+
+        model.addAttribute("seancePage",   seancePage);
+        model.addAttribute(SEANCES,seancePage.getContent());
+        model.addAttribute("pages",new int[seancePage.getTotalPages()]);
+        model.addAttribute("currentPage",page);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("cinemaId", cinemaId);
+        model.addAttribute("movies",movieService.getAll());
         model.addAttribute("cinemas", cinemaService.getAll());
-        if (editId != null) {
-            seanceService.findById(editId).ifPresent(s -> model.addAttribute("editSeance", s));
-        }
         return "admin-seances";
     }
 
