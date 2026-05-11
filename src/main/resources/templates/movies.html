@@ -10,12 +10,10 @@
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-
         .movie-card:hover {
             transform: translateY(-6px);
             box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15) !important;
         }
-
         .movie-card:active {
             transform: translateY(-2px);
             box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12) !important;
@@ -30,70 +28,98 @@
             <i class="bi bi-arrow-left"></i> Retour aux cinémas
         </a>
 
-        <h2 class="fw-bold mb-4">
-            <i class="bi bi-film text-dark"></i> Films à l'affiche
-        </h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">
+                <i class="bi bi-film text-dark"></i> Films à l'affiche
+            </h2>
 
-        <!-- liste films -->
+            <div class="btn-group" role="group">
+                <a th:href="@{/movies(cinemaId=${cinemaId}, sort='title', dir=${sort == 'title' and dir == 'asc' ? 'desc' : 'asc'})}"
+                   th:classappend="${sort == 'title'} ? 'btn btn-dark' : 'btn btn-outline-dark'"
+                   class="btn">
+                    <i class="bi bi-sort-alpha-down"></i> Titre
+                    <i th:if="${sort == 'title' and dir == 'asc'}"  class="bi bi-arrow-up"></i>
+                    <i th:if="${sort == 'title' and dir == 'desc'}" class="bi bi-arrow-down"></i>
+                </a>
+                <a th:href="@{/movies(cinemaId=${cinemaId}, sort='releaseDate', dir=${sort == 'releaseDate' and dir == 'asc' ? 'desc' : 'asc'})}"
+                   th:classappend="${sort == 'releaseDate'} ? 'btn btn-dark' : 'btn btn-outline-dark'"
+                   class="btn">
+                    <i class="bi bi-calendar"></i> Date
+                    <i th:if="${sort == 'releaseDate' and dir == 'asc'}"  class="bi bi-arrow-up"></i>
+                    <i th:if="${sort == 'releaseDate' and dir == 'desc'}" class="bi bi-arrow-down"></i>
+                </a>
+                <a th:href="@{/movies(cinemaId=${cinemaId}, sort='duration', dir=${sort == 'duration' and dir == 'asc' ? 'desc' : 'asc'})}"
+                   th:classappend="${sort == 'duration'} ? 'btn btn-dark' : 'btn btn-outline-dark'"
+                   class="btn">
+                    <i class="bi bi-clock"></i> Durée
+                    <i th:if="${sort == 'duration' and dir == 'asc'}"  class="bi bi-arrow-up"></i>
+                    <i th:if="${sort == 'duration' and dir == 'desc'}" class="bi bi-arrow-down"></i>
+                </a>
+            </div>
+        </div>
+
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
-        <div class="col" th:each="movie : ${movies}">
-            <a th:href="@{/movie(id=${movie.id})}"
-               class="text-decoration-none movie-card-link">
-                <div class="card h-100 shadow-sm border-0 movie-card">
+            <div class="col" th:each="movie : ${movies}">
+                <a th:href="@{/movie(id=${movie.id})}"
+                   class="text-decoration-none movie-card-link">
+                    <div class="card h-100 shadow-sm border-0 movie-card">
 
-                    <!-- Affiche -->
-                    <img th:if="${movie.imageUrl != null and !movie.imageUrl.isBlank()}"
-                         th:src="${movie.imageUrl}"
-                         th:alt="${movie.title}"
-                         class="card-img-top object-fit-cover"
-                         style="height: 280px;">
-                    <div th:if="${movie.imageUrl == null or movie.imageUrl.isBlank()}"
-                         class="bg-dark d-flex align-items-center justify-content-center"
-                         style="height: 320px;">
-                        <i class="bi bi-film text-secondary" style="font-size: 4rem;"></i>
-                    </div>
-
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold text-dark" th:text="${movie.title}"></h5>
-
-                        <div class="mb-2 d-flex gap-1 flex-wrap">
-                    <span class="badge bg-primary"
-                          th:if="${movie.genre != null and !movie.genre.isBlank()}"
-                          th:text="${movie.genre}"></span>
-                            <span class="badge bg-light text-dark border">
-                        <i class="bi bi-clock"></i>
-                        <span th:text="${movie.duration} + ' min'"></span>
-                    </span>
+                        <img th:if="${movie.imageUrl != null and !movie.imageUrl.isBlank()}"
+                             th:src="${movie.imageUrl}"
+                             th:alt="${movie.title}"
+                             class="card-img-top object-fit-cover"
+                             style="height: 280px;">
+                        <div th:if="${movie.imageUrl == null or movie.imageUrl.isBlank()}"
+                             class="bg-dark d-flex align-items-center justify-content-center"
+                             style="height: 320px;">
+                            <i class="bi bi-film text-secondary" style="font-size: 4rem;"></i>
                         </div>
 
-                        <p class="card-text text-muted small flex-grow-1"
-                           th:if="${movie.description != null and !movie.description.isBlank()}"
-                           th:text="${#strings.abbreviate(movie.description, 120)}"></p>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold text-dark" th:text="${movie.title}"></h5>
+
+                            <div class="mb-2 d-flex gap-1 flex-wrap">
+                                <span class="badge bg-primary"
+                                      th:if="${movie.genre != null and !movie.genre.isBlank()}"
+                                      th:text="${movie.genre}"></span>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi bi-clock"></i>
+                                    <span th:text="${movie.duration} + ' min'"></span>
+                                </span>
+
+                                <span class="badge bg-light text-dark border"
+                                      th:if="${movie.releaseDate != null}">
+                                    <i class="bi bi-calendar2"></i>
+                                    <span th:text="${#temporals.format(movie.releaseDate, 'yyyy')}"></span>
+                                </span>
+                            </div>
+
+                            <p class="card-text text-muted small flex-grow-1"
+                               th:if="${movie.description != null and !movie.description.isBlank()}"
+                               th:text="${#strings.abbreviate(movie.description, 120)}"></p>
+                        </div>
+
+                        <div class="card-footer bg-transparent border-0 pb-3 px-3">
+                            <span class="text-primary small fw-semibold">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <span th:if="${cinemaId != null}">Voir les détails et séances</span>
+                                <span th:if="${cinemaId == null}">Voir les détails</span>
+                            </span>
+                        </div>
+
                     </div>
+                </a>
+            </div>
 
-                    <!-- Hint visuel en bas de card -->
-                    <div class="card-footer bg-transparent border-0 pb-3 px-3">
-                <span class="text-primary small fw-semibold">
-                    <i class="bi bi-info-circle me-1"></i>
-                    <span th:if="${cinemaId != null}">Voir les détails et séances</span>
-                    <span th:if="${cinemaId == null}">Voir les détails</span>
-                </span>
-                    </div>
-
-                </div>
-            </a>
+            <div th:if="${movies == null or movies.isEmpty()}"
+                 class="text-center py-5 text-muted">
+                <i class="bi bi-film fs-1 d-block mb-3"></i>
+                <p class="fs-5">Aucun film à l'affiche pour ce cinéma</p>
+                <a th:href="@{/cinemas}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Retour aux cinémas
+                </a>
+            </div>
         </div>
-
-        <div th:if="${movies == null or movies.isEmpty()}"
-             class="text-center py-5 text-muted">
-            <i class="bi bi-film fs-1 d-block mb-3"></i>
-            <p class="fs-5">Aucun film à l'affiche pour ce cinéma</p>
-            <a th:href="@{/cinemas}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left"></i> Retour aux cinémas
-            </a>
-        </div>
-
-    </div>
     </div>
 </section>
 </body>
