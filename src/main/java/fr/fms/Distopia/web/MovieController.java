@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -58,26 +59,29 @@ public class MovieController {
      * If an {@code editId} is provided in the request, the corresponding movie is fetched
      * and added to the model to pre-populate the edit form on the page
      *
-     * @param editId  the unique identifier of the movie to edit (optional)
      * @param model   the Spring {@link Model} used to pass data to the view
      * @return the view name "admin-movies", or a redirection URL if unauthorized
      */
     @GetMapping("/admin/movies")
     public String adminMovies(@RequestParam(required = false) String keyword,
                               @RequestParam(defaultValue = "0")   int    page,
-                              @RequestParam(required = false)      Long   editId,
+                              @RequestParam(defaultValue = "false") boolean showDeleted,
+                              @RequestParam(defaultValue = "title")    String  sortField,
+                              @RequestParam(defaultValue = "asc")      String  sortDir,
                               Model model) {
-        Page<Movie> moviePage = movieService.searchAdmin(keyword,page);
+        Page<Movie> moviePage = movieService.searchAdmin(keyword,showDeleted, sortField,sortDir,page);
 
         model.addAttribute("moviePage",moviePage);
         model.addAttribute("movies",moviePage.getContent());
         model.addAttribute("pages", new int[moviePage.getTotalPages()]);
         model.addAttribute("currentPage", page);
         model.addAttribute("keyword", keyword);
+        model.addAttribute("showDeleted",   showDeleted);
+        model.addAttribute("sortField",     sortField);
+        model.addAttribute("sortDir",       sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
         model.addAttribute("cinemas",cinemaService.getAll());
-        if (editId != null) {
-            movieService.findById(editId).ifPresent(m -> model.addAttribute("editMovie", m));
-        }
+
         return "admin-movies";
     }
 
@@ -104,8 +108,9 @@ public class MovieController {
     public String saveMovie(@RequestParam(required = false) Long id, @RequestParam String title,
                             @RequestParam String description, @RequestParam int duration, @RequestParam String genre,
                             @RequestParam(required = false) List<Long> cinemaIds,
-                            @RequestParam(required = false) String imageUrl,@RequestParam(required = false) String trailerUrl){
-        movieService.save(id, title, description, duration, genre, imageUrl,trailerUrl,cinemaIds);
+                            @RequestParam(required = false) String imageUrl,@RequestParam(required = false) String trailerUrl,
+                            @RequestParam(required = false)LocalDate releaseDate){
+        movieService.save(id, title, description, duration, genre, imageUrl,trailerUrl,cinemaIds, releaseDate);
         return "redirect:/admin/movies";
     }
 
