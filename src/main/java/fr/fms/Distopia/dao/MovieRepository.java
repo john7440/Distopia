@@ -19,8 +19,11 @@ public interface MovieRepository extends JpaRepository<Movie,Long> {
     List<Movie> findByDeletedFalseOrderByTitleAsc();
 
     @Query("SELECT m FROM Movie m WHERE " +
+            "(:showDeleted = true OR m.deleted = false) AND " +
             "(:keyword IS NULL OR :keyword = '' OR " +
-            " LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            " LOWER(m.genre) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<Movie> searchAdmin(@Param("keyword") String keyword, Pageable pageable);
+            "LOWER(m.title) LIKE LOWER(CONCAT('%',:keyword,'%')) OR " +
+            "LOWER(m.genre) LIKE LOWER(CONCAT('%',:keyword,'%')))")
+    Page<Movie> searchAdmin(@Param("keyword")String  keyword,
+            @Param("showDeleted") boolean showDeleted, Pageable pageable
+    );
 }

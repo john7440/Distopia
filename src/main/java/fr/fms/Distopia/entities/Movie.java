@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +38,8 @@ public class Movie implements Serializable {
     private boolean deleted = false;
     private String imageUrl;
     private String trailerUrl;
+    @Column(name = "release_date")
+    private LocalDate releaseDate;
 
     @ManyToMany(mappedBy = "movies")
     private List<Cinema> cinemas =  new ArrayList<>();
