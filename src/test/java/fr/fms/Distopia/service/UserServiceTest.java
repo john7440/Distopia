@@ -87,7 +87,7 @@ class UserServiceTest {
         when(passwordEncoder.encode("rawPassword")).thenReturn("$2a$10$encodedHash");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Optional<User> result = userService.register("newUser", "rawPassword");
+        Optional<User> result = userService.register("newUser", "myemail@test.com","rawPassword");
 
         assertThat(result).isPresent();
         assertThat(result.get().getUsername()).isEqualTo("newUser");
@@ -101,7 +101,7 @@ class UserServiceTest {
     void register_shouldReturnEmpty_whenUsernameAlreadyExists() {
         when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
 
-        Optional<User> result = userService.register("john", "anyPassword");
+        Optional<User> result = userService.register("john", "myemail@test.com","anyPassword");
 
         assertThat(result).isEmpty();
         verify(userRepository, never()).save(any());
@@ -115,7 +115,7 @@ class UserServiceTest {
         when(passwordEncoder.encode("mySecret")).thenReturn("encodedSecret");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Optional<User> result = userService.register("secureUser", "mySecret");
+        Optional<User> result = userService.register("secureUser", "myemail@test.com","mySecret");
 
         assertThat(result.get().getPassword()).isEqualTo("encodedSecret");
         assertThat(result.get().getPassword()).doesNotContain("mySecret");
