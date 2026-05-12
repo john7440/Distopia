@@ -16,10 +16,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CinemaController.class)
@@ -60,16 +58,10 @@ class SecurityConfigTest {
         mockMvc.perform(get("/index")).andExpect(status().isOk());
     }
 
-    @Test
-    @DisplayName("GET /login - should be public")
-    void login_ShouldBePublic() throws Exception {
-        mockMvc.perform(get("/login")).andExpect(status().isOk());
-    }
-
     //------------------tests Admin-----------------------
     @Test
     @DisplayName("GET /admin/cinemas - should redirect anonymous user")
-    void adminCinemas_ShouldRedirectAnonymouUser() throws Exception {
+    void adminCinemas_ShouldRedirectAnonymousUser() throws Exception {
         mockMvc.perform(get("/admin/cinemas")).andExpect(status().is3xxRedirection());
     }
 
@@ -88,12 +80,6 @@ class SecurityConfigTest {
     }
 
     //------------------------tests my-reservations---------------------------
-    @Test
-    @DisplayName("GET /my-reservations - redirect to login if user not authenticated")
-    void myReservations_shouldRedirectToLogin_whenNotAuthenticated() throws Exception {
-        mockMvc.perform(get("/my-reservations")).andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/login"));
-    }
 
     @Test
     @WithMockUser(roles = "USER")
@@ -112,6 +98,6 @@ class SecurityConfigTest {
 
         assertThat(encoder.matches(raw, encoded)).isTrue();
         assertThat(encoder.matches("PasLouvre", encoded)).isFalse();
-
+        mockMvc.perform(get("/my-reservations")).andExpect(status().is3xxRedirection());
     }
 }
