@@ -35,10 +35,10 @@ public class SecurityConfig {
                 )
 
                 .formLogin(form -> form
-                        .loginPage("/login")           // vue Thymeleaf
+                        .loginPage("/?openLogin")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/index", true)
-                        .failureUrl("/login?error=true")
+                        .defaultSuccessUrl("/", true)
+                        .failureUrl("/?loginError")
                         .permitAll()
                 )
 
