@@ -93,7 +93,7 @@ public class SeanceGeneratorService {
     }
 
 
-    //------------étape 2 - association films/cinémas
+    //------------étape 2 - association films/cinémas------------------------------------------
 
     private void linkMoviesToCinemas(List<Cinema> cinemas) {
         List<Long> cinemaIds = cinemas.stream().map(Cinema::getId).toList();
@@ -112,7 +112,7 @@ public class SeanceGeneratorService {
     private int generateSeances(List<Cinema> cinemas, List<String> errors) {
         List<Movie> movies = movieService.getAllActive();
         if (movies.isEmpty()) {
-            errors.add("Aucun film actif en base après import.");
+            errors.add("Aucun film actif en base après import");
             return 0;
         }
 
@@ -153,7 +153,7 @@ public class SeanceGeneratorService {
         return count;
     }
 
-    //--------------------------fonctions helpers--------------------------------
+    //--------------------------méthodes helpers--------------------------------
 
     private String extractGenre(TmdbMovieDto detail) {
         return (detail.getGenres() != null && !detail.getGenres().isEmpty())
