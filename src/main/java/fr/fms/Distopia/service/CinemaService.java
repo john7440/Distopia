@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -81,7 +82,7 @@ public class CinemaService {
      * @return a list of all {@link Cinema} objects in the database
      */
     public List<Cinema> getAll(){
-        return cinemaRepository.findAll();
+        return cinemaRepository.findAll().stream().filter(Objects::nonNull).toList();
     }
 
     //-----------------------créer ou modifier un cinéma----------------
@@ -97,10 +98,14 @@ public class CinemaService {
      * @param townId  the identifier of the town where the cinema is located
      * @return the saved or updated {@link Cinema} entity
      */
-    public Cinema save(Long id, String name, String address, Long townId){
+    public Cinema save(Long id, String name, String address, Long townId, String website,
+                       Double latitude, Double longitude) {
         Cinema cinema = (id != null) ? cinemaRepository.findById(id).orElse(new Cinema()): new Cinema();
         cinema.setName(name);
         cinema.setAddress(address);
+        cinema.setWebsite(website);
+        cinema.setLatitude(latitude);
+        cinema.setLongitude(longitude);
         if (townId != null){
             townRepository.findById(townId).ifPresent(cinema::setTown);
         }
