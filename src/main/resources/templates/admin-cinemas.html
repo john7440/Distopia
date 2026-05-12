@@ -232,6 +232,78 @@
                 </table>
             </div>
         </div>
+
+        <!-- pagination---->
+        <nav th:if="${cinemaPage.totalPages > 1}" class="mt-4">
+            <ul class="pagination justify-content-center">
+
+                <li class="page-item"
+                    th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/admin/cinemas(
+                    keyword=${keyword},
+                    sortField=${sortField},
+                    sortDir=${sortDir},
+                    page=0)}">
+                        «
+                    </a>
+                </li>
+
+                <li class="page-item"
+                    th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/admin/cinemas(
+                    keyword=${keyword},
+                    sortField=${sortField},
+                    sortDir=${sortDir},
+                    page=${currentPage - 1})}">
+                        ‹
+                    </a>
+                </li>
+
+                <li th:each="i : ${#numbers.sequence(
+                currentPage > 2 ? currentPage - 2 : 0,
+                currentPage + 2 < cinemaPage.totalPages - 1 ?
+                currentPage + 2 :
+                cinemaPage.totalPages - 1)}"
+                    class="page-item"
+                    th:classappend="${i == currentPage} ? 'active'">
+
+                    <a class="page-link"
+                       th:text="${i + 1}"
+                       th:href="@{/admin/cinemas(
+                    keyword=${keyword},
+                    sortField=${sortField},
+                    sortDir=${sortDir},
+                    page=${i})}">
+                    </a>
+                </li>
+
+                <li class="page-item"
+                    th:classappend="${currentPage >= cinemaPage.totalPages - 1} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/admin/cinemas(
+                    keyword=${keyword},
+                    sortField=${sortField},
+                    sortDir=${sortDir},
+                    page=${currentPage + 1})}">
+                        ›
+                    </a>
+                </li>
+
+                <li class="page-item"
+                    th:classappend="${currentPage >= cinemaPage.totalPages - 1} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/admin/cinemas(
+                    keyword=${keyword},
+                    sortField=${sortField},
+                    sortDir=${sortDir},
+                    page=${cinemaPage.totalPages - 1})}">
+                        »
+                    </a>
+                </li>
+            </ul>
+        </nav>
     </div>
 
     <!-------------------------------- MODAL EDIT ---------------------------------------------->
