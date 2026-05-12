@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +33,9 @@ public class Cinema implements Serializable {
     @Column(nullable = false)
     private String name;
     private String address;
+    private String website;
+    private Double latitude;
+    private Double longitude;
 
     @ManyToOne
     @JoinColumn(name = "town_id")
@@ -42,5 +47,13 @@ public class Cinema implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "movie_id"))
     private List<Movie> movies = new ArrayList<>();
 
+    public String buildMapsUrl() {
+        if (latitude != null && longitude != null)
+            return "https://www.google.com/maps?q=" + latitude + "," + longitude;
+        if (address != null && town != null)
+            return "https://www.google.com/maps/search/?api=1&query="
+                    + URLEncoder.encode(address + " " + town.getName(), StandardCharsets.UTF_8);
+        return null;
+    }
 
 }
