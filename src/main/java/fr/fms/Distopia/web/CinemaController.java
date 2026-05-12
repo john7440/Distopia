@@ -1,5 +1,6 @@
 package fr.fms.Distopia.web;
 
+import fr.fms.Distopia.service.CinemaCsvImporter;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.TownService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Controller responsible for handling cinema-related web requests,
@@ -23,6 +25,9 @@ public class CinemaController {
 
     @Autowired
     private TownService townService;
+
+    @Autowired
+    private CinemaCsvImporter cinemaCsvImporter;
 
     private static final String CINEMAS = "cinemas";
 
@@ -47,6 +52,19 @@ public class CinemaController {
         model.addAttribute("selectedTownId", townId);
         model.addAttribute("keyword", keyword != null ? keyword : "");
         return CINEMAS;
+    }
+
+    //--------------importer cinémas----------------------------------------
+    @GetMapping("/admin/import-cinemas")
+    public String importCinemas(RedirectAttributes redirectAttributes){
+        try {
+            CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
+            redirectAttributes.addFlashAttribute("message",
+                    result.imported() + " cinémas importés, " + result.skipped() + " ignorés");
+        }catch (Exception e){
+            redirectAttributes.addFlashAttribute("error", "Erreur import : " + e.getMessage());
+        }
+        return "redirect:/admin/cinemas";
     }
 
     //------------pour admin - page de gestion des cinémas-------------
@@ -89,9 +107,14 @@ public class CinemaController {
      * @return a redirection URL to the admin cinemas page, or the default redirection if unauthorized
      */
     @PostMapping("/admin/saveCinema")
-    public String saveCinema(@RequestParam(required = false) Long id, @RequestParam String name,
-                             @RequestParam String address, @RequestParam(required = false) Long townId){
-        cinemaService.save(id, name, address, townId);
+    public String saveCinema(@RequestParam(required = false) Long id,
+                             @RequestParam String name,
+                             @RequestParam String address,
+                             @RequestParam(required = false) Long townId,
+                             @RequestParam(required = false) String website,
+                             @RequestParam(required = false) Double latitude,
+                             @RequestParam(required = false) Double longitude){
+        cinemaService.save(id, name, address, townId, website, latitude, longitude);
         return "redirect:/admin/cinemas";
     }
 
