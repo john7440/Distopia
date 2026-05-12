@@ -12,11 +12,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,6 +51,8 @@ class MovieControllerTest {
     private User regularUser;
     private Movie movie;
     private Cinema cinema;
+    private static final String DEFAULT_SORT = "title";
+    private static final String DEFAULT_DIR  = "asc";
 
     @BeforeEach
     void setUp(){
@@ -81,13 +88,17 @@ class MovieControllerTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
+    private Sort ascByTitle() {
+        return Sort.by(Sort.Direction.ASC, "title");
+    }
+
     //----------------------test for moviesByCinema()-----------------------------
     @Test
     @DisplayName("moviesByCinema() - return 'movies' view")
     void moviesByCinema_ShouldReturnMoviesView(){
-        when(movieService.getAllActive()).thenReturn(List.of(movie));
+        when(movieService.getAllActive(ascByTitle())).thenReturn(List.of(movie));
 
-        String view = movieController.moviesByCinema(null, model);
+        String view = movieController.moviesByCinema(null,DEFAULT_SORT,DEFAULT_DIR, model);
 
         assertThat(view).isEqualTo("movies");
     }
@@ -95,52 +106,73 @@ class MovieControllerTest {
     @Test
     @DisplayName("moviesByCinema() - loads movies by cinema when cinemaId provided")
     void moviesByCinema_ShouldLoadsMoviesByCinemaId(){
-        when(movieService.getByCinema(1L)).thenReturn(List.of(movie));
+        Sort sort = Sort.by(Sort.Direction.ASC, "title");
+        when(movieService.getByCinema(1L,sort)).thenReturn(List.of(movie));
 
-        movieController.moviesByCinema(1L, model);
+        movieController.moviesByCinema(1L,DEFAULT_SORT,DEFAULT_DIR, model);
 
-        verify(movieService).getByCinema(1L);
-        verify(movieService, never()).getAllActive();
+        verify(movieService).getByCinema(1L,sort);
+        verify(movieService, never()).getAllActive(any(Sort.class));
         verify(model).addAttribute("movies", List.of(movie));
     }
 
     @Test
     @DisplayName("moviesByCinema() - loads all active movies when no cinemaID")
     void moviesByCinema_ShouldLoadsAllActiveMoviesWhenNoCinemaIdProvided(){
-        when(movieService.getAllActive()).thenReturn(List.of(movie));
+        Sort sort = Sort.by(Sort.Direction.ASC, "title");
+        when(movieService.getAllActive(sort)).thenReturn(List.of(movie));
 
-        movieController.moviesByCinema(null, model);
+        movieController.moviesByCinema(null,DEFAULT_SORT,DEFAULT_DIR, model);
 
-        verify(movieService).getAllActive();
-        verify(movieService, never()).getByCinema(any());
+        verify(movieService).getAllActive(sort);
+        verify(movieService, never()).getByCinema(any(),any());
+    }
+
+    @Test
+    @DisplayName("moviesByCinema() - adds sort and dir to model")
+    void moviesByCinema_ShouldAddSortAndDirToModel() {
+        when(movieService.getAllActive(ascByTitle())).thenReturn(List.of(movie));
+
+        movieController.moviesByCinema(null, DEFAULT_SORT, DEFAULT_DIR, model);
+
+        verify(model).addAttribute("sort", DEFAULT_SORT);
+        verify(model).addAttribute("dir", DEFAULT_DIR);
     }
 
     //-----------------------------tests for adminMovies()-------------------------
     @Test
     @DisplayName("adminMovies() - returns 'admin-movies' view for admin user")
     void adminMovies_ShouldReturnAdminMoviesView(){
+        Page<Movie> moviePage = new PageImpl<>(List.of(movie));
         authenticate(adminUser);
-        when(movieService.getAll()).thenReturn(List.of(movie));
+        when(movieService.searchAdmin(null, false, "title", "asc", 0))
+                .thenReturn(moviePage);
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        String view = movieController.adminMovies(null, model);
+        String view = movieController.adminMovies(null, 0, false, "title", "asc", model);
 
         assertThat(view).isEqualTo("admin-movies");
     }
 
 
     @Test
-    @DisplayName("adminMovies() - adds editMovie to model when editId is provided")
-    void adminMovies_ShouldAddEditMovieToModelWhenEditIdIsProvided(){
+    @DisplayName("adminMovies() - adds pagination attributes to model")
+    void adminMovies_ShouldAddPaginationAttributesToModel(){
+        Page<Movie> moviePage = new PageImpl<>(List.of(movie),
+                PageRequest.of(0, 12), 1);
         authenticate(adminUser);
-        when(movieService.getAll()).thenReturn(List.of(movie));
+        when(movieService.searchAdmin(null, false, "title", "asc", 0))
+                .thenReturn(moviePage);
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
-        when(movieService.findById(1L)).thenReturn(Optional.of(movie));
 
-        movieController.adminMovies(1L, model);
+        movieController.adminMovies(null, 0, false, "title", "asc", model);
 
-        verify(movieService).findById(1L);
-        verify(model).addAttribute("editMovie", movie);
+        verify(model).addAttribute("moviePage", moviePage);
+        verify(model).addAttribute("movies", List.of(movie));
+        verify(model).addAttribute("currentPage", 0);
+        verify(model).addAttribute("sortField", "title");
+        verify(model).addAttribute("sortDir", "asc");
+        verify(model).addAttribute("reverseSortDir", "desc");
     }
 
     //-----------------------------tests for saveMovie()------------------------
@@ -148,13 +180,14 @@ class MovieControllerTest {
     @DisplayName("saveMovie() - saves movie and redirects for admin user")
     void saveMovie_ShouldSaveMovieAndRedirectsForAdminUser(){
         authenticate(adminUser);
+        LocalDate releaseDate = LocalDate.of(2025, 7, 14);
 
         String view = movieController.saveMovie(null,"Inception","Description",
-                178, "Sci-Fi",List.of(1L), "image.url", "trailer.url");
+                178, "Sci-Fi",List.of(1L), "image.url", "trailer.url", releaseDate);
 
         assertThat(view).isEqualTo("redirect:/admin/movies");
         verify(movieService).save(null,"Inception", "Description",178 ,"Sci-Fi","image.url",
-                "trailer.url", List.of(1L));
+                "trailer.url", List.of(1L),releaseDate);
     }
 
 
