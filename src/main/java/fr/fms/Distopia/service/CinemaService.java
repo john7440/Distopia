@@ -6,6 +6,10 @@ import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.entities.Cinema;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -73,6 +77,17 @@ public class CinemaService {
             return cinemaRepository.findByTownId(townId);
         }
         return cinemaRepository.findAll();
+    }
+
+    //------------------recherche admin--------------------------
+    public Page<Cinema> searchAdmin(String keyword, String sortField, String sortDir, int page) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortField);
+        Pageable pageable = PageRequest.of(page, 12, sort);
+
+        if (keyword != null && !keyword.isBlank()) {
+            return cinemaRepository.searchAdmin(keyword, pageable);
+        }
+        return cinemaRepository.findAll(pageable);
     }
 
     //-----------afficher tous les cinémas-------------
