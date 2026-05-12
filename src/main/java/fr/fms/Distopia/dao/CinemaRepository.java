@@ -15,5 +15,6 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
     List<Cinema> findByNameContainingIgnoreCaseOrAddressContainingIgnoreCase(String name,String address);
     List<Cinema> findByTownIdAndNameContainingIgnoreCaseOrTownIdAndAddressContainingIgnoreCase(
             Long townId1, String name, Long townId2, String address);
+    boolean existsByNameAndTown_Name(String name, String townName);
 
 }
