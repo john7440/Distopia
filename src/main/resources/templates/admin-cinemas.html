@@ -57,8 +57,9 @@
 
                             <tr>
                                 <th>Cinéma</th>
-                                <th>Adresse</th>
                                 <th>Ville</th>
+                                <th>Maps</th>
+                                <th>Site</th>
                                 <th class="text-center" style="width:180px">Actions</th>
                             </tr>
 
@@ -94,15 +95,6 @@
                                     </div>
                                 </td>
 
-                                <!--Address -->
-                                <td>
-                                    <span class="text-muted small"
-                                          th:text="${cinema.address != null && !#strings.isEmpty(cinema.address)
-                                          ? cinema.address
-                                          : '—'}">
-                                    </span>
-                                </td>
-
                                 <!-- town -->
                                 <td>
                                     <span th:if="${cinema.town != null}"
@@ -114,6 +106,26 @@
                                           class="badge bg-warning text-dark badge-town">
                                         Sans ville
                                     </span>
+                                </td>
+
+                                <td>
+                                    <a th:if="${cinema.buildMapsUrl() != null}"
+                                       th:href="${cinema.buildMapsUrl()}"
+                                       target="_blank"
+                                       class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </a>
+                                    <span th:if="${cinema.buildMapsUrl() == null}" class="text-muted">—</span>
+                                </td>
+
+                                <td>
+                                    <a th:if="${cinema.website != null}"
+                                       th:href="${cinema.website}"
+                                       target="_blank"
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-globe"></i>
+                                    </a>
+                                    <span th:if="${cinema.website == null}" class="text-muted">—</span>
                                 </td>
 
                                 <!-------------- ACTIONS ------------------->
@@ -183,14 +195,8 @@
 
                         <!-- address -->
                         <div class="mb-3">
-
-                            <label class="form-label fw-semibold">
-                                Adresse
-                            </label>
-
-                            <input type="text"
-                                   name="address"
-                                   class="form-control"
+                            <label class="form-label fw-semibold">Adresse</label>
+                            <input type="text" name="address" class="form-control"
                                    th:value="${editCinema.address}">
                         </div>
 
@@ -226,7 +232,7 @@
 
                         <button type="submit"
                                 class="btn btn-success">
-                            <i class="bi bi-save"></i>Enregistrer
+                            <i class="bi bi-save"></i> Enregistrer
                         </button>
                     </div>
                 </form>
