@@ -12,6 +12,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.ui.Model;
 
 import java.time.LocalDateTime;
@@ -106,11 +109,12 @@ class SeanceControllerTest {
     @Test
     @DisplayName("adminSeances() - return 'admin-seances' view for admin user")
     void adminSeances_ShouldReturnAdminSeancesViewForAdminUser() {
-        when(seanceService.getAll()).thenReturn(List.of(seance));
+        Page<Seance> seancePage = new PageImpl<>(List.of(seance));
+        when(seanceService.searchAdmin(null, null, 0)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        String view = seanceController.adminSeances(null,model);
+        String view = seanceController.adminSeances(null, null, 0, model);
 
         assertThat(view).isEqualTo("admin-seances");
     }
@@ -119,43 +123,49 @@ class SeanceControllerTest {
     @Test
     @DisplayName("adminSeances() - adds seances, movies and cinemas to model")
     void adminSeances_ShouldAddSeancesMoviesAndCinemasToModel() {
-        when(seanceService.getAll()).thenReturn(List.of(seance));
+        Page<Seance> seancePage = new PageImpl<>(List.of(seance),
+                PageRequest.of(0, 12), 1);
+        when(seanceService.searchAdmin(null, null, 0)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        seanceController.adminSeances(null,model);
+        seanceController.adminSeances(null, null, 0, model);
 
+        verify(model).addAttribute("seancePage", seancePage);
         verify(model).addAttribute("seances", List.of(seance));
-        verify(model).addAttribute("movies", List.of(movie));
-        verify(model).addAttribute("cinemas", List.of(cinema));
+        verify(model).addAttribute("currentPage", 0);
+        verify(model).addAttribute("pages", new int[1]);
     }
 
     @Test
-    @DisplayName("adminSeances() - adds editSeance to model when editId is provided")
-    void adminSeances_ShouldAddEditSeanceToModelWhenEditIdIsProvided() {
-        when(seanceService.getAll()).thenReturn(List.of(seance));
+    @DisplayName("adminSeances() - forwards keyword and cinemaId to service")
+    void adminSeances_ShouldForwardKeywordAndCinemaIdToService() {
+        Page<Seance> seancePage = new PageImpl<>(List.of(seance));
+        when(seanceService.searchAdmin("14h", 1L, 0)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
-        when(seanceService.findById(1L)).thenReturn(Optional.of(seance));
 
-        seanceController.adminSeances(1L,model);
+        seanceController.adminSeances("14h", 1L, 0, model);
 
-        verify(model).addAttribute("editSeance", seance);
-        verify(seanceService).findById(1L);
+        verify(seanceService).searchAdmin("14h", 1L, 0);
+        verify(model).addAttribute("keyword", "14h");
+        verify(model).addAttribute("cinemaId", 1L);
     }
 
     @Test
-    @DisplayName("adminSeances() - does not add editSeance to model when editId is not found")
-    void adminSeances_ShouldNotAddEditSeanceToModelWhenEditIdIsNotFound() {
-        when(seanceService.getAll()).thenReturn(List.of());
+    @DisplayName("adminSeances() - works with page > 0")
+    void adminSeances_ShouldHandlePageGreaterThanZero() {
+        Page<Seance> seancePage = new PageImpl<>(List.of(seance),
+                PageRequest.of(2, 12), 30);
+        when(seanceService.searchAdmin(null, null, 2)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of());
         when(cinemaService.getAll()).thenReturn(List.of());
-        when(seanceService.findById(99L)).thenReturn(Optional.empty());
 
-        seanceController.adminSeances(99L,model);
 
-        verify(model,never()).addAttribute(eq("editSeance"), any());
+        seanceController.adminSeances(null, null, 2, model);
 
+        verify(seanceService).searchAdmin(null, null, 2);
+        verify(model).addAttribute("currentPage", 2);
     }
 
     //----------------------tests for saveSeance()--------------------
