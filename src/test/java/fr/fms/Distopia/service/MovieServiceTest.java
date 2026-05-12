@@ -13,7 +13,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +40,8 @@ class MovieServiceTest {
     private Cinema cinema;
     private Seance seance;
 
+    private final LocalDate date =  LocalDate.parse("2026-05-01");
+
     @BeforeEach
     void setUp() {
         cinema = new Cinema();
@@ -54,6 +58,7 @@ class MovieServiceTest {
         movie.setDeleted(false);
         movie.setSeances(new ArrayList<>(List.of(seance)));
         movie.setCinemas(new ArrayList<>(List.of(cinema)));
+        movie.setReleaseDate(date);
     }
 
     //--------test du findById()-------------------------
@@ -74,15 +79,30 @@ class MovieServiceTest {
         verify(movieRepository).findAll();
     }
 
-    //--------test du getAllActive()-------------------------
+    // -------- getAllActive() -------------------------
     @Test
-    @DisplayName("getAllActive() - calls findByDeletedFalseOrderByTitleAsc Repository")
-    void getAllActive_ShouldCallTheCorrectRepository() {
-        movieService.getAllActive();
+    @DisplayName("getAllActive() - calls findByDeletedFalse with default title sort")
+    void getAllActive_ShouldCallRepositoryWithDefaultSort() {
+        when(movieRepository.findByDeletedFalse(Sort.by("title")))
+                .thenReturn(List.of(movie));
 
-        verify(movieRepository).findByDeletedFalseOrderByTitleAsc();
+        List<Movie> result = movieService.getAllActive();
+
+        assertThat(result).containsOnly(movie);
+        verify(movieRepository).findByDeletedFalse(Sort.by("title"));
     }
 
+    @Test
+    @DisplayName("getAllActive(Sort) - forwards Sort to repository")
+    void getAllActive_WithSort_ShouldForwardSortToRepository() {
+        Sort sort = Sort.by(Sort.Direction.DESC, "releaseDate");
+        when(movieRepository.findByDeletedFalse(sort)).thenReturn(List.of(movie));
+
+        List<Movie> result = movieService.getAllActive(sort);
+
+        assertThat(result).containsOnly(movie);
+        verify(movieRepository).findByDeletedFalse(sort);
+    }
 
     //------------------tests du softDelete() ----------------------------------
     @Test
@@ -118,9 +138,10 @@ class MovieServiceTest {
         when(movieRepository.save(any(Movie.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Movie result = movieService.save(null, "Interstellar", "A space movie",
-                169, "Sci-Fi", "url.jpg", "trailer.mp4", List.of(1L));
+                169, "Sci-Fi", "url.jpg", "trailer.mp4", List.of(1L),date);
 
         assertThat(result.getTitle()).isEqualTo("Interstellar");
+        assertThat(result.getReleaseDate()).isEqualTo(date);
         assertThat(result.getCinemas()).contains(cinema);
         verify(movieRepository).save(any(Movie.class));
     }
@@ -136,7 +157,7 @@ class MovieServiceTest {
         when(movieRepository.save(any(Movie.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Movie result = movieService.save(1L, "Inception V2", "Updated", 148, "Thriller",
-                "new.jpg", "new_trailer.mp4", List.of(2L));
+                "new.jpg", "new_trailer.mp4", List.of(2L),date);
 
         assertThat(result.getTitle()).isEqualTo("Inception V2");
         assertThat(result.getCinemas()).containsOnly(newCinema);
@@ -147,13 +168,11 @@ class MovieServiceTest {
     @Test
     @DisplayName("getByCinema() - returns only non-deleted movies for a cinema")
     void findActiveByCinema_shouldReturnOnlyNonDeletedMovies() {
-        Movie deletedMovie = new Movie();
-        deletedMovie.setDeleted(true);
-
-        when(movieRepository.findByCinemasIdAndDeletedFalse(1L))
+        Sort sort = Sort.by(Sort.Direction.DESC, "releaseDate");
+        when(movieRepository.findByCinemasIdAndDeletedFalse(1L,sort))
                 .thenReturn(List.of(movie));
 
-        List<Movie> result = movieService.getByCinema(1L);
+        List<Movie> result = movieService.getByCinema(1L, sort);
 
         assertThat(result).containsOnly(movie);
     }
