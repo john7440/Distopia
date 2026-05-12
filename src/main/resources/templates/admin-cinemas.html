@@ -220,6 +220,40 @@
                                             and editCinema.town.id == town.id}">
                                 </option></select>
 
+                            <!-- website -->
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-globe me-1"></i>Site web
+                                </label>
+                                <input type="url" name="website" class="form-control"
+                                       placeholder="https://..."
+                                       th:value="${editCinema.website}">
+                            </div>
+
+                            <!-- Coordinates-->
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-geo-alt me-1"></i>Latitude
+                                    </label>
+                                    <input type="number" name="latitude" class="form-control"
+                                           step="0.0000001" placeholder="ex: 48.8566"
+                                           th:value="${editCinema.latitude}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-geo-alt me-1"></i>Longitude
+                                    </label>
+                                    <input type="number" name="longitude" class="form-control"
+                                           step="0.0000001" placeholder="ex: 2.3522"
+                                           th:value="${editCinema.longitude}">
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                Les coordonnées permettent d'afficher le lien Google Maps.
+                            </small>
+
                         </div>
                     </div>
 
