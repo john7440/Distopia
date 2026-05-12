@@ -279,6 +279,38 @@
                             </select>
                         </div>
 
+                        <!-- website -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-globe me-1"></i>Site web
+                            </label>
+                            <input type="url" name="website" class="form-control"
+                                   placeholder="https://...">
+                        </div>
+
+                        <!-- coordinates -->
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-geo-alt me-1"></i>Latitude
+                                </label>
+                                <input type="number" name="latitude" class="form-control"
+                                       step="0.0000001" placeholder="ex: 48.8566">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-geo-alt me-1"></i>Longitude
+                                </label>
+                                <input type="number" name="longitude" class="form-control"
+                                       step="0.0000001" placeholder="ex: 2.3522">
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i>
+                            Les coordonnées permettent d'afficher le lien Google Maps.
+                            Laissez vide pour utiliser l'adresse textuelle !
+                        </small>
+
                     </div>
 
                     <div class="modal-footer">
