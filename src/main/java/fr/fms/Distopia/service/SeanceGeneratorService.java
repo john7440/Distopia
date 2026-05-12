@@ -2,6 +2,7 @@ package fr.fms.Distopia.service;
 
 import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
+import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,120 +12,170 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-/**
- * Service responsable de deux opérations combinées :
- *  1. Import des films TMDB "Now Playing" en base
- *  2. Génération automatique de séances futures pour chaque film x cinéma
- *
- * Logique de génération :
- *  - Chaque film est programmé dans chaque cinéma
- *  - 3 créneaux par jour : 14h, 17h30, 20h30
- *  - Sur 21 jours à partir de demain
- *  - Prix variant selon le créneau (matin < soir)
- *  - 80 places par défaut
- *
- * Le tout en évitant les doublons
- */
 @Service
 public class SeanceGeneratorService {
 
-    @Autowired
-    private TmdbClient tmdbClient;
-    @Autowired
-    private MovieService movieService;
-    @Autowired
-    private SeanceService seanceService;
-    @Autowired
-    private CinemaService cinemaService;
+    @Autowired private TmdbClient     tmdbClient;
+    @Autowired private MovieService   movieService;
+    @Autowired private SeanceService  seanceService;
+    @Autowired private CinemaService  cinemaService;
 
-    //----------------schedule and price-------------------
-    private static final int[] HOURS = {14,17,20};
-    private static final int[] MINS = {0,30,45};
+    private static final int[]    HOURS  = {14, 17, 20};
+    private static final int[]    MINS   = {0,  30, 45};
     private static final double[] PRICES = {9.00, 10.50, 12.00};
 
-    public GeneratorResult importAndGenerate(){
-        int moviesImported = 0;
-        int seancesCreated = 0;
+
+    // ----------------------- point d'entrée principal--------------------------
+
+    public GeneratorResult importAndGenerate() {
         List<String> errors = new ArrayList<>();
 
-        List<TmdbMovieDto> nowPlaying = tmdbClient.getNowPlaying();
-        if (nowPlaying.isEmpty()){
-            errors.add("TMDB n'a retourné aucun films! (vérifier clé API)");
-            return new GeneratorResult(0,0,errors);
-        }
-
-        for (TmdbMovieDto tmdbMovie : nowPlaying) {
-            try {
-                TmdbMovieDto detail = tmdbClient.getDetail(tmdbMovie.getId());
-                if (detail == null) continue;
-
-                String title    = detail.getTitle() != null ? detail.getTitle() : "Sans titre";
-                String overview = detail.getOverview() != null ? detail.getOverview() : "";
-                int    runtime  = detail.getRuntime() != null ? detail.getRuntime() : 90;
-                String genre    = (detail.getGenres() != null && !detail.getGenres().isEmpty())
-                        ? detail.getGenres().get(0).getName() : "Inconnu";
-                String imageUrl = detail.getPosterPath() != null
-                        ? TmdbClient.IMG_BASE + detail.getPosterPath() : null;
-                String trailer  = tmdbClient.getTrailerUrl(tmdbMovie.getId());
-
-                LocalDate releaseDate = null;
-                String raw = detail.getReleaseDate();
-                if (raw != null && !raw.isBlank()) {
-                    try { releaseDate = LocalDate.parse(raw); } catch (Exception ignored) {}
-                }
-
-                boolean alreadyExists = movieService.getAllActive().stream()
-                        .anyMatch(m -> m.getTitle().equalsIgnoreCase(title));
-
-                if (!alreadyExists) {
-                    movieService.save(null, title, overview, runtime,
-                            genre, imageUrl, trailer, null, releaseDate);
-                    moviesImported++;
-                }
-            } catch (Exception e) {
-                errors.add("Erreur import film ID: " + tmdbMovie.getId() + " : " + e.getMessage());
-            }
-        }
-
-        List<Movie> movies = movieService.getAllActive();
         List<Cinema> cinemas = cinemaService.getAll();
-
-        if (cinemas.isEmpty()){
+        if (cinemas.isEmpty()) {
             errors.add("Aucun cinéma en base, ajoutez des cinémas avant de générer des séances!");
-            return new GeneratorResult(moviesImported,0,errors);
+            return new GeneratorResult(0, 0, errors);
         }
 
-        LocalDateTime startDate = LocalDateTime.now().plusDays(1)
-                .withHour(0).withMinute(0).withSecond(0);
+        int moviesImported = importMovies(errors);
+        linkMoviesToCinemas(cinemas);
+        int seancesCreated = generateSeances(cinemas, errors);
 
-        for (Movie movie : movies) {
-            for (Cinema cinema : cinemas) {
-                for (int day = 0; day < 21; day++) {
-                    for (int slot = 0; slot < 3; slot++) {
-                        LocalDateTime dateTime = startDate.plusDays(day)
-                                .withHour(HOURS[slot])
-                                .withMinute(MINS[slot]);
-
-                        boolean exists = seanceService
-                                .getByMovieAndCinema(movie.getId(), cinema.getId())
-                                .stream()
-                                .anyMatch(s -> s.getDateTime().equals(dateTime));
-
-                        if (!exists) {
-                            seanceService.save(null, dateTime, 150, PRICES[slot],
-                                    movie.getId(), cinema.getId());
-                            seancesCreated++;
-                        }
-                    }
-                }
-            }
-        }
         return new GeneratorResult(moviesImported, seancesCreated, errors);
     }
 
+    // -------étape 1 - import des films depuis TMDB ----------------------
+
+
+    private int importMovies(List<String> errors) {
+        List<TmdbMovieDto> nowPlaying = tmdbClient.getNowPlaying();
+        if (nowPlaying.isEmpty()) {
+            errors.add("TMDB n'a retourné aucun film ! (vérifier clé API)");
+            return 0;
+        }
+
+        Set<String> existingTitles = movieService.getAllActive().stream()
+                .map(m -> m.getTitle().toLowerCase())
+                .collect(Collectors.toSet());
+
+        int count = 0;
+        for (TmdbMovieDto tmdbMovie : nowPlaying) {
+            try {
+                if (importSingleMovie(tmdbMovie, existingTitles)) count++;
+            } catch (Exception e) {
+                errors.add("Erreur import film ID " + tmdbMovie.getId() + " : " + e.getMessage());
+            }
+        }
+        return count;
+    }
+
+    private boolean importSingleMovie(TmdbMovieDto tmdbMovie, Set<String> existingTitles) {
+        TmdbMovieDto detail = tmdbClient.getDetail(tmdbMovie.getId());
+        if (detail == null) return false;
+
+        String title = detail.getTitle() != null ? detail.getTitle() : "Sans titre";
+        if (existingTitles.contains(title.toLowerCase())) return false;
+
+        movieService.save(
+                null,
+                title,
+                detail.getOverview()  != null ? detail.getOverview() : "",
+                detail.getRuntime()   != null ? detail.getRuntime()  : 90,
+                extractGenre(detail),
+                extractImageUrl(detail),
+                tmdbClient.getTrailerUrl(tmdbMovie.getId()),
+                null,                       // cinemaIds — associés à l'étape 2
+                parseReleaseDate(detail.getReleaseDate())
+        );
+        return true;
+    }
+
+
+    //------------étape 2 - association films/cinémas
+
+    private void linkMoviesToCinemas(List<Cinema> cinemas) {
+        List<Long> cinemaIds = cinemas.stream().map(Cinema::getId).toList();
+
+        movieService.getAllActive().stream()
+                .filter(m -> m.getCinemas() == null || m.getCinemas().isEmpty())
+                .forEach(m -> movieService.save(
+                        m.getId(), m.getTitle(), m.getDescription(),
+                        m.getDuration(), m.getGenre(), m.getImageUrl(),
+                        m.getTrailerUrl(), cinemaIds, m.getReleaseDate()
+                ));
+    }
+
+    //----------------------------étape 3 - génération des séances---------------------
+
+    private int generateSeances(List<Cinema> cinemas, List<String> errors) {
+        List<Movie> movies = movieService.getAllActive();
+        if (movies.isEmpty()) {
+            errors.add("Aucun film actif en base après import.");
+            return 0;
+        }
+
+        LocalDateTime startDate = LocalDateTime.now().plusDays(1)
+                .withHour(0).withMinute(0).withSecond(0).withNano(0);
+
+        int count = 0;
+        for (Movie movie : movies) {
+            for (Cinema cinema : cinemas) {
+                count += generateSeancesForMovieAndCinema(movie, cinema, startDate);
+            }
+        }
+        return count;
+    }
+
+    private int generateSeancesForMovieAndCinema(Movie movie, Cinema cinema,
+                                                 LocalDateTime startDate) {
+        Set<LocalDateTime> existing = seanceService
+                .getByMovieAndCinema(movie.getId(), cinema.getId())
+                .stream()
+                .map(Seance::getDateTime)
+                .collect(Collectors.toSet());
+
+        int count = 0;
+        for (int day = 0; day < 21; day++) {
+            for (int slot = 0; slot < HOURS.length; slot++) {
+                LocalDateTime dateTime = startDate.plusDays(day)
+                        .withHour(HOURS[slot])
+                        .withMinute(MINS[slot]);
+
+                if (!existing.contains(dateTime)) {
+                    seanceService.save(null, dateTime, 150, PRICES[slot],
+                            movie.getId(), cinema.getId());
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    //--------------------------fonctions helpers--------------------------------
+
+    private String extractGenre(TmdbMovieDto detail) {
+        return (detail.getGenres() != null && !detail.getGenres().isEmpty())
+                ? detail.getGenres().get(0).getName()
+                : "Inconnu";
+    }
+
+    private String extractImageUrl(TmdbMovieDto detail) {
+        return detail.getPosterPath() != null
+                ? TmdbClient.IMG_BASE + detail.getPosterPath()
+                : null;
+    }
+
+    private LocalDate parseReleaseDate(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        try { return LocalDate.parse(raw); } catch (Exception e) { return null; }
+    }
+
+
+    //---------------------------résultat-----------------------------------------------
+
     public record GeneratorResult(int moviesImported, int seancesCreated, List<String> errors) {
-        public boolean hasErrors() {
-            return !errors.isEmpty(); }
+        public boolean hasErrors() { return !errors.isEmpty(); }
     }
 }
