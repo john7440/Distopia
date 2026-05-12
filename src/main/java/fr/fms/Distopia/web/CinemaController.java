@@ -1,10 +1,12 @@
 package fr.fms.Distopia.web;
 
+import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.service.CinemaCsvImporter;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.TownService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -77,17 +79,28 @@ public class CinemaController {
      * If an {@code editId} is provided, the method fetches the corresponding cinema
      * and adds it to the model to pre-populate the edit form on the page
      *
-     * @param editId  the unique identifier of the cinema to edit (optional)
      * @param model   the Spring {@link Model} used to pass data to the view
      * @return the view name "admin-cinemas", or a redirection URL if unauthorized
      */
     @GetMapping("/admin/cinemas")
-    public String adminCinemas(@RequestParam(required = false) Long editId, Model model) {
-        model.addAttribute(CINEMAS, cinemaService.getAll());
-        model.addAttribute("towns", townService.getAll());
-        if (editId != null) {
-            cinemaService.findById(editId).ifPresent(c -> model.addAttribute("editCinema", c));
-        }
+    public String adminCinemas(@RequestParam(required = false) String keyword,
+                               @RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "name") String sortField,
+                               @RequestParam(defaultValue = "asc")String sortDir,
+                               Model model) {
+
+        Page<Cinema> cinemaPage = cinemaService.searchAdmin(keyword, sortField, sortDir, page);
+
+        model.addAttribute("cinemaPage",    cinemaPage);
+        model.addAttribute("cinemas",       cinemaPage.getContent());
+        model.addAttribute("pages",         new int[cinemaPage.getTotalPages()]);
+        model.addAttribute("currentPage",   page);
+        model.addAttribute("keyword",       keyword);
+        model.addAttribute("sortField",     sortField);
+        model.addAttribute("sortDir",       sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+        model.addAttribute("towns",         townService.getAll());
+
         return "admin-cinemas";
     }
 
