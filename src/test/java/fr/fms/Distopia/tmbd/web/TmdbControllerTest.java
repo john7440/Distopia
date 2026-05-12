@@ -17,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -98,13 +99,19 @@ class TmdbControllerTest {
     void importMovie_ShouldImportMovieAndRedirectWithSuccessMessage() {
         when(tmdbClient.getDetail(1L)).thenReturn(validDetail);
         when(tmdbClient.getTrailerUrl(1L)).thenReturn("https://www.youtube.com/embed/test");
-        when(movieService.save(any(),any(),any(),anyInt(),any(),any(),any(),any())).thenReturn(new Movie());
+        when(movieService.save(any(),any(),any(),anyInt(),any(),any(),any(),any(), any())).thenReturn(new Movie());
 
         String view = tmbdController.importMovie(1L, null, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/import-movies");
-        verify(movieService).save(null, "Inception", "Description Inception", 148, "Sci-Fi",
-                TmdbClient.IMG_BASE + "/inception.jpg","https://www.youtube.com/embed/test", null );
+        verify(movieService).save(
+                null, "Inception", "Description Inception", 148, "Sci-Fi",
+                TmdbClient.IMG_BASE + "/inception.jpg",
+                "https://www.youtube.com/embed/test",
+                null,
+                validDetail.getReleaseDate() != null
+                        ? LocalDate.parse(validDetail.getReleaseDate()) : null
+        );
         verify(redirectAttributes).addFlashAttribute(eq("message"), contains("Inception"));
     }
 
@@ -117,7 +124,7 @@ class TmdbControllerTest {
 
         assertThat(view).isEqualTo("redirect:/admin/import-movies");
         verify(redirectAttributes).addFlashAttribute(eq("error"), anyString());
-        verify(movieService, never()).save(any(), any(), any(), anyInt(), any(), any(), any(), any());
+        verify(movieService, never()).save(any(), any(), any(), anyInt(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -126,12 +133,12 @@ class TmdbControllerTest {
         validDetail.setGenres(null);
         when(tmdbClient.getDetail(1L)).thenReturn(validDetail);
         when(tmdbClient.getTrailerUrl(1L)).thenReturn(null);
-        when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any()))
+        when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any(), any()))
                 .thenReturn(new Movie());
 
         tmbdController.importMovie(1L,null,redirectAttributes);
 
-        verify(movieService).save(isNull(), anyString(),anyString(),anyInt(),eq("Inconnu"),any(), any(), isNull());
+        verify(movieService).save(isNull(), anyString(),anyString(),anyInt(),eq("Inconnu"),any(), any(), isNull(), any());
     }
 
     @Test
@@ -140,12 +147,12 @@ class TmdbControllerTest {
         validDetail.setRuntime(null);
         when(tmdbClient.getDetail(1L)).thenReturn(validDetail);
         when(tmdbClient.getTrailerUrl(1L)).thenReturn(null);
-        when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any())).thenReturn(new Movie());
+        when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any(), any())).thenReturn(new Movie());
 
         tmbdController.importMovie(1L,null,redirectAttributes);
 
         verify(movieService).save(
-                isNull(), anyString(), anyString(), eq(0), any(), any(), any(), isNull());
+                isNull(), anyString(), anyString(), eq(0), any(), any(), any(), isNull(), any());
     }
 
     @Test
@@ -153,7 +160,7 @@ class TmdbControllerTest {
     void importMovie_ShouldKeepQueryInRedirectionWhenQueryProvided() {
         when(tmdbClient.getDetail(1L)).thenReturn(validDetail);
         when(tmdbClient.getTrailerUrl(1L)).thenReturn(null);
-        when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any())).thenReturn(new Movie());
+        when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any(), any())).thenReturn(new Movie());
 
         String view = tmbdController.importMovie(1L,"Inception",redirectAttributes);
 
