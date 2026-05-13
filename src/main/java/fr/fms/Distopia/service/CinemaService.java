@@ -49,34 +49,29 @@ public class CinemaService {
     }
 
     //-----------------rechercher par mot-clé (nom ou adresse)-------------------------
-    /**
-     * Searches for cinemas based on a keyword and/or a town identifier
-     * <p>
-     * The keyword is matched against both the cinema's name and address (case-insensitive)
-     * The method adapts the search based on which parameters are provided:
-     * <ul>
-     * <li>If both keyword and townId are provided, it filters by both</li>
-     * <li>If only the keyword is provided, it searches across all towns</li>
-     * <li>If only the townId is provided, it returns all cinemas in that town</li>
-     * <li>If neither are provided, it returns all cinemas</li>
-     * </ul>
-     *
-     * @param keyword the search term to look for in the name or address (can be null or blank)
-     * @param townId  the unique identifier of the town to filter by (can be null)
-     * @return a list of {@link Cinema} objects matching the search criteria
-     */
-    public List<Cinema> search(String keyword, Long townId) {
-        if (keyword != null && !keyword.isBlank() && townId != null) {
-            return cinemaRepository
-                    .findByTownIdAndNameContainingIgnoreCaseOrTownIdAndAddressContainingIgnoreCase(
-                            townId, keyword, townId, keyword);
-        } else if (keyword != null && !keyword.isBlank()) {
-            return cinemaRepository
-                    .findByNameContainingIgnoreCaseOrAddressContainingIgnoreCase(keyword, keyword);
-        } else if (townId != null) {
-            return cinemaRepository.findByTownId(townId);
-        }
-        return cinemaRepository.findAll();
+    public Page<Cinema> searchPublic(String keyword, Long townId, String department, int page) {
+        Pageable pageable = PageRequest.of(page, 9, Sort.by("name").ascending());
+
+        boolean hasK = keyword != null && !keyword.isBlank();
+        boolean hasTown= townId != null;
+        boolean hasDept = department != null && !department.isBlank();
+
+        if (hasK && hasTown && hasDept)
+            return cinemaRepository.searchByAllFilters(townId, department, keyword, pageable);
+        if (hasK && hasTown)
+            return cinemaRepository.searchByTownAndKeyword(townId, keyword, pageable);
+        if (hasK && hasDept)
+            return cinemaRepository.searchByDepartmentAndKeyword(department, keyword, pageable);
+        if (hasTown && hasDept)
+            return cinemaRepository.findByTownIdAndDepartment(townId, department, pageable);
+        if (hasK)
+            return cinemaRepository.searchPublic(keyword, pageable);
+        if (hasTown)
+            return cinemaRepository.findByTownId(townId, pageable);
+        if (hasDept)
+            return cinemaRepository.findByDepartment(department, pageable);
+
+        return cinemaRepository.findAll(pageable);
     }
 
     //------------------recherche admin--------------------------
@@ -114,17 +109,23 @@ public class CinemaService {
      * @return the saved or updated {@link Cinema} entity
      */
     public Cinema save(Long id, String name, String address, Long townId, String website,
-                       Double latitude, Double longitude) {
+                       Double latitude, Double longitude,String imageUrl, String department) {
         Cinema cinema = (id != null) ? cinemaRepository.findById(id).orElse(new Cinema()): new Cinema();
         cinema.setName(name);
         cinema.setAddress(address);
         cinema.setWebsite(website);
         cinema.setLatitude(latitude);
         cinema.setLongitude(longitude);
+        cinema.setImageUrl(imageUrl);
+        cinema.setDepartment(department);
         if (townId != null){
             townRepository.findById(townId).ifPresent(cinema::setTown);
         }
         return cinemaRepository.save(cinema);
+    }
+
+    public List<String> getAllDepartments() {
+        return cinemaRepository.findDistinctDepartments();
     }
 
     //--------------supprimer un cinéma + vérification film orphelins----------------
