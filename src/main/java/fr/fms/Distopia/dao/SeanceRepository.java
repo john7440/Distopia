@@ -5,6 +5,7 @@ import fr.fms.Distopia.entities.Seance;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +28,21 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     Optional<Seance> findByIdForUpdate(@Param("id") Long id);
     List<Seance> findByMovieIdAndCinemaIdOrderByDateTimeAsc(Long movieId, Long cinemaId);
     List<Seance> findByMovieIdAndDateTimeAfterOrderByDateTimeAsc(Long movieId, LocalDateTime after);
+    Page<Seance> findByMovieIdAndDateTimeAfterOrderByCinemaIdAscDateTimeAsc(
+            Long movieId, LocalDateTime now, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"cinema", "movie"})
+    @Query("""
+        SELECT s
+        FROM Seance s
+        WHERE s.movie.id = :movieId
+        AND s.dateTime >= CURRENT_TIMESTAMP
+        ORDER BY s.cinema.id ASC, s.dateTime ASC
+    """)
+    Page<Seance> findUpcomingSeancesByMovie(
+            @Param("movieId") Long movieId,
+            Pageable pageable
+    );
 
     @Query("SELECT s FROM Seance s " +
             "JOIN s.movie m JOIN s.cinema c WHERE " +

@@ -19,8 +19,6 @@ import java.util.List;
 public interface MovieRepository extends JpaRepository<Movie,Long> {
     List<Movie> findByCinemasIdAndDeletedFalse(Long cinemaId, Sort sort);
     List<Movie> findByDeletedFalse(Sort sort);
-    List<Movie> findByDeletedFalse();
-
 
     @EntityGraph(attributePaths = {"cinemas"})
     @Query(value = """
