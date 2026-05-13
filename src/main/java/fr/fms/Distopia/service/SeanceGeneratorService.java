@@ -48,7 +48,6 @@ public class SeanceGeneratorService {
 
     // -------étape 1 - import des films depuis TMDB ----------------------
 
-
     private int importMovies(List<String> errors) {
         List<TmdbMovieDto> nowPlaying = tmdbClient.getNowPlaying();
         if (nowPlaying.isEmpty()) {
@@ -86,7 +85,7 @@ public class SeanceGeneratorService {
                 extractGenre(detail),
                 extractImageUrl(detail),
                 tmdbClient.getTrailerUrl(tmdbMovie.getId()),
-                null,                       // cinemaIds — associés à l'étape 2
+                null,
                 parseReleaseDate(detail.getReleaseDate())
         );
         return true;
@@ -137,7 +136,7 @@ public class SeanceGeneratorService {
                 .collect(Collectors.toSet());
 
         int count = 0;
-        for (int day = 0; day < 21; day++) {
+        for (int day = 0; day < 7; day++) {
             for (int slot = 0; slot < HOURS.length; slot++) {
                 LocalDateTime dateTime = startDate.plusDays(day)
                         .withHour(HOURS[slot])
@@ -171,7 +170,6 @@ public class SeanceGeneratorService {
         if (raw == null || raw.isBlank()) return null;
         try { return LocalDate.parse(raw); } catch (Exception e) { return null; }
     }
-
 
     //---------------------------résultat-----------------------------------------------
 
