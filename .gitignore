@@ -34,4 +34,3 @@ build/
 
 application-local.properties
 *.env
-/src/main/resources/data/cinemas.csv
