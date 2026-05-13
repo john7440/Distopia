@@ -40,7 +40,7 @@ public class CinemaCsvImporter {
                 new InputStreamReader(csvFile.getInputStream(), StandardCharsets.UTF_8))) {
 
             CSVParser parser = CSVFormat.DEFAULT.builder()
-                    .setDelimiter(';')
+                    .setDelimiter(',')
                     .setHeader()
                     .setSkipHeaderRecord(true)
                     .setIgnoreEmptyLines(true)
@@ -50,7 +50,9 @@ public class CinemaCsvImporter {
 
             for (CSVRecord row : parser) {
                 String name    = row.get("name");
-                String comNom  = row.get("com_nom");
+                String address  = row.get("address");
+
+                String comNom  = parseTownFromAddress(address);
 
                 if (name == null || name.isBlank() || cinemaRepository.existsByNameAndTown_Name(name, comNom)) {
                     skipped++;
@@ -61,10 +63,13 @@ public class CinemaCsvImporter {
 
                 Cinema cinema = new Cinema();
                 cinema.setName(name);
-                cinema.setTown(town);
+                cinema.setAddress(address);
                 cinema.setWebsite(cleanUrl(row.get("website")));
-                cinema.setLatitude(parseDouble(row.get("Y")));
-                cinema.setLongitude(parseDouble(row.get("X")));
+                cinema.setLatitude(parseDouble(row.get("latitude")));
+                cinema.setLongitude(parseDouble(row.get("longitude")));
+                cinema.setImageUrl(row.isMapped("imageUrl") ? row.get("imageUrl") : null);
+                cinema.setDepartment(row.isMapped("department") ? row.get("department") : null);
+                cinema.setTown(town);
 
                 cinemaRepository.save(cinema);
                 imported++;
@@ -90,6 +95,13 @@ public class CinemaCsvImporter {
     private Double parseDouble(String val) {
         try { return (val != null && !val.isBlank()) ? Double.parseDouble(val) : null; }
         catch (NumberFormatException e) { return null; }
+    }
+
+    private String parseTownFromAddress(String address) {
+        if (address == null || address.isBlank()) return "Inconnue";
+        String[] parts = address.split(",");
+        String last = parts[parts.length - 1].trim();
+        return last.replaceFirst("^\\d{5}\\s*", "").trim();
     }
 
     public record ImportResult(int imported, int skipped) {}
