@@ -149,4 +149,8 @@ public class MovieService {
         Pageable pageable = PageRequest.of(page, 12, sort);
         return movieRepository.searchAdmin(keyword, showDeleted,pageable);
     }
+
+    public Movie getById(Long id) {
+        return movieRepository.findById(id).orElse(null);
+    }
 }
