@@ -45,13 +45,13 @@
                     </h5>
                     <p class="text-secondary mb-0 small">
                         Importe automatiquement les films actuellement en salle
-                        et génère les séances sur <strong>21 jours</strong>
+                        et génère les séances sur <strong>7 jours</strong>
                         (3 créneaux/jour : 14h · 17h30 · 20h30) dans tous les cinémas !
                     </p>
                 </div>
                 <form th:action="@{/admin/generate-now-playing}" method="post">
                     <button type="submit" class="btn btn-warning fw-bold px-4"
-                            onclick="return confirm('Importer les films à l\'affiche et générer les séances sur 21 jours ?')">
+                            onclick="return confirm('Importer les films à l\'affiche et générer les séances sur 7 jours ?')">
                         Importer + Générer les séances
                     </button>
                 </form>
