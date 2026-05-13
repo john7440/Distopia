@@ -124,4 +124,9 @@ public class SeanceService {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE_ADMIN);
         return seanceRepository.searchAdmin(keyword, cinemaId, pageable);
     }
+
+    public Page<Seance> getUpcomingSeances(Long movieId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return seanceRepository.findUpcomingSeancesByMovie(movieId, pageable);
+    }
 }

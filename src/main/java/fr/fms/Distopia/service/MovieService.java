@@ -49,8 +49,7 @@ public class MovieService {
      * @param id the unique identifier of the movie
      * @return an {@link Optional} containing the found {@link Movie}, or empty if no movie is found
      */
-    public Optional<Movie> findById(Long id) {
-        return movieRepository.findById(id);
+    public Optional<Movie> findById(Long id) {return movieRepository.findById(id);
     }
 
     //-----tous les films (même supprimés)-----------------
