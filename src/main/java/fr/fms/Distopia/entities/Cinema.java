@@ -36,6 +36,11 @@ public class Cinema implements Serializable {
     private String website;
     private Double latitude;
     private Double longitude;
+    @Column
+    private String imageUrl;
+
+    @Column(length = 3)
+    private String department;
 
     @ManyToOne
     @JoinColumn(name = "town_id")
@@ -46,6 +51,7 @@ public class Cinema implements Serializable {
             joinColumns = @JoinColumn(name = "cinema_id"),
             inverseJoinColumns = @JoinColumn(name = "movie_id"))
     private List<Movie> movies = new ArrayList<>();
+
 
     public String buildMapsUrl() {
         if (latitude != null && longitude != null)
