@@ -1,5 +1,6 @@
 package fr.fms.Distopia.tmdb.web;
 
+import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceGeneratorService;
 import fr.fms.Distopia.tmdb.TmdbClient;
@@ -62,9 +63,15 @@ public class TmbdController {
             try { releaseDate = LocalDate.parse(raw); } catch (Exception ignored) {}
         }
 
-        movieService.save(null, title, description, duration, genre, imageUrl, trailerUrl, null, releaseDate);
+        Movie saved = movieService.save(null, title, description, duration, genre, imageUrl, trailerUrl, null, releaseDate);
 
-        ra.addFlashAttribute("message", title + "\" importé avec succès !");
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.generateForMovie(saved);
+
+        ra.addFlashAttribute("message", String.format(
+                "\"%s\" importé ! %d séances générées dans %d cinémas.",
+                title, result.seancesCreated(),
+                result.seancesCreated() / (7 * 3)
+        ));
         return "redirect:/admin/import-movies" + (query != null ? "?query=" + query : "");
 
     }
