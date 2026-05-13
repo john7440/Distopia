@@ -44,7 +44,7 @@
 
                 <p class="lead text-muted" th:text="${movie.description}"></p>
 
-                <!-- bande-annonce YouTube -->
+                <!-- youtube trailer -->
                 <div th:if="${movie.trailerUrl != null and !movie.trailerUrl.isBlank()}"
                      class="ratio ratio-16x9 mt-4" style="max-width: 640px;">
                     <iframe th:src="${movie.trailerUrl}"
@@ -55,7 +55,7 @@
                     </iframe>
                 </div>
 
-                <!-- si paas de bande-annonce -->
+                <!-- if no trailer-->
                 <div th:if="${movie.trailerUrl == null or movie.trailerUrl.isBlank()}"
                      class="alert alert-light border mt-4 text-muted"
                      style="max-width:640px;">
@@ -65,23 +65,23 @@
             </div>
         </div>
 
-        <!-- séances à venir groupés par cinéma -->
+        <!-- upcoming seances-->
         <h2 class="fw-bold mb-4">
             <i class="bi bi-calendar3 text-dark"></i> Prochaines séances
         </h2>
 
-        <div th:if="${seances == null or seances.isEmpty()}"
+        <div th:if="${seancePage.content == null or seancePage.isEmpty()}"
              class="alert alert-light border text-muted text-center py-4">
             <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
             Aucune séance à venir pour ce film.
         </div>
 
-        <div th:if="${seances != null and !seances.isEmpty()}">
+        <div th:if="${seancePage != null and !seancePage.isEmpty()}">
 
             <!-- itère sur les cinémas uniques via les séances -->
-            <div th:each="seance, iter : ${seances}">
+            <div th:each="seance, iter : ${seancePage.content}">
 
-                <div th:if="${iter.first or seances[__${iter.index - 1}__].cinema.id != seance.cinema.id}"
+                <div th:if="${iter.first or seancePage.content[__${iter.index - 1}__].cinema.id != seance.cinema.id}"
                      class="d-flex align-items-center gap-2 mt-4 mb-3">
                     <i class="bi bi-geo-alt-fill text-primary fs-5"></i>
                     <h5 class="fw-bold mb-0" th:text="${seance.cinema.name}"></h5>
@@ -159,11 +159,100 @@
                     </div>
                 </div>
             </div>
-        </div>
+
+            <nav th:if="${seancePage.totalPages > 1}" class="mt-5">
+                <ul class="pagination justify-content-center flex-wrap">
+
+                    <!-- first page -->
+                    <li class="page-item"
+                        th:classappend="${currentPage == 0} ? 'disabled'">
+
+                        <a class="page-link"
+                           th:href="@{/movie(id=${movie.id}, page=0)}">
+                            «
+                        </a>
+                    </li>
+
+                    <!-- previous -->
+                    <li class="page-item"
+                        th:classappend="${currentPage == 0} ? 'disabled'">
+
+                        <a class="page-link"
+                           th:href="@{/movie(id=${movie.id}, page=${currentPage - 1})}">
+                            ‹
+                        </a>
+                    </li>
+
+                    <!-- start -->
+                    <li th:if="${currentPage > 3}"
+                        class="page-item">
+
+                        <a class="page-link"
+                           th:href="@{/movie(id=${movie.id}, page=0)}">
+                            1
+                        </a>
+                    </li>
+
+                    <li th:if="${currentPage > 4}"
+                        class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+
+                    <li th:each="i : ${#numbers.sequence(
+                currentPage > 2 ? currentPage - 2 : 0,
+                currentPage + 2 < seancePage.totalPages - 1 ?
+                currentPage + 2 :
+                seancePage.totalPages - 1)}"
+                        class="page-item"
+                        th:classappend="${i == currentPage} ? 'active'">
+
+                        <a class="page-link"
+                           th:text="${i + 1}"
+                           th:href="@{/movie(id=${movie.id}, page=${i})}">
+                        </a>
+                    </li>
+
+                    <!-- end -->
+                    <li th:if="${currentPage < seancePage.totalPages - 5}"
+                        class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+
+                    <li th:if="${currentPage < seancePage.totalPages - 4}"
+                        class="page-item">
+
+                        <a class="page-link"
+                           th:text="${seancePage.totalPages}"
+                           th:href="@{/movie(id=${movie.id}, page=${seancePage.totalPages - 1})}">
+                        </a>
+                    </li>
+
+                    <!-- next -->
+                    <li class="page-item"
+                        th:classappend="${currentPage >= seancePage.totalPages - 1} ? 'disabled'">
+
+                        <a class="page-link"
+                           th:href="@{/movie(id=${movie.id}, page=${currentPage + 1})}">
+                            ›
+                        </a>
+                    </li>
+
+                    <!-- last page -->
+                    <li class="page-item"
+                        th:classappend="${currentPage >= seancePage.totalPages - 1} ? 'disabled'">
+
+                        <a class="page-link"
+                           th:href="@{/movie(id=${movie.id}, page=${seancePage.totalPages - 1})}">
+                            »
+                        </a>
+                    </li>
+
+                </ul>
+            </nav>
 
     </div>
 
-    <!--si film introuvable -->
+    <!--if movie empty -->
     <div th:if="${movie == null}" class="container py-5 text-center text-muted">
         <i class="bi bi-question-circle fs-1 d-block mb-3"></i>
         <p class="fs-5">Film introuvable</p>
