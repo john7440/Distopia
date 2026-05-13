@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 /**
  * Controller responsible for handling cinema-related web requests,
  * including both public views and administrative management
@@ -48,11 +50,22 @@ public class CinemaController {
      */
     @GetMapping("/cinemas")
     public String cinemasByTown(@RequestParam(required = false)Long townId,
-                                @RequestParam(required = false) String keyword, Model model){
+                                @RequestParam(required = false) String keyword,
+                                @RequestParam(required = false) String department,
+                                @RequestParam(defaultValue = "0") int page,Model model){
+
+        Page<Cinema> cinemaPage = cinemaService.searchPublic(keyword, townId,department, page);
+        List<String> departments = cinemaService.getAllDepartments();
+
         model.addAttribute("towns", townService.getAll());
-        model.addAttribute(CINEMAS, cinemaService.search(keyword, townId));
-        model.addAttribute("selectedTownId", townId);
-        model.addAttribute("keyword", keyword != null ? keyword : "");
+        model.addAttribute(CINEMAS,cinemaPage.getContent());
+        model.addAttribute("cinemaPage", cinemaPage);
+        model.addAttribute("pages", new int[cinemaPage.getTotalPages()]);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("selectedTownId",townId);
+        model.addAttribute("keyword",keyword != null ? keyword : "");
+        model.addAttribute("departments", departments);
+        model.addAttribute("selectedDepartment", department);
         return CINEMAS;
     }
 
@@ -87,9 +100,14 @@ public class CinemaController {
                                @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "name") String sortField,
                                @RequestParam(defaultValue = "asc")String sortDir,
+                               @RequestParam(required = false) Long editId,
                                Model model) {
 
         Page<Cinema> cinemaPage = cinemaService.searchAdmin(keyword, sortField, sortDir, page);
+
+        Cinema cinemaToEdit = (editId != null)
+                ? cinemaService.findById(editId).orElse(new Cinema())
+                : new Cinema();
 
         model.addAttribute("cinemaPage",    cinemaPage);
         model.addAttribute("cinemas",       cinemaPage.getContent());
@@ -100,6 +118,7 @@ public class CinemaController {
         model.addAttribute("sortDir",       sortDir);
         model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
         model.addAttribute("towns",         townService.getAll());
+        model.addAttribute("cinemaToEdit",   cinemaToEdit);
 
         return "admin-cinemas";
     }
@@ -121,13 +140,16 @@ public class CinemaController {
      */
     @PostMapping("/admin/saveCinema")
     public String saveCinema(@RequestParam(required = false) Long id,
+                             @RequestParam(required = false) Long editId,
                              @RequestParam String name,
                              @RequestParam String address,
                              @RequestParam(required = false) Long townId,
                              @RequestParam(required = false) String website,
                              @RequestParam(required = false) Double latitude,
-                             @RequestParam(required = false) Double longitude){
-        cinemaService.save(id, name, address, townId, website, latitude, longitude);
+                             @RequestParam(required = false) Double longitude,
+                             @RequestParam(required = false) String imageUrl,
+                             @RequestParam(required = false) String department){
+        cinemaService.save(id, name, address, townId, website, latitude, longitude, imageUrl, department);
         return "redirect:/admin/cinemas";
     }
 
