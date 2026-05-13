@@ -26,17 +26,6 @@ public class CinemaService {
     private MovieRepository movieRepository;
 
 
-    //------affichage cinéma d'une ville------------------
-    /**
-     * Retrieves a list of cinemas located in a specific town
-     *
-     * @param townId the unique identifier of the town
-     * @return a list of {@link Cinema} objects belonging to the specified town
-     */
-    public List<Cinema> getByTown(Long townId) {
-        return cinemaRepository.findByTownId(townId);
-    }
-
     //-------find by id--------------
     /**
      * Retrieves a cinema by its unique identifier

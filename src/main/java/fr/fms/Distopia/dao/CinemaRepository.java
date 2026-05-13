@@ -15,12 +15,7 @@ import java.util.List;
  */
 @Repository
 public interface CinemaRepository extends JpaRepository<Cinema,Long> {
-    List<Cinema> findByTownId(Long townId);
-
-    List<Cinema> findByNameContainingIgnoreCaseOrAddressContainingIgnoreCase(String name,String address);
-
-    List<Cinema> findByTownIdAndNameContainingIgnoreCaseOrTownIdAndAddressContainingIgnoreCase(
-            Long townId1, String name, Long townId2, String address);
+    List<Cinema> findAllByTownId(Long townId);
 
     boolean existsByNameAndTown_Name(String name, String townName);
 
@@ -29,7 +24,7 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
             "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Cinema> searchAdmin(@Param("keyword") String keyword, Pageable pageable);
 
-    @Query("SELECT c FROM Cinema c LEFT JOIN c.town t WHERE c.town.id = :townId")
+    @Query("SELECT c FROM Cinema c WHERE c.town.id = :townId")
     Page<Cinema> findByTownId(@Param("townId") Long townId, Pageable pageable);
 
     @Query("SELECT c FROM Cinema c LEFT JOIN c.town t " +
@@ -56,9 +51,6 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
     Page<Cinema> searchByDepartmentAndKeyword(@Param("dept") String dept,
                                               @Param("k") String k,
                                               Pageable pageable);
-
-    Page<Cinema> findByNameContainingIgnoreCaseAndDepartment(
-            String keyword, String department, Pageable pageable);
 
     @Query("SELECT c FROM Cinema c " +
             "WHERE c.town.id = :townId AND c.department = :dept")
