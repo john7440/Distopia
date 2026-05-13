@@ -4,82 +4,340 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Distopia — Cinémas</title>
+    <title>Cinémas - Distopia</title>
 </head>
+
 <body>
-<section layout:fragment="content">
-    <div class="container py-5">
+<div layout:fragment="content">
 
-        <!--barre de recherche-->
-        <div class="row g-3 mb-5 align-items-end">
-                <form th:action="@{/cinemas}" method="get" class="row g-3 mb-5 align-items-end">
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Ville</label>
-                        <select name="townId" class="form-select">
-                            <option value="">-- Toutes les villes --</option>
-                            <option th:each="town : ${towns}"
-                                    th:value="${town.id}"
-                                    th:text="${town.name}"
-                                    th:selected="${town.id == selectedTownId}">
-                            </option>
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <label class="form-label fw-semibold">Mot-clé</label>
-                        <input type="text" name="keyword" class="form-control"
-                               th:value="${keyword}" placeholder="Nom, adresse...">
-                    </div>
-                    <div class="col-auto">
-                        <button class="btn btn-primary" type="submit">
-                            <i class="bi bi-search"></i> Rechercher
-                        </button>
-                    </div>
-                </form>
-        </div>
+    <!-- header -->
+    <div class="container py-4">
+        <h1 class="mb-4 fw-bold">Nos Cinémas</h1>
 
-        <h2 class="fw-bold mb-4" th:if="${keyword != null}">
-            Résultats pour "<span th:text="${keyword}"></span>"
-        </h2>
-        <h2 class="fw-bold mb-4" th:if="${selectedTownId != null}">
-            Cinémas dans la ville sélectionnée
-        </h2>
+        <form th:action="@{/cinemas}" method="get" class="row g-3 align-items-end mb-4">
 
-        <!--liste cinémas-->
-        <div class="row g-4" th:if="${cinemas != null and !cinemas.isEmpty()}">
-            <div class="col-md-4" th:each="cinema : ${cinemas}">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold">
-                            <i class="bi bi-camera-reels text-primary"></i>
-                            <span th:text="${cinema.name}"></span>
-                        </h5>
-                        <p class="card-text text-muted small">
-                            <i class="bi bi-geo-alt"></i>
-                            <span th:text="${cinema.address}"></span>
-                        </p>
-                        <p class="card-text text-muted small" th:if="${cinema.town != null}">
-                            <i class="bi bi-building"></i>
-                            <span th:text="${cinema.town.name}"></span>
-                        </p>
+            <div class="col-md-3">
+                <label for="department" class="form-label fw-semibold">Département</label>
+                <select id="department" name="department" class="form-select">
+                    <option value="">-- Tous les départements --</option>
+                    <option th:each="dept : ${departments}"
+                            th:value="${dept}"
+                            th:text="${dept}"
+                            th:selected="${dept == selectedDepartment}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- town filter -->
+            <div class="col-md-3">
+                <label for="town" class="form-label fw-semibold">Ville</label>
+                <select id="town" name="town" class="form-select">
+                    <option value="">-- Toutes les villes --</option>
+                    <option th:each="t : ${towns}"
+                            th:value="${t.name}"
+                            th:text="${t.name}"
+                            th:selected="${t.name == selectedTown}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- keyword-->
+            <div class="col-md-4">
+                <label for="keyword" class="form-label fw-semibold">Mot-clé</label>
+                <input id="keyword" type="text" name="keyword" class="form-control"
+                       placeholder="Nom du cinéma..."
+                       th:value="${keyword}"/>
+            </div>
+
+            <!-- buttons -->
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-search"></i> Rechercher
+                </button>
+                <a th:href="@{/cinemas}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </form>
+
+        <!-- results -->
+        <p th:if="${keyword != null and !keyword.isBlank()}"
+           class="text-muted mb-3">
+            <span th:text="${cinemas.size()}"></span> cinéma(s) trouvé(s)
+            pour &laquo;<span th:text="${keyword}" class="fw-semibold text-dark"></span>&raquo;
+        </p>
+
+        <!-- cards -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4"
+             th:if="${!cinemas.isEmpty()}">
+
+            <div class="col" th:each="cinema : ${cinemas}">
+
+                <div class="card cinema-card h-100 border-0 shadow-sm">
+
+                    <!-- img -->
+                    <div class="cinema-cover-wrapper">
+
+                        <img th:if="${cinema.imageUrl != null and !cinema.imageUrl.isBlank()}"
+                             th:src="@{${cinema.imageUrl}}"
+                             th:alt="${cinema.name}"
+                             class="cinema-cover"
+                             loading="lazy"
+                             onerror="this.src='https://picsum.photos/seed/cinema-default/800/500'"/>
+
+                        <img th:unless="${cinema.imageUrl != null and !cinema.imageUrl.isBlank()}"
+                             src="https://picsum.photos/seed/cinema-default/800/500"
+                             th:alt="${cinema.name}"
+                             class="cinema-cover"
+                             loading="lazy"/>
+
+                        <!-- overlay -->
+                        <div class="cinema-overlay"></div>
+
+                        <!-- badge -->
+                        <div class="cinema-top-content">
+
+                        </div>
+
+                        <!-- title inside image -->
+                        <div class="cinema-bottom-content">
+
+                            <h4 class="fw-bold text-white mb-1"
+                                th:text="${cinema.name}">
+                            </h4>
+
+                            <div th:if="${cinema.town != null}"
+                                 class="text-white-50 small d-flex align-items-center gap-2">
+
+                                <i class="bi bi-geo-alt-fill"></i>
+
+                                <span th:text="${cinema.town.name}"></span>
+
+                            </div>
+
+                        </div>
+
                     </div>
-                    <div class="card-footer bg-transparent border-0 pb-3">
-                        <a th:href="@{/movies(cinemaId=${cinema.id})}"
-                           class="btn btn-primary w-100">
-                            <i class="bi bi-film"></i> Voir les films
-                        </a>
+
+                    <div class="card-body d-flex flex-column p-4">
+                        <!-- address -->
+                        <div th:if="${cinema.address != null and !cinema.address.isBlank()}"
+                             class="cinema-info-box mb-4">
+
+                            <div class="d-flex gap-3 align-items-start">
+
+                                <div class="cinema-info-icon">
+                                    <i class="bi bi-pin-map-fill"></i>
+                                </div>
+
+                                <div>
+                                    <div class="small text-uppercase fw-bold text-muted mb-1">
+                                        Adresse
+                                    </div>
+
+                                    <div class="small text-dark"
+                                         th:text="${cinema.address}">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- actions -->
+                        <div class="mt-auto">
+
+                            <div class="d-flex flex-wrap gap-2">
+
+                                <a th:if="${cinema.latitude != null and cinema.longitude != null}"
+                                   th:href="'https://www.google.com/maps?q=' + ${cinema.latitude} + ',' + ${cinema.longitude}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="btn btn-light border rounded-pill px-3">
+
+                                    <i class="bi bi-map-fill me-1"></i>
+                                    Maps
+                                </a>
+
+                                <a th:if="${cinema.website != null and !cinema.website.isBlank()}"
+                                   th:href="${cinema.website}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="btn btn-light border rounded-pill px-3">
+
+                                    <i class="bi bi-globe2 me-1"></i>
+                                    Site
+                                </a>
+
+                                <a th:href="@{/movies(cinemaId=${cinema.id})}"
+                                   class="btn btn-dark rounded-pill px-4 ms-auto">
+
+                                    <i class="bi bi-film me-2"></i>
+                                    Voir les films
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+            <!-- pagination---->
+            <nav th:if="${cinemaPage.totalPages > 1}" class="mt-4">
+                <ul class="pagination justify-content-center">
 
-        <div th:if="${cinemas == null or cinemas.isEmpty()}"
-             class="text-center py-5 text-muted">
-            <i class="bi bi-search fs-1 d-block mb-3"></i>
-            <p class="fs-5">Aucun cinéma trouvé</p>
-            <a th:href="@{/cinemas}" class="btn btn-outline-primary">Voir tous les cinémas</a>
+                    <li class="page-item"
+                        th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/cinemas(
+                    keyword=${keyword},
+                    sortField=${sortField},
+                    sortDir=${sortDir},
+                    page=0)}">
+                            «
+                        </a>
+                    </li>
+
+                    <li class="page-item"
+                        th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/cinemas(
+                    keyword=${keyword},
+                    sortField=${sortField},
+                    sortDir=${sortDir},
+                    page=${currentPage - 1})}">
+                            ‹
+                        </a>
+                    </li>
+
+                    <li th:each="i : ${#numbers.sequence(
+                currentPage > 2 ? currentPage - 2 : 0,
+                currentPage + 2 < cinemaPage.totalPages - 1 ?
+                currentPage + 2 :
+                cinemaPage.totalPages - 1)}"
+                        class="page-item"
+                        th:classappend="${i == currentPage} ? 'active'">
+
+                        <a class="page-link"
+                           th:text="${i + 1}"
+                           th:href="@{/cinemas(
+                    keyword=${keyword},
+                    sortField=${sortField},
+                    sortDir=${sortDir},
+                    page=${i})}">
+                        </a>
+                    </li>
+
+                    <li class="page-item"
+                        th:classappend="${currentPage >= cinemaPage.totalPages - 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/cinemas(
+                    keyword=${keyword},
+                    sortField=${sortField},
+                    sortDir=${sortDir},
+                    page=${currentPage + 1})}">
+                            ›
+                        </a>
+                    </li>
+
+                    <li class="page-item"
+                        th:classappend="${currentPage >= cinemaPage.totalPages - 1} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/cinemas(
+                    keyword=${keyword},
+                    sortField=${sortField},
+                    sortDir=${sortDir},
+                    page=${cinemaPage.totalPages - 1})}">
+                            »
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
 
-    </div>
-</section>
+        <style>
+
+            .cinema-card {
+                border-radius: 1.5rem;
+                overflow: hidden;
+                transition: all .3s ease;
+                background: #fff;
+            }
+
+            .cinema-card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 1rem 2rem rgba(0,0,0,.12) !important;
+            }
+
+            .cinema-cover-wrapper {
+                position: relative;
+                height: 240px;
+                overflow: hidden;
+            }
+
+            .cinema-cover {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform .5s ease;
+            }
+
+            .cinema-card:hover .cinema-cover {
+                transform: scale(1.06);
+            }
+
+            .cinema-overlay {
+                position: absolute;
+                inset: 0;
+                background:
+                        linear-gradient(
+                                to top,
+                                rgba(0,0,0,.82) 0%,
+                                rgba(0,0,0,.25) 45%,
+                                rgba(0,0,0,.08) 100%
+                        );
+            }
+
+            .cinema-top-content {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                z-index: 2;
+            }
+
+            .cinema-bottom-content {
+                position: absolute;
+                left: 1.5rem;
+                bottom: 1.25rem;
+                z-index: 2;
+            }
+
+            .cinema-info-box {
+                background: #f8f9fa;
+                border-radius: 1rem;
+                padding: 1rem;
+            }
+
+            .cinema-info-icon {
+                width: 42px;
+                height: 42px;
+                border-radius: 12px;
+                background: #212529;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .cinema-card .btn {
+                transition: all .2s ease;
+            }
+
+            .cinema-card .btn:hover {
+                transform: translateY(-1px);
+            }
+
+        </style>
+</div>
+
 </body>
 </html>

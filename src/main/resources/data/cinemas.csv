@@ -1,0 +1,26 @@
+name,address,website,latitude,longitude,imageUrl,department
+UGC Ciné Cité Les Halles,"7 Place de la Rotonde, 75001 Paris",https://www.ugc.fr,48.8624,2.3469,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/UGC_logo.svg/320px-UGC_logo.svg.png,75
+MK2 Bibliothèque,"128-162 Avenue de France, 75013 Paris",https://www.mk2.com,48.8303,2.3753,https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/MK2_logo.svg/320px-MK2_logo.svg.png,75
+Pathé Gaumont Opéra,"2 Boulevard des Capucines, 75009 Paris",https://www.pathe.fr,48.8698,2.3313,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Path%C3%A9_logo.svg/320px-Path%C3%A9_logo.svg.png,75
+CGR Bordeaux,"13-15 Rue Georges Bonnac, 33000 Bordeaux",https://www.cgr.fr,44.8378,-0.5792,https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/CGR_Cinema_logo.svg/320px-CGR_Cinema_logo.svg.png,33
+Mégarama Bordeaux,"7 Rue du Château d'Eau, 33000 Bordeaux",https://www.megarama.fr,44.8456,-0.5733,/images/cinemas/tickets.jpg,33
+Pathé Marseille Plan de Campagne,"Quartier Plan de Campagne, 13170 Les Pennes-Mirabeau",https://www.pathe.fr,43.4268,5.3134,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Path%C3%A9_logo.svg/320px-Path%C3%A9_logo.svg.png,13
+Cinéma Variétés,"37 Rue Vincent Scotto, 13001 Marseille",https://cinema-varietes.fr,43.2965,5.3832,https://picsum.photos/seed/marseille-cinema/400/300,13
+UGC Confluence Lyon,"112 Cours Charlemagne, 69002 Lyon",https://www.ugc.fr,45.7462,4.8164,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/UGC_logo.svg/320px-UGC_logo.svg.png,69
+Pathé Vaise Lyon,"200 Avenue du Valvert, 69009 Lyon",https://www.pathe.fr,45.7742,4.7995,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Path%C3%A9_logo.svg/320px-Path%C3%A9_logo.svg.png,69
+Kinépolis Lomme,"Avenue du Château de Ravalet, 59160 Lomme",https://kinepolis.fr,50.6411,2.9881,https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Kinepolis_logo.svg/320px-Kinepolis_logo.svg.png,59
+CGR Villeneuve-d'Ascq,"Centre Commercial V2, 59650 Villeneuve-d'Ascq",https://www.cgr.fr,50.6131,3.1423,https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/CGR_Cinema_logo.svg/320px-CGR_Cinema_logo.svg.png,59
+Pathé Strasbourg,"19 Rue du Faubourg National, 67000 Strasbourg",https://www.pathe.fr,48.5839,7.7454,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Path%C3%A9_logo.svg/320px-Path%C3%A9_logo.svg.png,67
+Cinéma Star,"27 Rue du Jeu des Enfants, 67000 Strasbourg",https://cinema-star.com,48.58,7.75,https://picsum.photos/seed/strasbourg-cinema/400/300,67
+Pathé Toulouse Wilson,"Place du Président Thomas Wilson, 31000 Toulouse",https://www.pathe.fr,43.6042,1.4426,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Path%C3%A9_logo.svg/320px-Path%C3%A9_logo.svg.png,31
+CGR Toulouse,"Route de Blagnac, 31700 Cornebarrieu",https://www.cgr.fr,43.6365,1.3619,https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/CGR_Cinema_logo.svg/320px-CGR_Cinema_logo.svg.png,31
+Gaumont Nantes,"Place du Commerce, 44000 Nantes",https://www.pathe.fr,47.2128,-1.5603,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Path%C3%A9_logo.svg/320px-Path%C3%A9_logo.svg.png,44
+Kinépolis Nantes,"Route de Saint-Joseph de Porterie, 44300 Nantes",https://kinepolis.fr,47.2452,-1.5101,https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Kinepolis_logo.svg/320px-Kinepolis_logo.svg.png,44
+CGR Nice Lingostière,"Route de Grenoble, 06200 Nice",https://www.cgr.fr,43.7134,7.2235,https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/CGR_Cinema_logo.svg/320px-CGR_Cinema_logo.svg.png,06
+Pathé Nice Gare du Sud,"33 Avenue Malausséna, 06000 Nice",https://www.pathe.fr,43.7089,7.262,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Path%C3%A9_logo.svg/320px-Path%C3%A9_logo.svg.png,06
+Pathé Montpellier,"Avenue Pierre Mendès France, 34000 Montpellier",https://www.pathe.fr,43.6108,3.8767,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Path%C3%A9_logo.svg/320px-Path%C3%A9_logo.svg.png,34
+Ciné Diagonal Village,"5 Rue de Verdun, 34000 Montpellier",https://diagonal-cinema.fr,43.6103,3.8777,https://picsum.photos/seed/montpellier-cinema/400/300,34
+MK2 Quai de Seine,"14 Quai de la Seine, 75019 Paris",https://www.mk2.com,48.8833,2.3667,https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/MK2_logo.svg/320px-MK2_logo.svg.png,75
+CGR Dax,"Route de Bayonne, 40100 Dax",https://www.cgr.fr,43.71,-1.059,https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/CGR_Cinema_logo.svg/320px-CGR_Cinema_logo.svg.png,40
+Cinéma Le Caméo Rennes,"6 Rue Saint-Mélaine, 35000 Rennes",https://www.lecameo.fr,48.1147,-1.6794,https://picsum.photos/seed/rennes-cinema/400/300,35
+Pathé Grenoble Chavant,"2 Place de la Résistance, 38000 Grenoble",https://www.pathe.fr,45.1885,5.7245,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Path%C3%A9_logo.svg/320px-Path%C3%A9_logo.svg.png,38

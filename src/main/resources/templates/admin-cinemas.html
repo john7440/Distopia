@@ -306,284 +306,163 @@
         </nav>
     </div>
 
-    <!-------------------------------- MODAL EDIT ---------------------------------------------->
-    <div class="modal fade show"
-         th:if="${editCinema != null}"
-         style="display:block; background:rgba(0,0,0,0.5);"
+    <!------------------------------------- ADD / EDIT MODAL ------------------------------------->
+    <div class="modal fade"
+         id="modalAddCinema"
          tabindex="-1">
 
-        <div class="modal-dialog modal-dialog-centered">
-
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow">
 
                 <div class="modal-header">
-
                     <h5 class="modal-title fw-bold">
-                        <i class="bi bi-pencil-square"></i> Modifier le cinéma
+                        <i class="bi bi-pencil-square me-1"
+                           th:if="${cinemaToEdit.id != null}"></i>
+                        <i class="bi bi-plus-circle me-1"
+                           th:unless="${cinemaToEdit.id != null}"></i>
+                        <span th:text="${cinemaToEdit.id != null} ? 'Modifier le cinéma' : 'Ajouter un cinéma'"></span>
                     </h5>
-
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <form th:action="@{/admin/saveCinema}"
-                      method="post">
+                <form th:action="@{/admin/saveCinema}" method="post">
+
+                    <!-- ID caché : présent seulement en modification -->
+                    <input type="hidden" name="id"
+                           th:if="${cinemaToEdit.id != null}"
+                           th:value="${cinemaToEdit.id}"/>
 
                     <div class="modal-body">
 
-                        <input type="hidden"
-                               name="id"
-                               th:value="${editCinema.id}">
-
-                        <!-- name -->
+                        <!-- Nom -->
                         <div class="mb-3">
-
-                            <label class="form-label fw-semibold">
-                                Nom
-                            </label>
-
+                            <label class="form-label fw-semibold">Nom</label>
                             <input type="text"
                                    name="name"
                                    class="form-control"
-                                   required
-                                   th:value="${editCinema.name}">
+                                   th:value="${cinemaToEdit.name}"
+                                   required/>
                         </div>
 
-                        <!-- address -->
+                        <!-- Adresse -->
                         <div class="mb-3">
-
-                            <label class="form-label fw-semibold">
-                                Adresse
-                            </label>
-
+                            <label class="form-label fw-semibold">Adresse</label>
                             <input type="text"
                                    name="address"
                                    class="form-control"
-                                   th:value="${editCinema.address}">
-
+                                   th:value="${cinemaToEdit.address}"/>
                         </div>
 
-                        <!-- town -->
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                Ville
-                            </label>
-                            <select name="townId"
-                                    class="form-select">
-                                <option value="">
-                                    -- Aucune ville --
-                                </option>
+                        <div class="row g-3 mb-3">
 
-                                <option th:each="town : ${towns}"
-                                        th:value="${town.id}"
-                                        th:text="${town.name}"
-                                        th:selected="${editCinema.town != null and editCinema.town.id == town.id}">
-                                </option>
-                            </select>
+                            <!-- Ville -->
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold">Ville</label>
+                                <select name="townId" class="form-select">
+                                    <option value="">-- Aucune ville --</option>
+                                    <option th:each="town : ${towns}"
+                                            th:value="${town.id}"
+                                            th:text="${town.name}"
+                                            th:selected="${cinemaToEdit.town != null
+                                                       and cinemaToEdit.town.id == town.id}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- Département -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-map me-1"></i>Département
+                                </label>
+                                <input type="text"
+                                       name="department"
+                                       class="form-control"
+                                       maxlength="3"
+                                       placeholder="ex: 75"
+                                       th:value="${cinemaToEdit.department}"/>
+                            </div>
                         </div>
 
+                        <!-- Site web -->
                         <div class="mb-3">
                             <label class="form-label fw-semibold">
                                 <i class="bi bi-globe me-1"></i>Site web
                             </label>
-
                             <input type="url"
                                    name="website"
                                    class="form-control"
                                    placeholder="https://..."
-                                   th:value="${editCinema.website}">
-
+                                   th:value="${cinemaToEdit.website}"/>
                         </div>
 
-                        <!-- Coordinates-->
+                        <!-- Image URL -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-image me-1"></i>Image
+                            </label>
+                            <input type="text"
+                                   name="imageUrl"
+                                   class="form-control"
+                                   placeholder="images/cinemas/monimage.jpg  ou  https://..."
+                                   th:value="${cinemaToEdit.imageUrl}"
+                                   pattern="^(https?://.+|[^/].+\.(jpg|jpeg|png|webp|gif))$"
+                                   title="Chemin relatif (images/cinemas/photo.jpg) ou URL complète (https://...)"/>
+
+                            <!-- Prévisualisation dynamique -->
+                            <div class="mt-2" id="imgPreviewWrapper"
+                                 th:if="${cinemaToEdit.imageUrl != null and !cinemaToEdit.imageUrl.isBlank()}">
+                                <img id="imgPreview"
+                                     th:src="${cinemaToEdit.imageUrl.startsWith('http') ?
+                      cinemaToEdit.imageUrl :
+                      '/' + cinemaToEdit.imageUrl}"
+                                     alt="Aperçu"
+                                     class="img-thumbnail"
+                                     style="max-height: 100px; object-fit: cover;"
+                                     onerror="this.style.display='none'"/>
+                            </div>
+                            <div class="mt-2" id="imgPreviewWrapper"
+                                 th:unless="${cinemaToEdit.imageUrl != null and !cinemaToEdit.imageUrl.isBlank()}">
+                                <img id="imgPreview" src="" alt="Aperçu"
+                                     class="img-thumbnail d-none"
+                                     style="max-height: 100px; object-fit: cover;"
+                                     onerror="this.style.display='none'"/>
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Chemin local : <code>images/cinemas/monimage.jpg</code>
+                                &nbsp;|&nbsp; ou URL externe : <code>https://...</code>
+                            </small>
+                        </div>
+
+                        <!-- Coordonnées -->
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-geo-alt me-1"></i>Latitude
                                 </label>
-                                <input type="number" name="latitude" class="form-control"
-                                       step="0.0000001" placeholder="ex: 48.8566"
-                                       th:value="${editCinema.latitude}">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-geo-alt me-1"></i>Longitude
-                                </label>
-                                <input type="number" name="longitude" class="form-control"
-                                       step="0.0000001" placeholder="ex: 2.3522"
-                                       th:value="${editCinema.longitude}">
-                            </div>
-                        </div>
-                        <small class="text-muted">
-                            <i class="bi bi-info-circle"></i>
-                            Les coordonnées permettent d'afficher le lien Google Maps.
-                        </small>
-
-                        <div class="row g-3">
-
-                            <div class="col-md-6">
-
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-geo-alt me-1"></i>Latitude
-                                </label>
-
                                 <input type="number"
                                        name="latitude"
                                        class="form-control"
                                        step="0.0000001"
                                        placeholder="ex: 48.8566"
-                                       th:value="${editCinema.latitude}">
-
+                                       th:value="${cinemaToEdit.latitude}"/>
                             </div>
-
                             <div class="col-md-6">
-
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-geo-alt me-1"></i>Longitude
                                 </label>
-
                                 <input type="number"
                                        name="longitude"
                                        class="form-control"
                                        step="0.0000001"
                                        placeholder="ex: 2.3522"
-                                       th:value="${editCinema.longitude}">
-
+                                       th:value="${cinemaToEdit.longitude}"/>
                             </div>
-
                         </div>
-
-                        <small class="text-muted">
+                        <small class="text-muted mt-1 d-block">
                             <i class="bi bi-info-circle"></i>
                             Les coordonnées permettent d'afficher le lien Google Maps.
-                        </small>
-
-                    </div>
-
-                    <!-- modal footer -->
-                    <div class="modal-footer">
-
-                        <a th:href="@{/admin/cinemas}"
-                           class="btn btn-danger"> Annuler
-                        </a>
-
-                        <button type="submit"
-                                class="btn btn-success">
-                            <i class="bi bi-save"></i> Enregistrer
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!------------------------------------- ADD MODAL ------------------------------------->
-    <div class="modal fade"
-         id="modalAddCinema"
-         tabindex="-1">
-
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">
-                        <i class="bi bi-plus-circle"></i> Ajouter un cinéma
-                    </h5>
-
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal">
-                    </button>
-
-                </div>
-
-                <form th:action="@{/admin/saveCinema}"
-                      method="post">
-                    <div class="modal-body">
-
-                        <div class="mb-3">
-
-                            <label class="form-label fw-semibold">
-                                Nom
-                            </label>
-
-                            <input type="text"
-                                   name="name"
-                                   class="form-control"
-                                   required>
-
-                        </div>
-
-                        <div class="mb-3">
-
-                            <label class="form-label fw-semibold">
-                                Adresse
-                            </label>
-
-                            <input type="text"
-                                   name="address"
-                                   class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-
-                            <label class="form-label fw-semibold">
-                                Ville
-                            </label>
-
-                            <select name="townId"
-                                    class="form-select">
-
-                                <option value="">
-                                    -- Aucune ville --
-                                </option>
-
-                                <option th:each="town : ${towns}"
-                                        th:value="${town.id}"
-                                        th:text="${town.name}">
-                                </option>
-                            </select>
-                        </div>
-
-                        <!-- website -->
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-globe me-1"></i>Site web
-                            </label>
-
-                            <input type="url"
-                                   name="website"
-                                   class="form-control"
-                                   placeholder="https://...">
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-geo-alt me-1"></i>Latitude
-                                </label>
-
-                                <input type="number"
-                                       name="latitude"
-                                       class="form-control"
-                                       step="0.0000001"
-                                       placeholder="ex: 48.8566">
-
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-geo-alt me-1"></i>Longitude
-                                </label>
-
-                                <input type="number"
-                                       name="longitude"
-                                       class="form-control"
-                                       step="0.0000001"
-                                       placeholder="ex: 2.3522">
-                            </div>
-                        </div>
-                        <small class="text-muted">
-                            <i class="bi bi-info-circle"></i>
-                            Les coordonnées permettent d'afficher le lien Google Maps.
-                            Laissez vide pour utiliser l'adresse textuelle !
+                            Laissez vide pour utiliser l'adresse textuelle.
                         </small>
 
                     </div>
@@ -594,17 +473,33 @@
                                 data-bs-dismiss="modal">
                             Annuler
                         </button>
-
-                        <button type="submit"
-                                class="btn btn-success">
-
-                            <i class="bi bi-save"></i> Enregistrer
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-save me-1"></i>
+                            <span th:text="${cinemaToEdit.id != null} ? 'Mettre à jour' : 'Enregistrer'"></span>
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <script>
+        document.querySelector('input[name="imageUrl"]').addEventListener('input', function () {
+            const preview = document.getElementById('imgPreview');
+            const val = this.value.trim();
+            if (!val) { preview.classList.add('d-none'); return; }
+            preview.src = val.startsWith('http') ? val : '/' + val;
+            preview.classList.remove('d-none');
+        });
+    </script>
+
+    <!-- open if editId is present -->
+    <script th:if="${cinemaToEdit.id != null}">
+        document.addEventListener('DOMContentLoaded', function () {
+            new bootstrap.Modal(document.getElementById('modalAddCinema')).show();
+        });
+    </script>
+
 
 </section>
 
