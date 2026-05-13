@@ -127,7 +127,7 @@ public class SeanceGeneratorService {
         return count;
     }
 
-    private int generateSeancesForMovieAndCinema(Movie movie, Cinema cinema,
+    public int generateSeancesForMovieAndCinema(Movie movie, Cinema cinema,
                                                  LocalDateTime startDate) {
         Set<LocalDateTime> existing = seanceService
                 .getByMovieAndCinema(movie.getId(), cinema.getId())
@@ -150,6 +150,36 @@ public class SeanceGeneratorService {
             }
         }
         return count;
+    }
+
+    public GeneratorResult generateForMovie(Movie movie) {
+        List<String> errors = new ArrayList<>();
+
+        List<Cinema> cinemas = cinemaService.getAll();
+        if (cinemas.isEmpty()) {
+            errors.add("Aucun cinéma en base !");
+            return new GeneratorResult(0, 0, errors);
+        }
+
+        List<Long> cinemaIds = cinemas.stream().map(Cinema::getId).toList();
+        if (movie.getCinemas() == null || movie.getCinemas().isEmpty()) {
+            movieService.save(
+                    movie.getId(), movie.getTitle(), movie.getDescription(),
+                    movie.getDuration(), movie.getGenre(), movie.getImageUrl(),
+                    movie.getTrailerUrl(), cinemaIds, movie.getReleaseDate()
+            );
+            movie = movieService.getById(movie.getId());
+        }
+
+        LocalDateTime startDate = LocalDateTime.now().plusDays(1)
+                .withHour(0).withMinute(0).withSecond(0).withNano(0);
+
+        int count = 0;
+        for (Cinema cinema : cinemas) {
+            count += generateSeancesForMovieAndCinema(movie, cinema, startDate);
+        }
+
+        return new GeneratorResult(1, count, errors);
     }
 
     //--------------------------méthodes helpers--------------------------------
