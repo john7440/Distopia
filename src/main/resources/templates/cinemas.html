@@ -31,12 +31,12 @@
             <!-- town filter -->
             <div class="col-md-3">
                 <label for="town" class="form-label fw-semibold">Ville</label>
-                <select id="town" name="town" class="form-select">
+                <select id="town" name="townId" class="form-select">
                     <option value="">-- Toutes les villes --</option>
                     <option th:each="t : ${towns}"
-                            th:value="${t.name}"
+                            th:value="${t.id}"
                             th:text="${t.name}"
-                            th:selected="${t.name == selectedTown}">
+                            th:selected="${selectedTownId != null and t.id == selectedTownId}">
                     </option>
                 </select>
             </div>
@@ -82,8 +82,7 @@
                              th:src="@{${cinema.imageUrl}}"
                              th:alt="${cinema.name}"
                              class="cinema-cover"
-                             loading="lazy"
-                             onerror="this.src='https://picsum.photos/seed/cinema-default/800/500'"/>
+                             loading="lazy"/>
 
                         <img th:unless="${cinema.imageUrl != null and !cinema.imageUrl.isBlank()}"
                              src="https://picsum.photos/seed/cinema-default/800/500"
