@@ -1,6 +1,7 @@
 package fr.fms.Distopia.web;
 
 import fr.fms.Distopia.entities.Movie;
+import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Controller responsible for handling movie-related web requests,
@@ -143,9 +145,17 @@ public class MovieController {
     }
 
     @GetMapping("/movie")
-    public String movieDetail(@RequestParam Long id, Model model){
-        movieService.findById(id).ifPresent(m -> model.addAttribute("movie", m));
-        model.addAttribute("seances", seanceService.getUpcomingByMovie(id));
+    public String movieDetail(@RequestParam Long id, @RequestParam(defaultValue = "0") int page, Model model){
+        int size = 10;
+
+        Movie movie = movieService.getById(id);
+
+        Page<Seance> seancePage = seanceService.getUpcomingSeances(id, page, 10);
+
+        model.addAttribute("movie", movie);
+        model.addAttribute("seancePage", seancePage);
+        model.addAttribute("currentPage", page);
+
         return "movie-detail";
     }
 }
