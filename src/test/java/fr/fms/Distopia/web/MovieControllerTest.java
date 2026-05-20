@@ -12,10 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,7 +20,6 @@ import org.springframework.ui.Model;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -42,7 +38,6 @@ class MovieControllerTest {
 
     @Mock
     private Model model;
-
 
     @InjectMocks
     private MovieController movieController;
@@ -209,38 +204,30 @@ class MovieControllerTest {
     @Test
     @DisplayName("movieDetail() - returns 'movie-detail' view")
     void movieDetail_ShouldReturnMovieDetailView(){
-        when(movieService.findById(1L)).thenReturn(Optional.of(movie));
-        when(seanceService.getUpcomingByMovie(1L)).thenReturn(List.of());
+        Page<Seance> seancePage = Page.empty();
+        when(movieService.getById(1L)).thenReturn(movie);
+        when(seanceService.getUpcomingSeances(1L, 0, 10)).thenReturn(seancePage);
 
-        String view = movieController.movieDetail(1L, model);
+        String view = movieController.movieDetail(1L,0, model);
 
         assertThat(view).isEqualTo("movie-detail");
     }
 
     @Test
-    @DisplayName("movieDetail() - adds movie and upcoming seances to model")
+    @DisplayName("movieDetail() - adds movie, seancePage and currentPage to model")
     void movieDetail_ShouldAddMovieAndUpcomingSeancesToModel(){
         Seance seance = new Seance();
         seance.setId(1L);
+        Page<Seance> seancePage = new PageImpl<>(List.of(seance));
 
-        when(movieService.findById(1L)).thenReturn(Optional.of(movie));
-        when(seanceService.getUpcomingByMovie(1L)).thenReturn(List.of(seance));
+        when(movieService.getById(1L)).thenReturn(movie);
+        when(seanceService.getUpcomingSeances(1L, 0, 10)).thenReturn(seancePage);
 
-        movieController.movieDetail(1L,model);
+        movieController.movieDetail(1L,0,model);
 
         verify(model).addAttribute("movie", movie);
-        verify(model).addAttribute("seances", List.of(seance));
-    }
-
-    @Test
-    @DisplayName("movieDetail() - does not add movie to model when id not found")
-    void movieDetail_ShouldNotAddMovieToModelWhenIdNotFound(){
-        when(movieService.findById(99L)).thenReturn(Optional.empty());
-        when(seanceService.getUpcomingByMovie(99L)).thenReturn(List.of());
-
-        movieController.movieDetail(99L,model);
-
-        verify(model, never()).addAttribute(eq("movie"), any());
+        verify(model).addAttribute("seancePage", seancePage);
+        verify(model).addAttribute("currentPage", 0);
     }
 }
 
