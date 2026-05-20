@@ -152,4 +152,8 @@ public class MovieService {
     public Movie getById(Long id) {
         return movieRepository.findById(id).orElse(null);
     }
+
+    public Optional<Movie> findByTitleIgnoreCase(String title) {
+        return movieRepository.findByTitleIgnoreCase(title);
+    }
 }

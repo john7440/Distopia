@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The JPA Repository of movies
@@ -19,6 +20,7 @@ import java.util.List;
 public interface MovieRepository extends JpaRepository<Movie,Long> {
     List<Movie> findByCinemasIdAndDeletedFalse(Long cinemaId, Sort sort);
     List<Movie> findByDeletedFalse(Sort sort);
+    Optional<Movie> findByTitleIgnoreCase(String title);
 
     @EntityGraph(attributePaths = {"cinemas"})
     @Query(value = """
