@@ -167,7 +167,7 @@ class MovieServiceTest {
     //--------------------test de getByCinema()----------------------
     @Test
     @DisplayName("getByCinema() - returns only non-deleted movies for a cinema")
-    void findActiveByCinema_shouldReturnOnlyNonDeletedMovies() {
+    void getByCinema_shouldReturnOnlyNonDeletedMovies() {
         Sort sort = Sort.by(Sort.Direction.DESC, "releaseDate");
         when(movieRepository.findByCinemasIdAndDeletedFalse(1L,sort))
                 .thenReturn(List.of(movie));
