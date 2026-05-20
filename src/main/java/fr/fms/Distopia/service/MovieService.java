@@ -83,7 +83,7 @@ public class MovieService {
      * @return the saved or updated {@link Movie} entity
      */
     @Transactional
-    public Movie save(Long id, String title, String description,
+    public Movie save(Long id,Long tmdbId, String title, String description,
                       int duration, String genre, String imageUrl, String trailerUrl,
                       List<Long> cinemaIds, LocalDate releaseDate) {
 
@@ -98,6 +98,7 @@ public class MovieService {
         movie.setImageUrl(imageUrl);
         movie.setTrailerUrl(trailerUrl);
         movie.setReleaseDate(releaseDate);
+        movie.setTmdbId(tmdbId);
 
         movie.getCinemas().forEach(c -> c.getMovies().remove(movie));
         movie.getCinemas().clear();
@@ -155,5 +156,9 @@ public class MovieService {
 
     public Optional<Movie> findByTitleIgnoreCase(String title) {
         return movieRepository.findByTitleIgnoreCase(title);
+    }
+
+    public Optional<Movie> findByTmdbId(Long tmdbId) {
+        return movieRepository.findByTmdbId(tmdbId);
     }
 }
