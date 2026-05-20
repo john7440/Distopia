@@ -36,20 +36,18 @@ class SeanceControllerTest {
     @InjectMocks
     private SeanceController seanceController;
 
-    private User adminUser;
-    private User regularUser;
     private Seance seance;
     private Movie movie;
     private Cinema cinema;
 
     @BeforeEach
     void setUp() {
-        adminUser = new User();
+        User adminUser = new User();
         adminUser.setUsername("admin");
         adminUser.setId(1L);
         adminUser.setRole(Role.ADMIN);
 
-        regularUser = new User();
+        User regularUser = new User();
         regularUser.setUsername("regular");
         regularUser.setId(2L);
         regularUser.setRole(Role.USER);

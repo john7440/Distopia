@@ -40,7 +40,6 @@ class TownControllerTest {
     private TownController townController;
 
     private User adminUser;
-    private User regularUser;
     private Town town;
 
     @BeforeEach
@@ -49,7 +48,7 @@ class TownControllerTest {
         adminUser.setId(1L);
         adminUser.setRole(Role.ADMIN);
 
-        regularUser = new User();
+        User regularUser = new User();
         regularUser.setId(2L);
         regularUser.setRole(Role.USER);
 

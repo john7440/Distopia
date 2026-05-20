@@ -43,7 +43,6 @@ class MovieControllerTest {
     private MovieController movieController;
 
     private User adminUser;
-    private User regularUser;
     private Movie movie;
     private Cinema cinema;
     private static final String DEFAULT_SORT = "title";
@@ -55,7 +54,7 @@ class MovieControllerTest {
         adminUser.setId(1L);
         adminUser.setRole(Role.ADMIN);
 
-        regularUser = new User();
+        User regularUser = new User();
         regularUser.setId(2L);
         regularUser.setRole(Role.USER);
 
