@@ -200,7 +200,7 @@
                 <div th:each="m : ${upcoming}"
                      class="movie-item">
 
-                    <a th:href="@{/movies/{id}(id=${m.id})}"
+                    <a th:href="@{/movie/tmdb/{tmdbId}(tmdbId=${m.id})}"
                        class="text-decoration-none">
                         <div class="card movie-card border-0">
                             <div class="movie-poster-wrapper">
