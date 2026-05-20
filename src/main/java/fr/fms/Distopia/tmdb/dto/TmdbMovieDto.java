@@ -32,4 +32,7 @@ public class TmdbMovieDto {
     private Integer runtime;
     private List<TmdbGenreDto> genres;
 
+    @JsonProperty("genre_ids")
+    private List<Integer> genreIds;
+
 }

@@ -41,7 +41,7 @@ public class TmbdController {
     }
 
     //--------------------importer film tmdb en bdd-------------------
-    @PostMapping("admin/import-movie")
+    @PostMapping("/admin/import-movie")
     public String importMovie(@RequestParam Long tmdbId,@RequestParam(required = false)String query, RedirectAttributes ra) {
         TmdbMovieDto detail = tmdbClient.getDetail(tmdbId);
         if (detail == null) {
@@ -63,7 +63,7 @@ public class TmbdController {
             try { releaseDate = LocalDate.parse(raw); } catch (Exception ignored) {}
         }
 
-        Movie saved = movieService.save(null, title, description, duration, genre, imageUrl, trailerUrl, null, releaseDate);
+        Movie saved = movieService.save(null,tmdbId, title, description, duration, genre, imageUrl, trailerUrl, null, releaseDate);
 
         SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.generateForMovie(saved);
 

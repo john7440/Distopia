@@ -79,6 +79,7 @@ public class SeanceGeneratorService {
 
         movieService.save(
                 null,
+                tmdbMovie.getId(),
                 title,
                 detail.getOverview()  != null ? detail.getOverview() : "",
                 detail.getRuntime()   != null ? detail.getRuntime()  : 90,
@@ -100,7 +101,7 @@ public class SeanceGeneratorService {
         movieService.getAllActive().stream()
                 .filter(m -> m.getCinemas() == null || m.getCinemas().isEmpty())
                 .forEach(m -> movieService.save(
-                        m.getId(), m.getTitle(), m.getDescription(),
+                        m.getId(), m.getTmdbId(), m.getTitle(), m.getDescription(),
                         m.getDuration(), m.getGenre(), m.getImageUrl(),
                         m.getTrailerUrl(), cinemaIds, m.getReleaseDate()
                 ));
@@ -164,7 +165,7 @@ public class SeanceGeneratorService {
         List<Long> cinemaIds = cinemas.stream().map(Cinema::getId).toList();
         if (movie.getCinemas() == null || movie.getCinemas().isEmpty()) {
             movieService.save(
-                    movie.getId(), movie.getTitle(), movie.getDescription(),
+                    movie.getId(), movie.getTmdbId(), movie.getTitle(), movie.getDescription(),
                     movie.getDuration(), movie.getGenre(), movie.getImageUrl(),
                     movie.getTrailerUrl(), cinemaIds, movie.getReleaseDate()
             );
