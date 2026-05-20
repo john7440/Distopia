@@ -18,7 +18,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TmdbMovieDto {
 
-    private long id;
+    private Long id;
     private String title;
     private String overview;
 
