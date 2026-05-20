@@ -28,6 +28,8 @@ public class Movie implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(unique = true)
+    private Long tmdbId;
     @Column(nullable = false)
     private String title;
     @Column(columnDefinition = "TEXT")
