@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -73,14 +74,12 @@ class CinemaControllerTest {
 
         Page<Cinema> cinemaPage = new PageImpl<>(List.of());
 
-        given(cinemaService.searchPublic(eq("pathe"), eq(1L), eq("64"), eq(0)))
-                .willReturn(cinemaPage);
+        when(cinemaService.searchPublic("pathe", 1L, "64", 0))
+                .thenReturn(cinemaPage);
 
-        given(cinemaService.getAllDepartments())
-                .willReturn(List.of());
+        when(cinemaService.getAllDepartments()).thenReturn(List.of());
 
-        given(townService.getAll())
-                .willReturn(List.of());
+        when(townService.getAll()).thenReturn(List.of());
 
         mockMvc.perform(get("/cinemas")
                         .with(user("user").roles("USER"))
@@ -102,8 +101,7 @@ class CinemaControllerTest {
         CinemaCsvImporter.ImportResult result =
                 new CinemaCsvImporter.ImportResult(10, 2);
 
-        given(cinemaCsvImporter.importFromCsv())
-                .willReturn(result);
+        when(cinemaCsvImporter.importFromCsv()).thenReturn(result);
 
         mockMvc.perform(get("/admin/import-cinemas")
                         .with(user("admin").roles("ADMIN")))
@@ -116,8 +114,7 @@ class CinemaControllerTest {
     @DisplayName("/admin/import-cinemas - Should handle import exception")
     void adminImportCinemas_ShouldHandleImportException() throws Exception {
 
-        given(cinemaCsvImporter.importFromCsv())
-                .willThrow(new RuntimeException("CSV error"));
+        when(cinemaCsvImporter.importFromCsv()).thenThrow(new RuntimeException("CSV error"));
 
         mockMvc.perform(get("/admin/import-cinemas")
                         .with(user("admin").roles("ADMIN")))
@@ -130,14 +127,10 @@ class CinemaControllerTest {
     @Test
     @DisplayName("/admin/cinemas - Should display admin cinemas page")
     void adminCinemas_shouldDisplayAdminCinemasPage() throws Exception {
-
         Page<Cinema> cinemaPage = new PageImpl<>(List.of());
-
-        given(cinemaService.searchAdmin(any(), any(), any(), anyInt()))
-                .willReturn(cinemaPage);
-
-        given(townService.getAll())
-                .willReturn(List.of());
+        when(cinemaService.searchAdmin(any(), any(), any(), anyInt()))
+                .thenReturn(cinemaPage);
+        when(townService.getAll()).thenReturn(List.of());
 
         mockMvc.perform(get("/admin/cinemas")
                         .with(user("admin").roles("ADMIN")))
@@ -157,15 +150,10 @@ class CinemaControllerTest {
         cinema.setName("Pathé");
 
         Page<Cinema> cinemaPage = new PageImpl<>(List.of());
-
-        given(cinemaService.searchAdmin(any(), any(), any(), anyInt()))
-                .willReturn(cinemaPage);
-
-        given(cinemaService.findById(1L))
-                .willReturn(Optional.of(cinema));
-
-        given(townService.getAll())
-                .willReturn(List.of());
+        when(cinemaService.searchAdmin(any(), any(), any(), anyInt()))
+                .thenReturn(cinemaPage);
+        when(cinemaService.findById(1L)).thenReturn(Optional.of(cinema));
+        when(townService.getAll()).thenReturn(List.of());
 
         mockMvc.perform(get("/admin/cinemas")
                         .with(user("admin").roles("ADMIN"))
