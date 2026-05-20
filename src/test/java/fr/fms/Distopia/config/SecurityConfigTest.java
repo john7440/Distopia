@@ -3,11 +3,13 @@ package fr.fms.Distopia.config;
 
 import fr.fms.Distopia.service.*;
 import fr.fms.Distopia.web.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -17,6 +19,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -44,6 +49,17 @@ class SecurityConfigTest {
     private ReservationController reservationController;
     @MockitoBean
     private DistopiaUserDetailsService userDetailsService;
+    @MockitoBean
+    private CinemaCsvImporter cinemaCsvImporter;
+
+    @BeforeEach
+    void setup() {
+        when(cinemaService.searchPublic(any(), any(), any(),anyInt()))
+                .thenReturn(Page.empty());
+
+        when(cinemaService.searchAdmin(any(), any(), any(),anyInt()))
+                .thenReturn(Page.empty());
+    }
 
     //*------------------tests public -----------------------------
     @Test
