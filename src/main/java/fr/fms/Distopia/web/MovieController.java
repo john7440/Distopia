@@ -5,12 +5,15 @@ import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
+import fr.fms.Distopia.tmdb.TmdbClient;
+import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -30,6 +33,8 @@ public class MovieController {
     private CinemaService cinemaService;
     @Autowired
     private SeanceService seanceService;
+    @Autowired
+    private TmdbClient  tmdbClient;
 
     private static final String MOVIES = "movies";
 
@@ -157,5 +162,27 @@ public class MovieController {
         model.addAttribute("currentPage", page);
 
         return "movie-detail";
+    }
+
+    @GetMapping("/movie/tmdb/{tmdbId}")
+    public String movieDetailTmdb(@PathVariable Long tmdbId, Model model) {
+
+        // 1. Chercher d'abord en BDD via le titre TMDB
+        TmdbMovieDto tmdbData = tmdbClient.getDetail(tmdbId);
+        if (tmdbData == null) return "redirect:/";
+
+        Optional<Movie> existing = movieService.findByTitleIgnoreCase(tmdbData.getTitle());
+
+        if (existing.isPresent()) {
+            // Film déjà en BDD = rediriger vers la page normale avec séances
+            return "redirect:/movie?id=" + existing.get().getId();
+        }
+
+        // 2. Film pas encore en BDD = afficher les infos TMDB sans séances
+        model.addAttribute("tmdbMovie", tmdbData);
+        model.addAttribute("imgBase", TmdbClient.IMG_BASE);
+        model.addAttribute("trailerUrl", tmdbClient.getTrailerUrl(tmdbId));
+        model.addAttribute("seances", List.of());
+        return "movie-detail-tmdb";
     }
 }
