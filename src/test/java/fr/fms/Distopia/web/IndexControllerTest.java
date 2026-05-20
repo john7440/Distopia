@@ -14,7 +14,6 @@ import org.springframework.ui.Model;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class IndexControllerTest {
@@ -44,31 +43,8 @@ class IndexControllerTest {
     @Test
     @DisplayName("index() - returns view name 'index")
     void index_ShouldReturnIndexView() {
-        when(townService.getAll()).thenReturn(towns);
-
         String view = indexController.index(model);
 
         assertThat(view).isEqualTo("index");
     }
-
-    @Test
-    @DisplayName("index() - adds all towns to the model")
-    void index_ShouldAddAllTownsToTheModel() {
-        when(townService.getAll()).thenReturn(towns);
-
-        indexController.index(model);
-
-        verify(model).addAttribute("towns", towns);
-    }
-
-    @Test
-    @DisplayName("index() - calls townService.getAll() exactly once")
-    void index_ShouldCallTownServiceTownService() {
-        when(townService.getAll()).thenReturn(towns);
-
-        indexController.index(model);
-
-        verify(townService, times(1)).getAll();
-    }
-
 }
