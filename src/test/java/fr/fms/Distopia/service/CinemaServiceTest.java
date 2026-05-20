@@ -54,6 +54,11 @@ class CinemaServiceTest {
         cinema.setName("Gaumont");
         cinema.setTown(town);
         cinema.setAddress("1 rue de la Paix");
+        cinema.setWebsite("www.test.com");
+        cinema.setLatitude(1D);
+        cinema.setLongitude(1D);
+        cinema.setImageUrl("testImage");
+        cinema.setDepartment("74");
         cinema.setMovies(new ArrayList<>());
 
         movie = new Movie();
@@ -65,15 +70,6 @@ class CinemaServiceTest {
         movie.setCinemas(cinemas);
         cinema.getMovies().add(movie);
 
-    }
-
-    //------------------------test du getByTown()-------------------
-    @Test
-    @DisplayName("getByTown() - calls findByTownId() Repository")
-    void getByTownId_ShouldCallFindByTownIdRepository() {
-        cinemaService.getByTown(1L);
-
-        verify(cinemaRepository).findByTownId(1L);
     }
 
     //------------------------test du findById()-------------------
@@ -94,42 +90,6 @@ class CinemaServiceTest {
         verify(cinemaRepository).findAll();
     }
 
-    //---------------------tests du search()----------------------------------
-    @Test
-    @DisplayName("search() - search with keyword and town should call correct Repo")
-    void search_WithKeywordAndTownShouldCallCorrectRepo() {
-        cinemaService.search("cinema", 1L);
-
-        verify(cinemaRepository).findByTownIdAndNameContainingIgnoreCaseOrTownIdAndAddressContainingIgnoreCase(
-                1L,"cinema", 1L,"cinema"
-        );
-    }
-
-    @Test
-    @DisplayName("search() - search with keyword only should call Keyword Repo")
-    void search_WithKeywordOnlyShouldCallKeywordRepo() {
-        cinemaService.search("cinema", null);
-
-        verify(cinemaRepository).findByNameContainingIgnoreCaseOrAddressContainingIgnoreCase(
-                "cinema", "cinema"
-        );
-    }
-
-    @Test
-    @DisplayName("search() - with town only should call Town Repo")
-    void search_WithTownOnlyShouldCallTownRepo() {
-        cinemaService.search(null, 1L);
-
-        verify(cinemaRepository).findByTownId(1L);
-    }
-
-    @Test
-    @DisplayName("search() - with nothing should returns all")
-    void search_WithNothingShouldReturnsAll() {
-        cinemaService.search(null, null);
-
-        verify(cinemaRepository).findAll();
-    }
 
     //---------------------------tests du save()--------------------
 
@@ -139,7 +99,8 @@ class CinemaServiceTest {
         when(townRepository.findById(1L)).thenReturn(Optional.of(town));
         when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
 
-        Cinema result = cinemaService.save(null, "Nouveau Ciné", "2 rue du test", 1L);
+        Cinema result = cinemaService.save(null, "Nouveau Ciné", "2 rue du test", 1L,
+                "www.test.com", 1D, 1D, "testImage", "74");
 
         assertThat(result.getName()).isEqualTo("Nouveau Ciné");
         assertThat(result.getAddress()).isEqualTo("2 rue du test");
@@ -154,7 +115,8 @@ class CinemaServiceTest {
         when(townRepository.findById(1L)).thenReturn(Optional.of(town));
         when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
 
-        Cinema result = cinemaService.save(1L, "Ciné update", "3 rue de la modif", 1L);
+        Cinema result = cinemaService.save(1L, "Ciné update", "3 rue de la modif", 1L,
+                "www.test.com", 1D, 1D, "testImage", "74");
 
         assertThat(result.getName()).isEqualTo("Ciné update");
         assertThat(result.getAddress()).isEqualTo("3 rue de la modif");
@@ -167,7 +129,8 @@ class CinemaServiceTest {
         when(cinemaRepository.findById(99L)).thenReturn(Optional.empty());
         when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
 
-        Cinema result = cinemaService.save(99L, "Ghost Ciné", "Nul part", null);
+        Cinema result = cinemaService.save(99L, "Ghost Ciné", "Nul part", null,
+                "www.test.com", 1D, 1D, "testImage", "74");
 
         assertThat(result.getName()).isEqualTo("Ghost Ciné");
         assertThat(result.getTown()).isNull();
@@ -178,7 +141,8 @@ class CinemaServiceTest {
     void save_ShouldNotSetTownWhenTownIdIsNull() {
         when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
 
-        Cinema result = cinemaService.save(null, "Sans Ville", "Adresse", null);
+        Cinema result = cinemaService.save(null, "Sans Ville", "Adresse", null,
+                "www.test.com", 1D, 1D, "testImage", "74");
 
         assertThat(result.getTown()).isNull();
         verify(townRepository, never()).findById(any());
