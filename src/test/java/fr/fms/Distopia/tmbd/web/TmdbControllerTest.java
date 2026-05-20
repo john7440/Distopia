@@ -2,6 +2,7 @@ package fr.fms.Distopia.tmbd.web;
 
 import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.service.MovieService;
+import fr.fms.Distopia.service.SeanceGeneratorService;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbGenreDto;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
@@ -35,6 +36,8 @@ class TmdbControllerTest {
     private Model model;
     @Mock
     private RedirectAttributes redirectAttributes;
+    @Mock
+    private SeanceGeneratorService seanceGeneratorService;
     @InjectMocks
     private TmbdController tmbdController;
 
@@ -100,6 +103,8 @@ class TmdbControllerTest {
         when(tmdbClient.getDetail(1L)).thenReturn(validDetail);
         when(tmdbClient.getTrailerUrl(1L)).thenReturn("https://www.youtube.com/embed/test");
         when(movieService.save(any(),any(),any(),anyInt(),any(),any(),any(),any(), any())).thenReturn(new Movie());
+        when(seanceGeneratorService.generateForMovie(any()))
+                .thenReturn(new SeanceGeneratorService.GeneratorResult(1, 3, List.of()));
 
         String view = tmbdController.importMovie(1L, null, redirectAttributes);
 
@@ -135,6 +140,8 @@ class TmdbControllerTest {
         when(tmdbClient.getTrailerUrl(1L)).thenReturn(null);
         when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any(), any()))
                 .thenReturn(new Movie());
+        when(seanceGeneratorService.generateForMovie(any()))
+                .thenReturn(new SeanceGeneratorService.GeneratorResult(1, 3, List.of()));
 
         tmbdController.importMovie(1L,null,redirectAttributes);
 
@@ -148,6 +155,8 @@ class TmdbControllerTest {
         when(tmdbClient.getDetail(1L)).thenReturn(validDetail);
         when(tmdbClient.getTrailerUrl(1L)).thenReturn(null);
         when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any(), any())).thenReturn(new Movie());
+        when(seanceGeneratorService.generateForMovie(any()))
+                .thenReturn(new SeanceGeneratorService.GeneratorResult(1, 3, List.of()));
 
         tmbdController.importMovie(1L,null,redirectAttributes);
 
@@ -161,6 +170,8 @@ class TmdbControllerTest {
         when(tmdbClient.getDetail(1L)).thenReturn(validDetail);
         when(tmdbClient.getTrailerUrl(1L)).thenReturn(null);
         when(movieService.save(any(), any(), any(), anyInt(), any(), any(), any(), any(), any())).thenReturn(new Movie());
+        when(seanceGeneratorService.generateForMovie(any()))
+                .thenReturn(new SeanceGeneratorService.GeneratorResult(1, 3, List.of()));
 
         String view = tmbdController.importMovie(1L,"Inception",redirectAttributes);
 
