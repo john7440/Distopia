@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -57,6 +58,30 @@ public class TmdbClient {
         String url = BASE_URL + "/movie/now_playing?api_key=" + apiKey +  "&language=fr-FR&region=FR&page=1";
         TmdbSearchResponse response = restTemplate.getForObject(url, TmdbSearchResponse.class);
         return response !=null ? response.getResults() : List.of();
+    }
+
+    // --------- Films sortis cette semaine ----------------------------
+    public List<TmdbMovieDto> getThisWeek() {
+        LocalDate today = LocalDate.now();
+        LocalDate weekAgo = today.minusDays(7);
+        return getNowPlaying().stream()
+                .filter(m -> {
+                    if (m.getReleaseDate() == null || m.getReleaseDate().isBlank()) return false;
+                    try {
+                        LocalDate d = LocalDate.parse(m.getReleaseDate());
+                        return !d.isBefore(weekAgo) && !d.isAfter(today);
+                    } catch (Exception e) { return false; }
+                })
+                .limit(10)
+                .toList();
+    }
+
+    //------------- les prochaines sorties---------------------------------
+    public List<TmdbMovieDto> getUpcoming() {
+        String url = BASE_URL + "movie/upcoming?api_key=" + apiKey
+                + "&language=fr-FR&region=FR&page=1";
+        TmdbSearchResponse response = restTemplate.getForObject(url, TmdbSearchResponse.class);
+        return response != null ? response.getResults() : List.of();
     }
 
 
