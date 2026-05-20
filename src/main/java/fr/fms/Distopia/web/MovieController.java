@@ -125,8 +125,9 @@ public class MovieController {
                             @RequestParam String description, @RequestParam int duration, @RequestParam String genre,
                             @RequestParam(required = false) List<Long> cinemaIds,
                             @RequestParam(required = false) String imageUrl,@RequestParam(required = false) String trailerUrl,
-                            @RequestParam(required = false)LocalDate releaseDate){
-        movieService.save(id, title, description, duration, genre, imageUrl,trailerUrl,cinemaIds, releaseDate);
+                            @RequestParam(required = false)LocalDate releaseDate,
+                            @RequestParam(required = false) Long tmdbId){
+        movieService.save(id, tmdbId, title, description, duration, genre, imageUrl,trailerUrl,cinemaIds, releaseDate);
         return "redirect:/admin/movies";
     }
 
@@ -166,23 +167,23 @@ public class MovieController {
 
     @GetMapping("/movie/tmdb/{tmdbId}")
     public String movieDetailTmdb(@PathVariable Long tmdbId, Model model) {
-
-        // 1. Chercher d'abord en BDD via le titre TMDB
-        TmdbMovieDto tmdbData = tmdbClient.getDetail(tmdbId);
-        if (tmdbData == null) return "redirect:/";
-
-        Optional<Movie> existing = movieService.findByTitleIgnoreCase(tmdbData.getTitle());
-
+        Optional<Movie> existing =
+                movieService.findByTmdbId(tmdbId);
         if (existing.isPresent()) {
-            // Film déjà en BDD = rediriger vers la page normale avec séances
-            return "redirect:/movie?id=" + existing.get().getId();
+            return "redirect:/movie?id="
+                    + existing.get().getId();
+        }
+        TmdbMovieDto tmdbMovie =
+                tmdbClient.getDetail(tmdbId);
+        if (tmdbMovie == null) {
+            return "redirect:/";
         }
 
-        // 2. Film pas encore en BDD = afficher les infos TMDB sans séances
-        model.addAttribute("tmdbMovie", tmdbData);
+        // fallback tmdb
+        model.addAttribute("tmdbMovie", tmdbMovie);
         model.addAttribute("imgBase", TmdbClient.IMG_BASE);
         model.addAttribute("trailerUrl", tmdbClient.getTrailerUrl(tmdbId));
-        model.addAttribute("seances", List.of());
+
         return "movie-detail-tmdb";
     }
 }
