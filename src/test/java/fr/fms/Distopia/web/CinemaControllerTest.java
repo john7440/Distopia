@@ -1,175 +1,217 @@
 package fr.fms.Distopia.web;
 
 import fr.fms.Distopia.entities.Cinema;
-import fr.fms.Distopia.entities.Role;
-import fr.fms.Distopia.entities.Town;
-import fr.fms.Distopia.entities.User;
+import fr.fms.Distopia.service.CinemaCsvImporter;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.TownService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.ui.Model;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(CinemaController.class)
 class CinemaControllerTest {
-    @Mock
+
+    @Autowired
+    private MockMvc mockMvc;
+    @MockitoBean
     private CinemaService cinemaService;
-    @Mock
+    @MockitoBean
     private TownService townService;
-    @Mock
-    private Model model;
-    @InjectMocks
-    private CinemaController cinemaController;
+    @MockitoBean
+    private CinemaCsvImporter cinemaCsvImporter;
 
-    private User adminUser;
-    private User regularUser;
-    private Cinema cinema;
-    private Town town;
 
-    @BeforeEach
-    void setUp() {
-        adminUser = new User();
-        adminUser.setId(1L);
-        adminUser.setUsername("admin");
-        adminUser.setRole(Role.ADMIN);
+    //------------------------tests for cinemas--------------------
+    @Test
+    @DisplayName("/cinemas - Should display cinemas page")
+    void cinemas_shouldDisplayCinemasPage() throws Exception {
 
-        regularUser = new User();
-        regularUser.setId(2L);
-        regularUser.setUsername("user");
-        regularUser.setRole(Role.USER);
+        Cinema cinema = new Cinema();
+        cinema.setName("Mega CGR");
 
-        town = new Town();
-        town.setId(1L);
-        town.setName("Paris");
+        Page<Cinema> cinemaPage = new PageImpl<>(List.of(cinema));
 
-        cinema = new Cinema();
+        given(cinemaService.searchPublic(any(), any(), any(), anyInt()))
+                .willReturn(cinemaPage);
+
+        given(cinemaService.getAllDepartments())
+                .willReturn(List.of("64", "75"));
+
+        given(townService.getAll())
+                .willReturn(List.of());
+
+        mockMvc.perform(get("/cinemas")
+                        .with(user("user").roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("cinemas"))
+                .andExpect(model().attributeExists("cinemas"))
+                .andExpect(model().attributeExists("cinemaPage"))
+                .andExpect(model().attributeExists("towns"))
+                .andExpect(model().attributeExists("departments"));
+    }
+
+    @Test
+    @DisplayName("/cinemas - Should filter cinemas")
+    void cinemas_shouldFilterCinemas() throws Exception {
+
+        Page<Cinema> cinemaPage = new PageImpl<>(List.of());
+
+        given(cinemaService.searchPublic(eq("pathe"), eq(1L), eq("64"), eq(0)))
+                .willReturn(cinemaPage);
+
+        given(cinemaService.getAllDepartments())
+                .willReturn(List.of());
+
+        given(townService.getAll())
+                .willReturn(List.of());
+
+        mockMvc.perform(get("/cinemas")
+                        .with(user("user").roles("USER"))
+                        .param("keyword", "pathe")
+                        .param("townId", "1")
+                        .param("department", "64"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("cinemas"))
+                .andExpect(model().attribute("selectedTownId", 1L))
+                .andExpect(model().attribute("selectedDepartment", "64"))
+                .andExpect(model().attribute("keyword", "pathe"));
+    }
+
+    //------------------------test for import-cinemas------------------
+    @Test
+    @DisplayName("/admin/import-cinemas - Should import cinemas successfully")
+    void adminImportCinemas_shouldImportCinemasSuccessfully() throws Exception {
+
+        CinemaCsvImporter.ImportResult result =
+                new CinemaCsvImporter.ImportResult(10, 2);
+
+        given(cinemaCsvImporter.importFromCsv())
+                .willReturn(result);
+
+        mockMvc.perform(get("/admin/import-cinemas")
+                        .with(user("admin").roles("ADMIN")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"))
+                .andExpect(flash().attributeExists("message"));
+    }
+
+    @Test
+    @DisplayName("/admin/import-cinemas - Should handle import exception")
+    void adminImportCinemas_ShouldHandleImportException() throws Exception {
+
+        given(cinemaCsvImporter.importFromCsv())
+                .willThrow(new RuntimeException("CSV error"));
+
+        mockMvc.perform(get("/admin/import-cinemas")
+                        .with(user("admin").roles("ADMIN")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"))
+                .andExpect(flash().attributeExists("error"));
+    }
+
+    //------------------tests for admin-cinema-------------------------
+    @Test
+    @DisplayName("/admin/cinemas - Should display admin cinemas page")
+    void adminCinemas_shouldDisplayAdminCinemasPage() throws Exception {
+
+        Page<Cinema> cinemaPage = new PageImpl<>(List.of());
+
+        given(cinemaService.searchAdmin(any(), any(), any(), anyInt()))
+                .willReturn(cinemaPage);
+
+        given(townService.getAll())
+                .willReturn(List.of());
+
+        mockMvc.perform(get("/admin/cinemas")
+                        .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin-cinemas"))
+                .andExpect(model().attributeExists("cinemaPage"))
+                .andExpect(model().attributeExists("cinemas"))
+                .andExpect(model().attributeExists("cinemaToEdit"));
+    }
+
+    @Test
+    @DisplayName("/admin/cinemas - Should load cinema to edit")
+    void adminCinemas_ShouldLoadCinemaToEdit() throws Exception {
+
+        Cinema cinema = new Cinema();
         cinema.setId(1L);
-        cinema.setName("Cinema Test");
-        cinema.setAddress("57 rue du Test");
-        cinema.setTown(town);
+        cinema.setName("Pathé");
+
+        Page<Cinema> cinemaPage = new PageImpl<>(List.of());
+
+        given(cinemaService.searchAdmin(any(), any(), any(), anyInt()))
+                .willReturn(cinemaPage);
+
+        given(cinemaService.findById(1L))
+                .willReturn(Optional.of(cinema));
+
+        given(townService.getAll())
+                .willReturn(List.of());
+
+        mockMvc.perform(get("/admin/cinemas")
+                        .with(user("admin").roles("ADMIN"))
+                        .param("editId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin-cinemas"))
+                .andExpect(model().attributeExists("cinemaToEdit"));
     }
 
-    @AfterEach
-    void clearContext() {
-        // Nettoie le SecurityContext après chaque test pour éviter les effets de bord
-        SecurityContextHolder.clearContext();
-    }
 
-    private void authenticate(User user) {
-        var auth = new UsernamePasswordAuthenticationToken(
-                user,
-                null,
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+    //----------------------------test for admin-saveCinema-----------------------------
+    @Test
+    @DisplayName("/admin/saveCinema - Should save cinema")
+    void adminSaveCinemas_shouldSaveCinema() throws Exception {
+
+        mockMvc.perform(post("/admin/saveCinema")
+                        .with(csrf())
+                        .with(user("admin").roles("ADMIN"))
+                        .param("name", "UGC")
+                        .param("address", "26 rue du test")
+                        .param("townId", "1")
+                        .param("website", "https://ugc.fr")
+                        .param("latitude", "43.48")
+                        .param("longitude", "-1.57")
+                        .param("imageUrl", "image.jpg")
+                        .param("department", "64"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"));
+
+        verify(cinemaService).save(isNull(), eq("UGC"), eq("26 rue du test"),
+                eq(1L), eq("https://ugc.fr"), eq(43.48), eq(-1.57),
+                eq("image.jpg"), eq("64")
         );
-        SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
-    //---------------------tests for cinemasByTown()--------------------------
-
+    //----------test for delete()----------------------------------
     @Test
-    @DisplayName("cinemasByTown() - return 'cinemas' view")
-    void cinemasByTown_ShouldReturnCinemasView() {
-        when(townService.getAll()).thenReturn(List.of(town));
-        when(cinemaService.search(null,null)).thenReturn(List.of(cinema));
+    @DisplayName("/admin/deleteCinema - Should delete cinema")
+    void adminDeleteCinema_shouldDeleteCinema() throws Exception {
 
-        String view = cinemaController.cinemasByTown(null,null,model);
+        mockMvc.perform(get("/admin/deleteCinema")
+                        .with(user("admin").roles("ADMIN"))
+                        .param("id", "1"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"));
 
-        assertThat(view).isEqualTo("cinemas");
-    }
-
-    @Test
-    @DisplayName("cinemasByTown() - adds filtered cinemas and towns to model")
-    void cinemasByTown_ShouldAddCinemasAndTownToModel(){
-        when(townService.getAll()).thenReturn(List.of(town));
-        when(cinemaService.search("Test",1L)).thenReturn(List.of(cinema));
-
-        cinemaController.cinemasByTown(1L,"Test", model);
-
-        verify(model).addAttribute("towns", List.of(town));
-        verify(model).addAttribute("cinemas", List.of(cinema));
-        verify(model).addAttribute("selectedTownId", 1L);
-        verify(model).addAttribute("keyword", "Test");
-    }
-
-    @Test
-    @DisplayName("cinemasByTown() - uses empty string for keyword when null")
-    void cinemasByTown_ShouldUsesEmptyStringForKeywordWhenNull(){
-        when(townService.getAll()).thenReturn(List.of());
-        when(cinemaService.search(null,null)).thenReturn(List.of());
-
-        cinemaController.cinemasByTown(null,null,model);
-
-        verify(model).addAttribute("keyword", "");
-    }
-
-    //--------------------tests for adminCinemas()------------------
-    @Test
-    @DisplayName("adminCinemas() - return 'admin-cinemas' view for admin user")
-    void adminCinemas_ShouldReturnAdminCinemasView() {
-        authenticate(adminUser);
-        when(cinemaService.getAll()).thenReturn(List.of(cinema));
-        when(townService.getAll()).thenReturn(List.of(town));
-
-        String view = cinemaController.adminCinemas(null,model);
-
-        assertThat(view).isEqualTo("admin-cinemas");
-    }
-
-
-    @Test
-    @DisplayName("adminCinemas() - adds editCinema to model when editId is provided")
-    void adminCinemas_shouldAddEditCinemaToModel_whenEditIdProvided() {
-        authenticate(adminUser);
-        when(cinemaService.getAll()).thenReturn(List.of(cinema));
-        when(townService.getAll()).thenReturn(List.of(town));
-        when(cinemaService.findById(1L)).thenReturn(Optional.of(cinema));
-
-        cinemaController.adminCinemas(1L, model);
-
-        verify(cinemaService).findById(1L);
-        verify(model).addAttribute("editCinema", cinema);
-    }
-
-
-    //--------------------tests for saveCinema()--------------------------------
-    @Test
-    @DisplayName("saveCinema() - saves cinemas and redirects to admin page for admin user")
-    void saveCinema_ShouldSaveAndRedirectToAdminUserPage() {
-        authenticate(adminUser);
-
-        String view = cinemaController.saveCinema(null, "Test", "Adresse", 1L);
-
-        assertThat(view).isEqualTo("redirect:/admin/cinemas");
-        verify(cinemaService).save(null,"Test","Adresse",1L);
-    }
-
-
-    //----------------tests for deleteCinema()------------------------------------
-
-    @Test
-    @DisplayName("deleteCinema() - deletes cinemas and redirects for admin user")
-    void deleteCinema_ShouldDeleteCinemasAndRedirectsForAdminUser() {
-        authenticate(adminUser);
-
-        String view = cinemaController.deleteCinema(1L);
-
-        assertThat(view).isEqualTo("redirect:/admin/cinemas");
         verify(cinemaService).delete(1L);
     }
-
 }
