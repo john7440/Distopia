@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -61,6 +62,27 @@ class CinemaCsvImporterTest {
         assertThat(result.skipped()).isZero();
 
         verify(cinemaRepository).save(any(Cinema.class));
+    }
+
+    @Test
+    @DisplayName("importFromCsv() - creates town when town does not exist")
+    void importFromCsv_ShouldCreateTownWhenTownDoesNotExist() throws ImportFailException {
+        String csv = """
+                name,address,website,latitude,longitude
+                Cinema Dax,"10 avenue test, 40100 Dax",https://cinema.fr,43.7,-1.0
+                """;
+
+        setCsvFile(csv);
+        when(cinemaRepository.existsByNameAndTown_Name("Cinema Dax", "Dax")).thenReturn(false);
+        when(townRepository.findByName("Dax")).thenReturn(Optional.empty());
+        when(townRepository.save(any(Town.class))).thenAnswer(i-> i.getArgument(0));
+
+        cinemaCsvImporter.importFromCsv();
+
+        ArgumentCaptor<Town> townCaptor = ArgumentCaptor.forClass(Town.class);
+
+        verify(townRepository).save(townCaptor.capture());
+        assertThat(townCaptor.getValue().getName()).isEqualTo("Dax");
     }
 
     //-------------------------helper------------------------
