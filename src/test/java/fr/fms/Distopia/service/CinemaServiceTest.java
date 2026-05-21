@@ -292,4 +292,16 @@ class CinemaServiceTest {
         verify(cinemaRepository).findByTownId(eq(1L), any(Pageable.class));
     }
 
+    @Test
+    @DisplayName("searchPublic() - uses department filter only")
+    void searchPublic_ShouldUseDepartmentFilterOnly() {
+        Page<Cinema> page = new PageImpl<>(List.of(cinema));
+        when(cinemaRepository.findByDepartment(eq("40"), any(Pageable.class)))
+                .thenReturn(page);
+
+        cinemaService.searchPublic(null, null,"40",0);
+
+        verify(cinemaRepository).findByDepartment(eq("40"), any(Pageable.class));
+    }
+
 }
