@@ -188,4 +188,24 @@ class CinemaServiceTest {
         verify(movieRepository, never()).save(any());
     }
 
+    //---------------------tests for getAllDepartments() --------------------------
+    @Test
+    @DisplayName("getAllDepartments() - returns all distinct departments")
+    void getAllDepartments_ShouldReturnDistinctDepartments() {
+        when(cinemaRepository.findDistinctDepartments()).thenReturn(List.of("40","74","57"));
+
+        List<String> result = cinemaService.getAllDepartments();
+
+        assertThat(result).containsExactlyInAnyOrder("40","74","57");
+    }
+
+    @Test
+    @DisplayName("getAllDepartments() - returns empty list when no departments exist")
+    void getAllDepartments_ShouldReturnEmptyListWhenNoDepartmentsExist() {
+        when(cinemaRepository.findDistinctDepartments()).thenReturn(List.of());
+
+        List<String> result = cinemaService.getAllDepartments();
+
+        assertThat(result).isEmpty();
+    }
 }
