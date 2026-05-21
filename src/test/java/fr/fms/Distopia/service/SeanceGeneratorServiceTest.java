@@ -193,4 +193,36 @@ class SeanceGeneratorServiceTest {
         assertThat(count).isEqualTo(20);
         verify(seanceService, times(20)).save(any(), any(), anyInt(), anyDouble(), anyLong(), anyLong());
     }
+
+    @Test
+    @DisplayName("generateSeancesForMovieAndCinema() - returns 0 when all seances already exist")
+    void generateSeancesForMovieAndCinema_ShouldReturnZeroWhenAllSeancesAlreadyExist() {
+        List<Seance> allExisting = buildAllSeancesForWeek();
+        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(allExisting);
+
+        int count = seanceGeneratorService.generateSeancesForMovieAndCinema(movie, cinema,START_DATE);
+
+        assertThat(count).isZero();
+        verify(seanceService, never()).save(any(), any(), anyInt(), anyDouble(), anyLong(), anyLong());
+    }
+
+    //-------------------helper---------------------
+    /**
+     * Helper to generate all seances for a week for tests
+     *
+     * @return a List of Seances
+     */
+    private List<Seance> buildAllSeancesForWeek() {
+        int[] hours = {14, 17, 20};
+        int[] mins  = {0,  30, 45};
+        List<Seance> seances = new java.util.ArrayList<>();
+        for (int day = 0; day < 7; day++) {
+            for (int slot = 0; slot < hours.length; slot++) {
+                Seance s = new Seance();
+                s.setDateTime(START_DATE.plusDays(day).withHour(hours[slot]).withMinute(mins[slot]));
+                seances.add(s);
+            }
+        }
+        return seances;
+    }
 }
