@@ -169,6 +169,27 @@ class CinemaCsvImporterTest {
         assertThat(cinemaCaptor.getValue().getLongitude()).isNull();
     }
 
+    @Test
+    @DisplayName("importFromCsv() - uses Inconnue when address is blank")
+    void importFromCsv_ShouldUseUnknownTownWhenAddressIsBlank() throws ImportFailException {
+        String csv = """
+                name,address,website,latitude,longitude
+                Cinema Test,,https://cinema.fr,43.7,-1.0
+                """;
+        setCsvFile(csv);
+
+        when(cinemaRepository.existsByNameAndTown_Name("Cinema Test", "Inconnue")).thenReturn(false);
+        when(townRepository.findByName("Inconnue")).thenReturn(Optional.empty());
+        when(townRepository.save(any(Town.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        cinemaCsvImporter.importFromCsv();
+
+        ArgumentCaptor<Town> townCaptor = ArgumentCaptor.forClass(Town.class);
+
+        verify(townRepository).save(townCaptor.capture());
+        assertThat(townCaptor.getValue().getName()).isEqualTo("Inconnue");
+    }
+
     //-------------------------helper------------------------
     private void setCsvFile(String csvContent) {
         ByteArrayResource resource = new ByteArrayResource(
