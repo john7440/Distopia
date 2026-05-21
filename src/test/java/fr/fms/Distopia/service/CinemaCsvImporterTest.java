@@ -120,6 +120,29 @@ class CinemaCsvImporterTest {
         verify(cinemaRepository, never()).save(any(Cinema.class));
     }
 
+    @Test
+    @DisplayName("importFromCsv() - cleans website url when value contains parentheses")
+    void importFromCsv_ShouldCleanWebsiteUrlWhenValueContainsParentheses() throws ImportFailException {
+        String csv = """
+                name,address,website,latitude,longitude
+                Cinema Test,"10 avenue test, 40100 Dax","Site officiel (https://cinema.fr)",43.7,-1.0
+                """;
+        setCsvFile(csv);
+
+        Town town = new Town();
+        town.setName("Dax");
+
+        when(cinemaRepository.existsByNameAndTown_Name("Cinema Test", "Dax")).thenReturn(false);
+        when(townRepository.findByName("Dax")).thenReturn(Optional.of(town));
+
+        cinemaCsvImporter.importFromCsv();
+
+        ArgumentCaptor<Cinema> cinemaCaptor = ArgumentCaptor.forClass(Cinema.class);
+
+        verify(cinemaRepository).save(cinemaCaptor.capture());
+        assertThat(cinemaCaptor.getValue().getWebsite()).isEqualTo("https://cinema.fr");
+    }
+
     //-------------------------helper------------------------
     private void setCsvFile(String csvContent) {
         ByteArrayResource resource = new ByteArrayResource(
