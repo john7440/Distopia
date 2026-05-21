@@ -12,8 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -188,6 +190,20 @@ class CinemaCsvImporterTest {
 
         verify(townRepository).save(townCaptor.capture());
         assertThat(townCaptor.getValue().getName()).isEqualTo("Inconnue");
+    }
+
+    @Test
+    @DisplayName("importFromCsv() - throws ImportFailException when csv file cannot be read")
+    void importFromCsv_ShouldThrowImportFailExceptionWhenCsvFileCannotBeRead() throws IOException {
+        Resource resource = mock(Resource.class);
+
+        when(resource.getInputStream()).thenThrow(new IOException("file error"));
+
+        ReflectionTestUtils.setField(cinemaCsvImporter, "csvFile", resource);
+
+        assertThatThrownBy(() -> cinemaCsvImporter.importFromCsv())
+                .isInstanceOf(ImportFailException.class)
+                .hasMessageContaining("Erreur d'import csv");
     }
 
     //-------------------------helper------------------------
