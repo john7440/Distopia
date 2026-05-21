@@ -134,4 +134,34 @@ class SeanceGeneratorServiceTest {
         assertThat(result.moviesImported()).isZero();
         verify(movieService, never()).save(isNull(), any(),anyString(), any(), anyInt(), any(), any(), any(), any(), any());
     }
+
+    @Test
+    @DisplayName("importAndGenerate() - adds error to list when detail fetch fails for a movie")
+    void importAndGenerate_ShouldAddErrorToListWhenDetailFetchFails() {
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(tmdbClient.getNowPlaying()).thenReturn(List.of(tmdbMovieDto));
+        when(tmdbClient.getDetail(1L)).thenThrow(new RuntimeException("API timeout"));
+        when(movieService.getAllActive()).thenReturn(List.of());
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
+
+        assertThat(result.errors()).anyMatch(e -> e.contains("1"));
+    }
+
+    @Test
+    @DisplayName("importAndGenerate() - returns no errors on full successful run")
+    void importAndGenerate_ShouldReturnNoErrorsOnSuccess() {
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(tmdbClient.getNowPlaying()).thenReturn(List.of(tmdbMovieDto));
+        when(tmdbClient.getDetail(1L)).thenReturn(tmdbDetail);
+        when(movieService.getAllActive()).thenReturn(List.of(movie));
+        when(movieService.save(any(), any(),any(), any(), anyInt(), any(),any(), any(), any(), any()))
+                .thenReturn(movie);
+        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
+
+        assertThat(result.errors()).isEmpty();
+        assertThat(result.hasErrors()).isFalse();
+    }
 }
