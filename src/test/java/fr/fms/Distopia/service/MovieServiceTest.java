@@ -184,6 +184,19 @@ class MovieServiceTest {
         verify(cinemaRepository).findById(2L);
     }
 
+    @Test
+    @DisplayName("save() - adds movie to cinema movie collections")
+    void save_ShouldAddMovieToCinemaMovieCollections() {
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(movieRepository.save(any(Movie.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Movie result = movieService.save(null, 100L, "Interstellar", "desc", 150,
+                "Sci-Fi", "/img.jpg", "/trailer", List.of(1L), LocalDate.now());
+
+        assertThat(cinema.getMovies()).contains(result);
+        assertThat(result.getCinemas()).contains(cinema);
+    }
+
     //--------------------test de getByCinema()----------------------
     @Test
     @DisplayName("getByCinema() - returns only non-deleted movies for a cinema")
