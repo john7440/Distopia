@@ -143,6 +143,32 @@ class CinemaCsvImporterTest {
         assertThat(cinemaCaptor.getValue().getWebsite()).isEqualTo("https://cinema.fr");
     }
 
+    @Test
+    @DisplayName("importFromCsv() - sets latitude and longitude to null when values are invalid")
+    void importFromCsv_ShouldSetCoordinatesToNullWhenValuesAreInvalid() throws ImportFailException {
+        String csv = """
+                name,address,website,latitude,longitude
+                Cinema Test,"10 avenue test, 40100 Dax",https://cinema.fr,wrong,bad
+                """;
+
+        setCsvFile(csv);
+
+        Town town = new Town();
+        town.setName("Dax");
+
+        when(cinemaRepository.existsByNameAndTown_Name("Cinema Test", "Dax")).thenReturn(false);
+        when(townRepository.findByName("Dax")).thenReturn(Optional.of(town));
+
+        cinemaCsvImporter.importFromCsv();
+
+        ArgumentCaptor<Cinema> cinemaCaptor = ArgumentCaptor.forClass(Cinema.class);
+
+        verify(cinemaRepository).save(cinemaCaptor.capture());
+
+        assertThat(cinemaCaptor.getValue().getLatitude()).isNull();
+        assertThat(cinemaCaptor.getValue().getLongitude()).isNull();
+    }
+
     //-------------------------helper------------------------
     private void setCsvFile(String csvContent) {
         ByteArrayResource resource = new ByteArrayResource(
