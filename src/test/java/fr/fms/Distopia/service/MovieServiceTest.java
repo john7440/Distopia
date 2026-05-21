@@ -129,8 +129,7 @@ class MovieServiceTest {
         verify(seanceRepository,never()).saveAll(any());
     }
 
-    //-------------------test du save()-------------------------------------------
-
+    //-------------------tests for save()-------------------------------------------
     @Test
     @DisplayName("save() - creates a new movie when id is null")
     void save_shouldCreateNewMovie_whenIdIsNull() {
@@ -162,6 +161,27 @@ class MovieServiceTest {
         assertThat(result.getTitle()).isEqualTo("Inception V2");
         assertThat(result.getCinemas()).containsOnly(newCinema);
         assertThat(result.getCinemas()).doesNotContain(cinema);
+    }
+
+    @Test
+    @DisplayName("save() - links movie to cinemas when cinemaIds are provided")
+    void save_ShouldLinkMovieToCinemasWhenCinemaIdsProvided() {
+        Cinema cinema1 = new Cinema();
+        cinema1.setId(1L);
+
+        Cinema cinema2 = new Cinema();
+        cinema2.setId(2L);
+
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema1));
+        when(cinemaRepository.findById(2L)).thenReturn(Optional.of(cinema2));
+        when(movieRepository.save(any(Movie.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Movie result = movieService.save(null, 100L, "Interstellar", "desc", 169,
+                "Sci-Fi", "/img.jpg", "/trailer", List.of(1L, 2L), LocalDate.now());
+
+        assertThat(result.getCinemas()).containsExactly(cinema1, cinema2);
+        verify(cinemaRepository).findById(1L);
+        verify(cinemaRepository).findById(2L);
     }
 
     //--------------------test de getByCinema()----------------------
