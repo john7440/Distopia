@@ -309,4 +309,28 @@ class MovieServiceTest {
         assertThat(result).isNull();
         verify(movieRepository).findById(99L);
     }
+
+    //------------------tests for findByTmdbId() ---------------------------
+    @Test
+    @DisplayName("findByTmdbId() - returns movie when tmdb id exists")
+    void findByTmdbId_ShouldReturnMovieWhenTmdbIdExists() {
+        when(movieRepository.findByTmdbId(550L)).thenReturn(Optional.of(movie));
+
+        Optional<Movie> result = movieService.findByTmdbId(550L);
+
+        assertThat(result).contains(movie);
+        verify(movieRepository).findByTmdbId(550L);
+    }
+
+    @Test
+    @DisplayName("findByTmdbId() - returns empty optional when tmdb id does not exist")
+    void findByTmdbId_ShouldReturnEmptyOptionalWhenTmdbIdDoesNotExist() {
+        when(movieRepository.findByTmdbId(999L))
+                .thenReturn(Optional.empty());
+
+        Optional<Movie> result =movieService.findByTmdbId(999L);
+
+        assertThat(result).isEmpty();
+        verify(movieRepository).findByTmdbId(999L);
+    }
 }
