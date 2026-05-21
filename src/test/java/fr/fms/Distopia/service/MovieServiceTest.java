@@ -286,4 +286,27 @@ class MovieServiceTest {
         assertThat(result.getContent()).containsExactly(movie);
         verify(movieRepository).searchAdmin(eq("dune"), eq(true), any(Pageable.class));
     }
+
+    //------------------tests for getById() ---------------------------
+    @Test
+    @DisplayName("getById() - returns movie when movie exists")
+    void getById_ShouldReturnMovieWhenMovieExists() {
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+
+        Movie result = movieService.getById(1L);
+
+        assertThat(result).isEqualTo(movie);
+        verify(movieRepository).findById(1L);
+    }
+
+    @Test
+    @DisplayName("getById() - returns null when movie does not exist")
+    void getById_ShouldReturnNullWhenMovieDoesNotExist() {
+        when(movieRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Movie result = movieService.getById(99L);
+
+        assertThat(result).isNull();
+        verify(movieRepository).findById(99L);
+    }
 }
