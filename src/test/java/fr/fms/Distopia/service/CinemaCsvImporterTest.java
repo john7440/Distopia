@@ -85,6 +85,23 @@ class CinemaCsvImporterTest {
         assertThat(townCaptor.getValue().getName()).isEqualTo("Dax");
     }
 
+    @Test
+    @DisplayName("importFromCsv() - skips cinema when name is blank")
+    void importFromCsv_ShouldSkipCinemaWhenNameIsBlank() throws ImportFailException {
+        String csv = """
+                name,address,website,latitude,longitude
+                ,"10 avenue test, 40100 Dax",https://cinema.fr,43.7,-1.0
+                """;
+
+        setCsvFile(csv);
+
+        CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
+
+        assertThat(result.imported()).isZero();
+        assertThat(result.skipped()).isEqualTo(1);
+        verify(cinemaRepository, never()).save(any(Cinema.class));
+    }
+
     //-------------------------helper------------------------
     private void setCsvFile(String csvContent) {
         ByteArrayResource resource = new ByteArrayResource(
