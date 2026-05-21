@@ -177,10 +177,10 @@ class MovieControllerTest {
         LocalDate releaseDate = LocalDate.of(2025, 7, 14);
 
         String view = movieController.saveMovie(null,"Inception","Description",
-                178, "Sci-Fi",List.of(1L), "image.url", "trailer.url", releaseDate);
+                178, "Sci-Fi",List.of(1L), "image.url", "trailer.url", releaseDate, null);
 
         assertThat(view).isEqualTo("redirect:/admin/movies");
-        verify(movieService).save(null,"Inception", "Description",178 ,"Sci-Fi","image.url",
+        verify(movieService).save(null,null,"Inception", "Description",178 ,"Sci-Fi","image.url",
                 "trailer.url", List.of(1L),releaseDate);
     }
 
