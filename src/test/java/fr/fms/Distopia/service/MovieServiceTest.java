@@ -13,6 +13,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
@@ -252,4 +255,20 @@ class MovieServiceTest {
         assertThat(result).containsOnly(movie);
     }
 
+    //------------------tests for searchAdmin() ---------------------------
+
+    @Test
+    @DisplayName("searchAdmin() - returns paged movies sorted ascending")
+    void searchAdmin_ShouldReturnPagedMoviesSortedAscending() {
+        Page<Movie> page = new PageImpl<>(List.of(movie));
+
+        when(movieRepository.searchAdmin(eq("batman"), eq(false),
+                any(Pageable.class))).thenReturn(page);
+
+        Page<Movie> result = movieService.searchAdmin("batman", false, "title",
+                        "asc", 0);
+
+        assertThat(result.getContent()).containsExactly(movie);
+        verify(movieRepository).searchAdmin(eq("batman"), eq(false), any(Pageable.class));
+    }
 }
