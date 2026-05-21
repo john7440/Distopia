@@ -6,6 +6,8 @@ import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbGenreDto;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -13,6 +15,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -60,5 +66,19 @@ class SeanceGeneratorServiceTest {
         tmdbDetail.setRuntime(148);
         tmdbDetail.setPosterPath("/inception.jpg");
         tmdbDetail.setGenres(List.of(genre));
+    }
+
+    //---------------tests for importAndGenerate()----------------------
+    @Test
+    @DisplayName("importAndGenerate() - returns error when no cinemas in database")
+    void importAndGenerate_ShouldReturnsErrorWhenNoCinemasInDatabase() {
+        when(cinemaService.getAll()).thenReturn(List.of());
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
+
+        assertThat(result.errors()).isNotEmpty();
+        assertThat(result.moviesImported()).isZero();
+        assertThat(result.seancesCreated()).isZero();
+
     }
 }
