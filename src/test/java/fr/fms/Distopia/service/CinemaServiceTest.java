@@ -13,6 +13,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -207,5 +210,34 @@ class CinemaServiceTest {
         List<String> result = cinemaService.getAllDepartments();
 
         assertThat(result).isEmpty();
+    }
+
+    //----------------------------tests for searchPublic()--------------------------
+    @Test
+    @DisplayName("searchPublic() - uses all filters when keyword town and department are provided")
+    void searchPublic_ShouldUseAllFiltersWhenKeywordTownAndDepartmentProvided() {
+        Page<Cinema> page = new PageImpl<>(List.of(cinema));
+
+        when(cinemaRepository.searchByAllFilters(eq(1L), eq("40"), eq("Gaumont"), any(Pageable.class)))
+                .thenReturn(page);
+
+        Page<Cinema> result = cinemaService.searchPublic("Gaumont", 1L, "40", 0);
+
+        assertThat(result.getContent()).containsExactly(cinema);
+        verify(cinemaRepository).searchByAllFilters(eq(1L), eq("40"), eq("Gaumont"),
+                any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("searchPublic() - uses town and keyword filters")
+    void searchPublic_ShouldUseTownAndKeywordFilters() {
+        Page<Cinema> page = new PageImpl<>(List.of(cinema));
+
+        when(cinemaRepository.searchByTownAndKeyword(eq(1L), eq("Gaumont"),any(Pageable.class)))
+                .thenReturn(page);
+
+        cinemaService.searchPublic("Gaumont", 1L, null, 0);
+
+        verify(cinemaRepository).searchByTownAndKeyword(eq(1L), eq("Gaumont"),any(Pageable.class));
     }
 }
