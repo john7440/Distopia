@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -218,6 +219,40 @@ class SeanceGeneratorServiceTest {
         verify(seanceService, times(7)).save(isNull(), any(), eq(150), eq(10.50), eq(1L), eq(1L));
         verify(seanceService, times(7)).save(isNull(), any(), eq(150), eq(12.00), eq(1L), eq(1L));
     }
+
+    //------------------tests for generateForMovie() ---------------------------
+    @Test
+    @DisplayName("generateForMovie() - returns error when no cinemas in database")
+    void generateForMovie_ShouldReturnErrorWhenNoCinemas() {
+        when(cinemaService.getAll()).thenReturn(List.of());
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.generateForMovie(movie);
+
+        assertThat(result.errors()).isNotEmpty();
+        assertThat(result.seancesCreated()).isZero();
+    }
+
+    @Test
+    @DisplayName("generateForMovie() - links movie to all cinemas when movie has no cinemas")
+    void generateForMovie_ShouldLinkMovieToCinemasWhenMovieHasNoCinemas() {
+        movie.setCinemas(null);
+        Movie linkedMovie = new Movie();
+        linkedMovie.setId(1L);
+        linkedMovie.setCinemas(List.of(cinema));
+
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(movieService.save(eq(1L), any(),any(), any(), anyInt(), any(), any(), any(),
+                eq(List.of(1L)), any())).thenReturn(linkedMovie);
+        when(movieService.getById(1L)).thenReturn(linkedMovie);
+        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+
+        seanceGeneratorService.generateForMovie(movie);
+
+        verify(movieService).save(eq(1L),any(), any(), any(), anyInt(), any(),
+                any(), any(), eq(List.of(1L)), any());
+    }
+
+
 
     //-------------------helper---------------------
     /**
