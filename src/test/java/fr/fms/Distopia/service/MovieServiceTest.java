@@ -213,6 +213,32 @@ class MovieServiceTest {
         verify(cinemaRepository).findById(1L);
     }
 
+    @Test
+    @DisplayName("save() - clears previous cinema associations before adding new ones")
+    void save_ShouldClearPreviousCinemaAssociationsBeforeAddingNewOnes() {
+        Cinema oldCinema = new Cinema();
+        oldCinema.setId(1L);
+
+        Cinema newCinema = new Cinema();
+        newCinema.setId(2L);
+
+        Movie existingMovie = new Movie();
+        existingMovie.setId(1L);
+        existingMovie.getCinemas().add(oldCinema);
+
+        oldCinema.getMovies().add(existingMovie);
+
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(existingMovie));
+        when(cinemaRepository.findById(2L)).thenReturn(Optional.of(newCinema));
+        when(movieRepository.save(any(Movie.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Movie result = movieService.save(1L, 100L, "Updated", "desc", 130,
+                "Drama", "/img.jpg", "/trailer", List.of(2L), LocalDate.now());
+
+        assertThat(result.getCinemas()).containsExactly(newCinema);
+        assertThat(oldCinema.getMovies()).doesNotContain(existingMovie);
+    }
+
     //--------------------test de getByCinema()----------------------
     @Test
     @DisplayName("getByCinema() - returns only non-deleted movies for a cinema")
