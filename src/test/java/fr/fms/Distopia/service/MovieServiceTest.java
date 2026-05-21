@@ -271,4 +271,19 @@ class MovieServiceTest {
         assertThat(result.getContent()).containsExactly(movie);
         verify(movieRepository).searchAdmin(eq("batman"), eq(false), any(Pageable.class));
     }
+
+    @Test
+    @DisplayName("searchAdmin() - returns paged movies sorted descending")
+    void searchAdmin_ShouldReturnPagedMoviesSortedDescending() {
+        Page<Movie> page = new PageImpl<>(List.of(movie));
+
+        when(movieRepository.searchAdmin(eq("dune"), eq(true), any(Pageable.class)))
+                .thenReturn(page);
+
+        Page<Movie> result = movieService.searchAdmin("dune", true,"releaseDate",
+                "desc", 1);
+
+        assertThat(result.getContent()).containsExactly(movie);
+        verify(movieRepository).searchAdmin(eq("dune"), eq(true), any(Pageable.class));
+    }
 }
