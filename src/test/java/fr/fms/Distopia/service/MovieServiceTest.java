@@ -137,7 +137,7 @@ class MovieServiceTest {
         when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
         when(movieRepository.save(any(Movie.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Movie result = movieService.save(null, "Interstellar", "A space movie",
+        Movie result = movieService.save(null,null, "Interstellar", "A space movie",
                 169, "Sci-Fi", "url.jpg", "trailer.mp4", List.of(1L),date);
 
         assertThat(result.getTitle()).isEqualTo("Interstellar");
@@ -156,7 +156,7 @@ class MovieServiceTest {
         when(cinemaRepository.findById(2L)).thenReturn(Optional.of(newCinema));
         when(movieRepository.save(any(Movie.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Movie result = movieService.save(1L, "Inception V2", "Updated", 148, "Thriller",
+        Movie result = movieService.save(1L, null,"Inception V2", "Updated", 148, "Thriller",
                 "new.jpg", "new_trailer.mp4", List.of(2L),date);
 
         assertThat(result.getTitle()).isEqualTo("Inception V2");
