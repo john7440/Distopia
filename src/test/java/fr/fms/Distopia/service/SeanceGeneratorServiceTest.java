@@ -102,4 +102,36 @@ class SeanceGeneratorServiceTest {
         assertThat(result.errors()).isNotEmpty();
         assertThat(result.moviesImported()).isZero();
     }
+
+    @Test
+    @DisplayName("importAndGenerate() - imports new movies from TMDB")
+    void importAndGenerate_ShouldImportNewMoviesFromTmdb() {
+    when(cinemaService.getAll()).thenReturn(List.of(cinema));
+    when(tmdbClient.getNowPlaying()).thenReturn(List.of(tmdbMovieDto));
+    when(tmdbClient.getDetail(1L)).thenReturn(tmdbDetail);
+    when(tmdbClient.getTrailerUrl(1L)).thenReturn("https://youtube.com/emded/test");
+    when(movieService.getAllActive()).thenReturn(List.of());
+    when(movieService.save(any(), any(),any(), any(), anyInt(), any(), any(), any(), any(), any()))
+                .thenReturn(movie);
+
+    SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
+
+    assertThat(result.moviesImported()).isEqualTo(1);
+    verify(movieService, atLeastOnce()).save(isNull(), any(),eq("Inception"), anyString(), eq(148),
+            eq("Sci-Fi"), contains("/inception.jpg"), anyString(), any(), any());
+    }
+
+    @Test
+    @DisplayName("importAndGenerate() - skips movie already existing in database")
+    void importAndGenerate_ShouldSkipMovieAlreadyInDatabase() {
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(tmdbClient.getNowPlaying()).thenReturn(List.of(tmdbMovieDto));
+        when(tmdbClient.getDetail(1L)).thenReturn(tmdbDetail);
+        when(movieService.getAllActive()).thenReturn(List.of(movie));
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
+
+        assertThat(result.moviesImported()).isZero();
+        verify(movieService, never()).save(isNull(), any(),anyString(), any(), anyInt(), any(), any(), any(), any(), any());
+    }
 }
