@@ -2,6 +2,7 @@ package fr.fms.Distopia.service;
 
 import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
+import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbGenreDto;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
@@ -163,5 +164,33 @@ class SeanceGeneratorServiceTest {
 
         assertThat(result.errors()).isEmpty();
         assertThat(result.hasErrors()).isFalse();
+    }
+
+    //-------------------tests for generateSeancesForMovieAndCinema()------------------
+    @Test
+    @DisplayName("generateSeancesForMovieAndCinema() - creates 21 seances when none exist (7 days x 3 slots)")
+    void generateSeancesForMovieAndCinema_ShouldCreate21SeancesWhenNoneExist() {
+        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+
+        int count = seanceGeneratorService.generateSeancesForMovieAndCinema(movie,cinema,START_DATE);
+
+        assertThat(count).isEqualTo(21);
+        verify(seanceService, times(21)).save(isNull(), any(LocalDateTime.class), eq(150),
+                anyDouble(), eq(1L),eq(1L));
+    }
+
+    @Test
+    @DisplayName("generateSeancesForMovieAndCinema() - skips already existing seances")
+    void generateSeancesForMovieAndCinema_ShouldSkipExistingSeances() {
+        LocalDateTime existingDate = START_DATE.withHour(14).withMinute(0);
+        Seance existingSeance = new Seance();
+        existingSeance.setDateTime(existingDate);
+
+        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of(existingSeance));
+
+        int count = seanceGeneratorService.generateSeancesForMovieAndCinema(movie,cinema,START_DATE);
+
+        assertThat(count).isEqualTo(20);
+        verify(seanceService, times(20)).save(any(), any(), anyInt(), anyDouble(), anyLong(), anyLong());
     }
 }
