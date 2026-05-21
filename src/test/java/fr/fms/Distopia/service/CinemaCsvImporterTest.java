@@ -102,6 +102,24 @@ class CinemaCsvImporterTest {
         verify(cinemaRepository, never()).save(any(Cinema.class));
     }
 
+    @Test
+    @DisplayName("importFromCsv() - skips cinema when cinema already exists in town")
+    void importFromCsv_ShouldSkipCinemaWhenCinemaAlreadyExists() throws ImportFailException {
+        String csv = """
+                name,address,website,latitude,longitude
+                Cinema Test,"10 avenue test, 40100 Dax",https://cinema.fr,43.7,-1.0
+                """;
+        setCsvFile(csv);
+
+        when(cinemaRepository.existsByNameAndTown_Name("Cinema Test", "Dax")).thenReturn(true);
+
+        CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
+
+        assertThat(result.imported()).isZero();
+        assertThat(result.skipped()).isEqualTo(1);
+        verify(cinemaRepository, never()).save(any(Cinema.class));
+    }
+
     //-------------------------helper------------------------
     private void setCsvFile(String csvContent) {
         ByteArrayResource resource = new ByteArrayResource(
