@@ -317,4 +317,31 @@ class CinemaServiceTest {
         verify(cinemaRepository).findAll(any(Pageable.class));
     }
 
+    //-------------------------tests for searchAdmin()  --------------------------
+
+    @Test
+    @DisplayName("searchAdmin() - searches cinemas when keyword is provided")
+    void searchAdmin_ShouldSearchCinemasWhenKeywordProvided() {
+        Page<Cinema> page = new PageImpl<>(List.of(cinema));
+        when(cinemaRepository.searchAdmin(eq("Gaumont"),any(Pageable.class)))
+                .thenReturn(page);
+
+        Page<Cinema> result = cinemaService.searchAdmin("Gaumont","name","asc",0);
+
+        assertThat(result.getContent()).containsExactly(cinema);
+        verify(cinemaRepository).searchAdmin(eq("Gaumont"), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("searchAdmin() - returns all cinemas when keyword is blank")
+    void searchAdmin_ShouldReturnAllCinemasWhenKeywordBlank() {
+        Page<Cinema> page = new PageImpl<>(List.of(cinema));
+
+        when(cinemaRepository.findAll(any(Pageable.class))).thenReturn(page);
+
+        Page<Cinema> result = cinemaService.searchAdmin("", "name", "asc", 0);
+
+        assertThat(result.getContent()).containsExactly(cinema);
+        verify(cinemaRepository).findAll(any(Pageable.class));
+    }
 }
