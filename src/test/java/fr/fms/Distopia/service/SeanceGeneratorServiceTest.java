@@ -206,6 +206,19 @@ class SeanceGeneratorServiceTest {
         verify(seanceService, never()).save(any(), any(), anyInt(), anyDouble(), anyLong(), anyLong());
     }
 
+    @Test
+    @DisplayName("generateSeancesForMovieAndCinema() - uses correct prices per slot")
+    void generateSeancesForMovieAndCinema_ShouldUseCorrectPricesPerSlot() {
+        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+
+        seanceGeneratorService.generateSeancesForMovieAndCinema(movie,cinema,START_DATE);
+
+        // Note: 7 days x each price once per day
+        verify(seanceService, times(7)).save(isNull(), any(), eq(150), eq(9.00),  eq(1L), eq(1L));
+        verify(seanceService, times(7)).save(isNull(), any(), eq(150), eq(10.50), eq(1L), eq(1L));
+        verify(seanceService, times(7)).save(isNull(), any(), eq(150), eq(12.00), eq(1L), eq(1L));
+    }
+
     //-------------------helper---------------------
     /**
      * Helper to generate all seances for a week for tests
