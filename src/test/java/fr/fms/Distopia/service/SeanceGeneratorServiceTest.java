@@ -44,7 +44,7 @@ class SeanceGeneratorServiceTest {
 
     @BeforeEach
     void setUp() {
-        Cinema cinema = new Cinema();
+        cinema = new Cinema();
         cinema.setId(1L);
         cinema.setName("Cinema Test");
 
@@ -79,6 +79,27 @@ class SeanceGeneratorServiceTest {
         assertThat(result.errors()).isNotEmpty();
         assertThat(result.moviesImported()).isZero();
         assertThat(result.seancesCreated()).isZero();
+    }
 
+    @Test
+    @DisplayName("importAndGenerate() - does not call TMBD when no cinemas in database")
+    void importAndGenerate_ShouldNotCallTmdbWhenNoCinemas() {
+        when(cinemaService.getAll()).thenReturn(List.of());
+
+        seanceGeneratorService.importAndGenerate();
+
+        verify(tmdbClient, never()).getNowPlaying();
+    }
+
+    @Test
+    @DisplayName("importAndGenerate() - adds errors when TMDB returns no movies")
+    void importAndGenerate_ShouldAddErrorsWhenNoMovies() {
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(tmdbClient.getNowPlaying()).thenReturn(List.of());
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
+
+        assertThat(result.errors()).isNotEmpty();
+        assertThat(result.moviesImported()).isZero();
     }
 }
