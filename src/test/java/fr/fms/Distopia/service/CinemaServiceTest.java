@@ -304,4 +304,17 @@ class CinemaServiceTest {
         verify(cinemaRepository).findByDepartment(eq("40"), any(Pageable.class));
     }
 
+    @Test
+    @DisplayName("searchPublic() - returns all cinemas when no filters are provided")
+    void searchPublic_ShouldReturnAllCinemasWhenNoFiltersProvided() {
+        Page<Cinema> page = new PageImpl<>(List.of(cinema));
+
+        when(cinemaRepository.findAll(any(Pageable.class))).thenReturn(page);
+
+        Page<Cinema> result = cinemaService.searchPublic(null, null, null,0);
+
+        assertThat(result.getContent()).containsExactly(cinema);
+        verify(cinemaRepository).findAll(any(Pageable.class));
+    }
+
 }
