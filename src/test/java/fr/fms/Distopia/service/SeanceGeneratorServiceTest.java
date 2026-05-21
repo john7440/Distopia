@@ -17,7 +17,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -252,7 +254,50 @@ class SeanceGeneratorServiceTest {
                 any(), any(), eq(List.of(1L)), any());
     }
 
+    @Test
+    @DisplayName("generateForMovie() - does not re-link movie when cinemas already assigned")
+    void generateForMovie_ShouldNotRelinkWhenMovieAlreadyHasCinemas() {
+        movie.setCinemas(List.of(cinema));
 
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+
+        seanceGeneratorService.generateForMovie(movie);
+        verify(movieService, never()).save(anyLong(), any(),any(), any(),
+                anyInt(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("generateForMovie() - generates seances for each cinema")
+    void generateForMovie_ShouldGenerateSeancesForEachCinema() {
+        Cinema cinema2 = new Cinema();
+        cinema2.setId(2L);
+        cinema2.setName("Cinema 2");
+        movie.setCinemas(List.of(cinema,cinema2));
+
+        when(cinemaService.getAll()).thenReturn(List.of(cinema,cinema2));
+        when(seanceService.getByMovieAndCinema(eq(1L), anyLong())).thenReturn(List.of());
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.generateForMovie(movie);
+
+        //Note: 2 cinemas x 21 seances = 42
+        assertThat(result.seancesCreated()).isEqualTo(42);
+        assertThat(result.moviesImported()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("generateForMovie() - returns no errors on successful generation")
+    void generateForMovie_ShouldReturnNoErrorsOnSuccess() {
+        movie.setCinemas(List.of(cinema));
+
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.generateForMovie(movie);
+
+        assertThat(result.errors()).isEmpty();
+        assertThat(result.hasErrors()).isFalse();
+    }
 
     //-------------------helper---------------------
     /**
