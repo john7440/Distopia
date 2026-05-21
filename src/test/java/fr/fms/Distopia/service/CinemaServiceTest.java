@@ -278,4 +278,18 @@ class CinemaServiceTest {
 
         verify(cinemaRepository).searchPublic(eq("Gaumont"), any(Pageable.class));
     }
+
+    @Test
+    @DisplayName("searchPublic() - uses town filter only")
+    void searchPublic_ShouldUseTownFilterOnly() {
+        Page<Cinema> page = new PageImpl<>(List.of(cinema));
+
+        when(cinemaRepository.findByTownId(eq(1L), any(Pageable.class)))
+                .thenReturn(page);
+
+        cinemaService.searchPublic(null,1L, null, 0);
+
+        verify(cinemaRepository).findByTownId(eq(1L), any(Pageable.class));
+    }
+
 }
