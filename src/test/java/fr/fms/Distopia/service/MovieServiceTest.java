@@ -197,6 +197,22 @@ class MovieServiceTest {
         assertThat(result.getCinemas()).contains(cinema);
     }
 
+    @Test
+    @DisplayName("save() - ignores cinema ids when cinema does not exist")
+    void save_ShouldIgnoreCinemaIdsWhenCinemaDoesNotExist() {
+
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.empty());
+        when(movieRepository.save(any(Movie.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Movie result = movieService.save(
+                null, 99L, "Interstellar", "desc", 150, "Sci-Fi",
+                "/img.jpg", "/trailer", List.of(1L), LocalDate.now());
+
+        assertThat(result.getCinemas()).isEmpty();
+
+        verify(cinemaRepository).findById(1L);
+    }
+
     //--------------------test de getByCinema()----------------------
     @Test
     @DisplayName("getByCinema() - returns only non-deleted movies for a cinema")
