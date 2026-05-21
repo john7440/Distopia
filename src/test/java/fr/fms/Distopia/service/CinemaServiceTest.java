@@ -240,4 +240,18 @@ class CinemaServiceTest {
 
         verify(cinemaRepository).searchByTownAndKeyword(eq(1L), eq("Gaumont"),any(Pageable.class));
     }
+
+    @Test
+    @DisplayName("searchPublic() - uses department and keyword filters")
+    void searchPublic_ShouldUseDepartmentAndKeywordFilters() {
+        Page<Cinema> page = new PageImpl<>(List.of(cinema));
+
+        when(cinemaRepository.searchByDepartmentAndKeyword(eq("40"),  eq("Gaumont"),any(Pageable.class)))
+        .thenReturn(page);
+
+        cinemaService.searchPublic("Gaumont", null, "40", 0);
+
+        verify(cinemaRepository).searchByDepartmentAndKeyword(eq("40"),  eq("Gaumont"),any(Pageable.class));
+    }
+
 }
