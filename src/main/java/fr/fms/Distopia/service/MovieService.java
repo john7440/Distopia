@@ -66,21 +66,25 @@ public class MovieService {
 
     //--------------------créer ou modifier un film------------------
     /**
-     * Creates a new movie or updates an existing one, along with its cinema associations
+     * Creates a new movie or updates an existing one,
+     * along with its cinema associations
      * <p>
-     * <strong>Association Handling:</strong> When updating, this method clears all existing
-     * Many-To-Many relationships between the movie and its cinemas before establishing
-     * the new ones provided in the {@code cinemaIds} list. This ensures the associations
-     * are strictly synchronized with the provided input
+     * <strong>Association Handling:</strong>
+     * When updating, all previous movie/cinema relations
+     * are cleared before adding the new ones provided
+     * in {@code cinemaIds}
      *
-     * @param id          the unique identifier of the movie to update, or null to create a new one
-     * @param title       the title of the movie
-     * @param description the description or synopsis of the movie
-     * @param duration    the duration of the movie in minutes
-     * @param genre       the genre of the movie (e.g., Action, Comedy)
-     * @param imageUrl    the URL to the movie's poster or cover image
-     * @param cinemaIds   a list of cinema identifiers where the movie will be shown
-     * @return the saved or updated {@link Movie} entity
+     * @param id          the movie identifier, or null for creation
+     * @param tmdbId      the TMDB movie identifier
+     * @param title       the movie title
+     * @param description the movie synopsis
+     * @param duration    the movie duration in minutes
+     * @param genre       the movie genre
+     * @param imageUrl    the movie poster URL
+     * @param trailerUrl  the movie trailer URL
+     * @param cinemaIds   the list of associated cinema identifiers
+     * @param releaseDate the movie release date
+     * @return the saved movie entity
      */
     @Transactional
     public Movie save(Long id,Long tmdbId, String title, String description,
@@ -143,6 +147,19 @@ public class MovieService {
     }
 
     //---------------------pagination pour admin---------------------------------
+    /**
+     * Searches movies for the administration dashboard
+     * <p>
+     * Supports keyword search, deleted movie filtering,
+     * pagination and dynamic sorting
+     *
+     * @param keyword     the keyword used to search movies
+     * @param showDeleted whether deleted movies should be included
+     * @param sortField   the field used for sorting
+     * @param sortDir     the sorting direction (asc or desc)
+     * @param page        the requested page number
+     * @return a paginated list of movies
+     */
     public Page<Movie> searchAdmin(@Param("keyword") String keyword,boolean showDeleted, String sortField,
                                    String sortDir,int page) {
         Sort sort = sortDir.equals("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
@@ -150,14 +167,23 @@ public class MovieService {
         return movieRepository.searchAdmin(keyword, showDeleted,pageable);
     }
 
+    /**
+     * Retrieves a movie by its unique identifier
+     *
+     * @param id the unique identifier of the movie
+     * @return the matching movie, or null if not found
+     */
     public Movie getById(Long id) {
         return movieRepository.findById(id).orElse(null);
     }
 
-    public Optional<Movie> findByTitleIgnoreCase(String title) {
-        return movieRepository.findByTitleIgnoreCase(title);
-    }
 
+    /**
+     * Searches a movie using its TMDB identifier
+     *
+     * @param tmdbId the TMDB movie identifier
+     * @return an optional containing the matching movie if found
+     */
     public Optional<Movie> findByTmdbId(Long tmdbId) {
         return movieRepository.findByTmdbId(tmdbId);
     }
