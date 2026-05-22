@@ -40,15 +40,6 @@ public class TmdbClient {
     }
 
     //--------------Trailer film------------------------------
-    /**
-     * Retrieves the YouTube trailer URL for a TMDB movie
-     * <p>
-     * The method calls the TMDB videos endpoint and searches for
-     * the first video where the site is YouTube and the type is Trailer
-     *
-     * @param tmdbId the TMDB movie identifier
-     * @return the embeddable YouTube trailer URL, or null if no trailer is found
-     */
     public String getTrailerUrl(Long tmdbId){
         String url = BASE_URL + "/movie/" + tmdbId + "/videos?api_key=" + apiKey;
         TmdbVideosResponse response = restTemplate.getForObject(url, TmdbVideosResponse.class);
@@ -63,11 +54,6 @@ public class TmdbClient {
     }
 
     //-------------Films a l'affiche en France-----------------------------------
-    /**
-     * Retrieves movies currently playing in French cinemas from TMDB
-     *
-     * @return a list of movies currently playing in France, or an empty list if no response is returned
-     */
     public List<TmdbMovieDto> getNowPlaying(){
         String url = BASE_URL + "/movie/now_playing?api_key=" + apiKey +  "&language=fr-FR&region=FR&page=1";
         TmdbSearchResponse response = restTemplate.getForObject(url, TmdbSearchResponse.class);
@@ -75,14 +61,6 @@ public class TmdbClient {
     }
 
     // --------- Films sortis cette semaine ----------------------------
-    /**
-     * Retrieves movies released during the last seven days
-     * <p>
-     * This method filters the movies returned by {@link #getNowPlaying()}
-     * using their release date
-     *
-     * @return a list of movies released this week, limited to 10 results
-     */
     public List<TmdbMovieDto> getThisWeek() {
         LocalDate today = LocalDate.now();
         LocalDate weekAgo = today.minusDays(7);
@@ -99,15 +77,12 @@ public class TmdbClient {
     }
 
     //------------- les prochaines sorties---------------------------------
-    /**
-     * Retrieves upcoming movies in France from TMDB
-     *
-     * @return a list of upcoming movies, or an empty list if no response is returned
-     */
     public List<TmdbMovieDto> getUpcoming() {
         String url = BASE_URL + "movie/upcoming?api_key=" + apiKey
                 + "&language=fr-FR&region=FR&page=1";
         TmdbSearchResponse response = restTemplate.getForObject(url, TmdbSearchResponse.class);
         return response != null ? response.getResults() : List.of();
     }
+
+
 }
