@@ -8,11 +8,37 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The JPA Repository of reservation
+ * JPA repository used to manage {@link Reservation} entities
+ * <p>
+ * Provides multiples way of retrieving Reservation
+ *
  */
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
+
+    /**
+     * Retrieves a list of Reservation using userId
+     *
+     * @param userId the user identifier
+     * @return the ordered (desc) list of Reservation for the given user
+     */
     List<Reservation> findByUserIdOrderByReservedAtDesc(Long userId);
+
+    /**
+     * Retrieves a Reservation using userId and seanceId (if it exists)
+     *
+     * @param userId the user identifier
+     * @param seanceId the seance identifier
+     * @return an optional of Reservation if user and seance exists
+     */
     Optional<Reservation> findByUserIdAndSeanceId(Long userId, Long seanceId);
+
+    /**
+     * Retrieves all Reservations using userId and seanceId
+     *
+     * @param userId the user identifier
+     * @param seanceId the seance identifier
+     * @return a list of all Reservation for provided params
+     */
     List<Reservation> findAllByUserIdAndSeanceId(Long userId, Long seanceId);
 }
