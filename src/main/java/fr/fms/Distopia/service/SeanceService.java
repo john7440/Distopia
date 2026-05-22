@@ -114,17 +114,34 @@ public class SeanceService {
         seanceRepository.delete(seance);
     }
 
-    //------------------séances a venir pour un film ----------------
-    public List<Seance> getUpcomingByMovie(Long movieId) {
-        return seanceRepository.findByMovieIdAndDateTimeAfterOrderByDateTimeAsc(movieId, LocalDateTime.now());
-    }
-
     //--------------recherche paginé admin-----------------
+    /**
+     * Searches seances for the administration dashboard
+     * <p>
+     * Supports keyword filtering, cinema filtering
+     * and pagination
+     *
+     * @param keyword the keyword used to search seances
+     * @param cinemaId the selected cinema identifier
+     * @param page the requested page number
+     * @return a paginated list of matching seances
+     */
     public Page<Seance> searchAdmin(String keyword, Long cinemaId, int page) {
         Pageable pageable = PageRequest.of(page, PAGE_SIZE_ADMIN);
         return seanceRepository.searchAdmin(keyword, cinemaId, pageable);
     }
 
+    /**
+     * Retrieves upcoming seances for a movie
+     * <p>
+     * Only future seances associated with the given movie
+     * are returned
+     *
+     * @param movieId the movie identifier
+     * @param page the requested page number
+     * @param size the number of elements per page
+     * @return a paginated list of upcoming seances
+     */
     public Page<Seance> getUpcomingSeances(Long movieId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return seanceRepository.findUpcomingSeancesByMovie(movieId, pageable);
