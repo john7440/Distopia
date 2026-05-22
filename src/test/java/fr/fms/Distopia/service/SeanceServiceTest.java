@@ -200,4 +200,17 @@ import static org.mockito.Mockito.*;
         verify(seanceRepository).searchAdmin(eq("Inception"), eq(1L),any(Pageable.class));
 
     }
+
+    @Test
+    @DisplayName("searchAdmin() -  returns empty page when no seances match")
+    void searchAdmin_ShouldReturnEmptyPageWhenNoSeancesMatch() {
+        Page<Seance> emptyPage = new PageImpl<>(List.of());
+
+        when(seanceRepository.searchAdmin(eq("Inconnu"), eq(99L),any(Pageable.class))).thenReturn(emptyPage);
+
+        Page<Seance> result = seanceService.searchAdmin("Inconnu", 99L,0);
+
+        assertThat(result.getContent()).isEmpty();
+        verify(seanceRepository).searchAdmin(eq("Inconnu"), eq(99L),any(Pageable.class));
+    }
 }
