@@ -248,5 +248,17 @@ class MovieControllerTest {
         verify(movieService).findByTmdbId(100L);
         verify(tmdbClient, never()).getDetail(anyLong());
     }
+
+    @Test
+    @DisplayName("movieDetailTmdb() - redirects to home when tmdb movie does not exist")
+    void movieDetailTmdb_ShouldRedirectHomeWhenTmdbMovieDoesNotExist() {
+        when(movieService.findByTmdbId(100L)).thenReturn(Optional.empty());
+        when(tmdbClient.getDetail(100L)).thenReturn(null);
+
+        String view = movieController.movieDetailTmdb(100L, model);
+
+        assertThat(view).isEqualTo("redirect:/");
+        verify(tmdbClient).getDetail(100L);
+    }
 }
 
