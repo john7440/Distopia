@@ -12,25 +12,55 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * The JPA Repository of seances
+ * JPA repository used to manage {@link Seance} entities
+ * <p>
+ * Provides CRUD operations as well as custom queries
+ * for reservations, administration and upcoming seances
  */
 @Repository
 public interface SeanceRepository extends JpaRepository<Seance, Long> {
-    List<Seance> findByMovieIdOrderByDateTimeAsc(Long movieId);
+
     //-------ajout d'un verrou pour éviter la race condition-------------
+    /**
+     * Retrieves a seance using a pessimistic write lock
+     * <p>
+     * This lock prevents concurrent modifications and helps
+     * avoid race conditions during reservation processing
+     *
+     * @param id the seance identifier
+     * @return an optional containing the locked seance if found
+     */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Seance s WHERE s.id = :id")
     Optional<Seance> findByIdForUpdate(@Param("id") Long id);
-    List<Seance> findByMovieIdAndCinemaIdOrderByDateTimeAsc(Long movieId, Long cinemaId);
-    List<Seance> findByMovieIdAndDateTimeAfterOrderByDateTimeAsc(Long movieId, LocalDateTime after);
-    Page<Seance> findByMovieIdAndDateTimeAfterOrderByCinemaIdAscDateTimeAsc(
-            Long movieId, LocalDateTime now, Pageable pageable);
 
+    /**
+     * Retrieves all seances of a movie in a cinema
+     * ordered by date and time
+     *
+     * @param movieId the movie identifier
+     * @param cinemaId the cinema identifier
+     * @return the list of matching seances sorted chronologically
+     */
+    List<Seance> findByMovieIdAndCinemaIdOrderByDateTimeAsc(Long movieId, Long cinemaId);
+
+    /**
+     * Retrieves upcoming seances for a movie
+     * <p>
+     * Only seances scheduled after the current timestamp
+     * are returned
+     * <p>
+     * Cinema and movie entities are eagerly loaded using
+     * {@link EntityGraph} to reduce lazy loading queries
+     *
+     * @param movieId the movie identifier
+     * @param pageable the pagination configuration
+     * @return a paginated list of upcoming seances
+     */
     @EntityGraph(attributePaths = {"cinema", "movie"})
     @Query("""
         SELECT s
@@ -44,6 +74,23 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
             Pageable pageable
     );
 
+    /**
+     * Searches seances for the administration dashboard
+     * <p>
+     * Supports:
+     * <ul>
+     *     <li>movie title keyword filtering</li>
+     *     <li>cinema filtering</li>
+     *     <li>pagination</li>
+     * </ul>
+     * <p>
+     * Results are ordered chronologically
+     *
+     * @param keyword the keyword used to search movie titles
+     * @param cinemaId the cinema identifier filter
+     * @param pageable the pagination configuration
+     * @return a paginated list of matching seances
+     */
     @Query("SELECT s FROM Seance s " +
             "JOIN s.movie m JOIN s.cinema c WHERE " +
             "(:keyword IS NULL OR :keyword = '' OR " +
