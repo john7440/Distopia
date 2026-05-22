@@ -96,7 +96,7 @@ public class TmbdController {
 
         if (result.hasErrors()){
             String errors = String.join(" | ", result.errors());
-            ra.addFlashAttribute("warning" , "Avertissements" + errors);
+            ra.addFlashAttribute("warning" , "Avertissements: " + errors);
         }
         return "redirect:/admin/seances";
     }

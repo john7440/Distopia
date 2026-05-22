@@ -185,4 +185,21 @@ class TmdbControllerTest {
                 "2 films importés et 42 séances générées sur 21 jours");
         verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
     }
+
+    @Test
+    @DisplayName("generateNowPlaying() - adds warning message when generation has errors")
+    void generateNowPlaying_ShouldAddWarningMessageWhenGenerationHasErrors() {
+        SeanceGeneratorService.GeneratorResult result = new SeanceGeneratorService.GeneratorResult(
+                1, 21, List.of("Erreur cinéma", "Erreur séance")
+                );
+        when(seanceGeneratorService.importAndGenerate()).thenReturn(result);
+
+        String view = tmbdController.generateNowPlaying(redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+        verify(redirectAttributes).addFlashAttribute("message",
+                "1 films importés et 21 séances générées sur 21 jours");
+        verify(redirectAttributes).addFlashAttribute("warning",
+                        "Avertissements: Erreur cinéma | Erreur séance");
+    }
 }
