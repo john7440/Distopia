@@ -165,6 +165,21 @@ public class MovieController {
         return "movie-detail";
     }
 
+    /**
+     * Displays the TMDB movie detail page
+     * <p>
+     * If the movie already exists in the local database
+     * (matched using its TMDB identifier), the user is redirected
+     * to the standard movie detail page with available seances
+     * <p>
+     * Otherwise, the method displays a fallback TMDB-only page
+     * containing movie information and trailer data
+     *
+     * @param tmdbId the TMDB movie identifier
+     * @param model  the Spring {@link Model} used to pass data to the view
+     * @return the TMDB fallback detail page, a redirect to the local movie page,
+     * or the homepage if the movie cannot be found on TMDB
+     */
     @GetMapping("/movie/tmdb/{tmdbId}")
     public String movieDetailTmdb(@PathVariable Long tmdbId, Model model) {
         Optional<Movie> existing =
