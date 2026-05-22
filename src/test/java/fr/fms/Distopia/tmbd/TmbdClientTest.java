@@ -200,4 +200,27 @@ class TmbdClientTest {
         assertThat(result).isEmpty();
     }
 
+    //------------------tests for getThisWeek() ---------------------------
+    @Test
+    @DisplayName("getThisWeek() - returns movies released during last seven days")
+    void getThisWeek_ShouldReturnMoviesReleasedDuringLastSevenDays() {
+        TmdbMovieDto recentMovie =  new TmdbMovieDto();
+        recentMovie.setTitle("Recent Movie");
+        recentMovie.setReleaseDate(LocalDate.now().minusDays(2).toString());
+
+        TmdbMovieDto oldMovie =  new TmdbMovieDto();
+        oldMovie.setTitle("Old Movie");
+        oldMovie.setReleaseDate(LocalDate.now().minusDays(20).toString());
+
+        TmdbSearchResponse response =  new TmdbSearchResponse();
+        response.setResults(List.of(recentMovie,oldMovie));
+
+        when(restTemplate.getForObject(anyString(), eq(TmdbSearchResponse.class)))
+            .thenReturn(response);
+
+        List<TmdbMovieDto> result = tmdbClient.getThisWeek();
+
+        assertThat(result).containsExactly(recentMovie);
+    }
+
 }
