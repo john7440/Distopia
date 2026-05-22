@@ -5,6 +5,7 @@ import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
 import fr.fms.Distopia.tmdb.TmdbClient;
+import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -259,6 +260,25 @@ class MovieControllerTest {
 
         assertThat(view).isEqualTo("redirect:/");
         verify(tmdbClient).getDetail(100L);
+    }
+
+    @Test
+    @DisplayName("movieDetailTmdb() - adds tmdb movie data to model when movie does not exist locally")
+    void movieDetailTmdb_ShouldAddTmdbMovieDataToModelWhenMovieDoesNotExistLocally() {
+        TmdbMovieDto tmdbMovie = new TmdbMovieDto();
+        tmdbMovie.setId(100L);
+        tmdbMovie.setTitle("Film tmbd");
+
+        when(movieService.findByTmdbId(100L)).thenReturn(Optional.empty());
+        when(tmdbClient.getDetail(100L)).thenReturn(tmdbMovie);
+        when(tmdbClient.getTrailerUrl(100L)).thenReturn("https://youtube.com/trailer");
+
+        String view = movieController.movieDetailTmdb(100L, model);
+
+        assertThat(view).isEqualTo("movie-detail-tmdb");
+        verify(model).addAttribute("tmdbMovie", tmdbMovie);
+        verify(model).addAttribute("imgBase", TmdbClient.IMG_BASE);
+        verify(model).addAttribute("trailerUrl", "https://youtube.com/trailer");
     }
 }
 
