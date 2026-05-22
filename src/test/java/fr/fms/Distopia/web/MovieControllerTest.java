@@ -4,6 +4,7 @@ import fr.fms.Distopia.entities.*;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
+import fr.fms.Distopia.tmdb.TmdbClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +21,7 @@ import org.springframework.ui.Model;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -35,6 +37,9 @@ class MovieControllerTest {
 
     @Mock
     private SeanceService seanceService;
+
+    @Mock
+    private TmdbClient  tmdbClient;
 
     @Mock
     private Model model;
@@ -227,6 +232,21 @@ class MovieControllerTest {
         verify(model).addAttribute("movie", movie);
         verify(model).addAttribute("seancePage", seancePage);
         verify(model).addAttribute("currentPage", 0);
+    }
+
+    //---------------------------  tests for movieDetailTmdb() -----------------
+    @Test
+    @DisplayName("movieDetailTmdb() - redirects to local movie page when movie already exists")
+    void movieDetailTmdb_ShouldRedirectToLocalMoviePageWhenMovieExists() {
+        movie.setTmdbId(100L);
+
+        when(movieService.findByTmdbId(100L)).thenReturn(Optional.of(movie));
+
+        String view = movieController.movieDetailTmdb(100L, model);
+
+        assertThat(view).isEqualTo("redirect:/movie?id=1");
+        verify(movieService).findByTmdbId(100L);
+        verify(tmdbClient, never()).getDetail(anyLong());
     }
 }
 
