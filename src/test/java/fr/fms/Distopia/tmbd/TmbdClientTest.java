@@ -190,4 +190,14 @@ class TmbdClientTest {
         assertThat(result).containsExactly(movie);
     }
 
+    @Test
+    @DisplayName("getNowPlaying() - returns empty list when response is null")
+    void getNowPlaying_ShouldReturnEmptyListWhenResponseIsNull() {
+        when(restTemplate.getForObject(anyString(), eq(TmdbSearchResponse.class))).thenReturn(null);
+
+        List<TmdbMovieDto> result = tmdbClient.getNowPlaying();
+
+        assertThat(result).isEmpty();
+    }
+
 }
