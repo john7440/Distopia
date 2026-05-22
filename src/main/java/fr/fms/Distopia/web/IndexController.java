@@ -17,12 +17,16 @@ import java.util.List;
 public class IndexController {
     @Autowired
     private TmdbClient tmdbClient;
+
     /**
      * Displays the home page of the application
      * <p>
      * This method maps to both the root URL ("/") and the "/index" path.
-     * It fetches all available towns from the database and adds them to the
-     * model, which allows the view to display them
+     * It loads movies from TMDB for the homepage sections:
+     * currently playing movies, movies released this week and upcoming movies
+     * <p>
+     * If the TMDB API cannot be reached or returns an error,
+     * empty lists are added to the model to keep the homepage available
      *
      * @param model the Spring {@link Model} used to pass data to the view
      * @return the view name "index"
