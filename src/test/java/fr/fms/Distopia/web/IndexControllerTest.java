@@ -13,8 +13,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,5 +53,33 @@ class IndexControllerTest {
         verify(model).addAttribute("nowPlaying", List.of(movie));
         verify(model).addAttribute("thisWeek",List.of(movie));
         verify(model).addAttribute("upcoming", List.of(movie));
+    }
+
+    @Test
+    @DisplayName("index() - limits now playing and upcoming movies to 10")
+    void index_ShouldLimitNowPlayingAndUpcomingMoviesToTen() {
+        List<TmdbMovieDto> movies = IntStream.rangeClosed(1, 15)
+                .mapToObj(i -> {
+                    TmdbMovieDto movie = new TmdbMovieDto();
+                    movie.setId((long) i);
+                    movie.setTitle("Movie " + i);
+                    return movie;
+                }).toList();
+
+        when(tmdbClient.getNowPlaying()).thenReturn(movies);
+        when(tmdbClient.getThisWeek()).thenReturn(movies);
+        when(tmdbClient.getUpcoming()).thenReturn(movies);
+
+        indexController.index(model);
+
+        verify(model).addAttribute(eq("nowPlaying"), argThat(list ->
+                list instanceof List<?> l && l.size() == 10
+        ));
+
+        verify(model).addAttribute("thisWeek", movies);
+
+        verify(model).addAttribute(eq("upcoming"), argThat(list ->
+                list instanceof List<?> l && l.size() == 10
+        ));
     }
 }
