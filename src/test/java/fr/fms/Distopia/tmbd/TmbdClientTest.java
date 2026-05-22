@@ -243,4 +243,30 @@ class TmbdClientTest {
 
         assertThat(result).isEmpty();
     }
+
+    //------------------tests for getUpcoming() ---------------------------
+
+    @Test
+    @DisplayName("getUpcoming() - returns upcoming movies when response exists")
+    void getUpcoming_ShouldReturnUpcomingMoviesWhenResponseExists() {
+        TmdbSearchResponse response =  new TmdbSearchResponse();
+        response.setResults(List.of(movie));
+
+        when(restTemplate.getForObject(anyString(), eq(TmdbSearchResponse.class))).thenReturn(response);
+
+        List<TmdbMovieDto> result = tmdbClient.getUpcoming();
+
+        assertThat(result).containsExactly(movie);
+    }
+
+    @Test
+    @DisplayName("getUpcoming() - returns empty list when response is null")
+    void getUpcoming_ShouldReturnEmptyListWhenResponseIsNull() {
+        when(restTemplate.getForObject(anyString(), eq(TmdbSearchResponse.class)))
+                .thenReturn(null);
+
+        List<TmdbMovieDto> result = tmdbClient.getUpcoming();
+
+        assertThat(result).isEmpty();
+    }
 }
