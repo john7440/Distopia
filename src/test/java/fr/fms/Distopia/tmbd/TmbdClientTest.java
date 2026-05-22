@@ -223,4 +223,24 @@ class TmbdClientTest {
         assertThat(result).containsExactly(recentMovie);
     }
 
+    @Test
+    @DisplayName("getThisWeek() - ignores movies with blank or invalid release date")
+    void getThisWeek_ShouldIgnoreMoviesWithBlankOrInvalidReleaseDate() {
+        TmdbMovieDto blankDateMovie =  new TmdbMovieDto();
+        blankDateMovie.setTitle("blank");
+        blankDateMovie.setReleaseDate("");
+
+        TmdbMovieDto invalidDateMovie =  new TmdbMovieDto();
+        invalidDateMovie.setTitle("invalid");
+        invalidDateMovie.setReleaseDate("not a date");
+
+        TmdbSearchResponse response =  new TmdbSearchResponse();
+        response.setResults(List.of(blankDateMovie,invalidDateMovie));
+
+        when(restTemplate.getForObject(anyString(), eq(TmdbSearchResponse.class))).thenReturn(response);
+
+        List<TmdbMovieDto> result = tmdbClient.getThisWeek();
+
+        assertThat(result).isEmpty();
+    }
 }
