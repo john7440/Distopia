@@ -40,4 +40,17 @@ class CinemaTest {
         assertThat(result).contains("https://www.google.com/maps/search/?api=1&query=");
         assertThat(result).contains("10+rue+de+la+paix+Dax");
     }
+
+    @Test
+    @DisplayName("buildMapsUrl() - returns null when no location data exists")
+    void buildMapsUrl_ShouldReturnNullWhenNoLocationDataExists() {
+        cinema.setLatitude(null);
+        cinema.setLongitude(null);
+        cinema.setAddress(null);
+        cinema.setTown(null);
+
+        String result = cinema.buildMapsUrl();
+
+        assertThat(result).isNull();
+    }
 }
