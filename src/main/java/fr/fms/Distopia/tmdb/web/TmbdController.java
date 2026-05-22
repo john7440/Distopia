@@ -77,6 +77,16 @@ public class TmbdController {
     }
 
     //-----------------------POST - import auto (de films à l'affiche) + génération de séances (fictives)-------------------------
+    /**
+     * Imports currently playing movies from TMDB and generates fake seances
+     * <p>
+     * This method imports now-playing movies, generates seances for them,
+     * adds a success flash message, and optionally adds a warning message
+     * when generation errors occur
+     *
+     * @param ra the Spring {@link RedirectAttributes} used to pass flash messages
+     * @return a redirect to the admin seances page
+     */
     @PostMapping("/admin/generate-now-playing")
     public String generateNowPlaying(RedirectAttributes ra) {
         SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
@@ -86,7 +96,7 @@ public class TmbdController {
 
         if (result.hasErrors()){
             String errors = String.join(" | ", result.errors());
-            ra.addFlashAttribute("warning" + "Avertissements" + errors);
+            ra.addFlashAttribute("warning" , "Avertissements" + errors);
         }
         return "redirect:/admin/seances";
     }
