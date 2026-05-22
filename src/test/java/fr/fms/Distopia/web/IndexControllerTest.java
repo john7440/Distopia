@@ -82,4 +82,19 @@ class IndexControllerTest {
                 list instanceof List<?> l && l.size() == 10
         ));
     }
+
+    @Test
+    @DisplayName("index() - adds empty lists when tmdb client throws exception")
+    void index_ShouldAddEmptyListsWhenTmdbClientThrowsException() {
+        when(tmdbClient.getNowPlaying()).thenThrow(new RuntimeException("tmdb error"));
+
+        String view = indexController.index(model);
+
+        assertThat(view).isEqualTo("index");
+
+        verify(model).addAttribute("imgBase", TmdbClient.IMG_BASE);
+        verify(model).addAttribute("nowPlaying", List.of());
+        verify(model).addAttribute("thisWeek", List.of());
+        verify(model).addAttribute("upcoming", List.of());
+    }
 }
