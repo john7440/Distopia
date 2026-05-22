@@ -167,4 +167,22 @@ class TmdbControllerTest {
 
         assertThat(view).isEqualTo("redirect:/admin/import-movies?query=Inception");
     }
+
+    //------------------   tests for generateNowPlaying() ---------------------------
+
+    @Test
+    @DisplayName("generateNowPlaying() - adds success message and redirects to admin seances")
+    void generateNowPlaying_ShouldAddSuccessMessageAndRedirectToAdminSeances() {
+        SeanceGeneratorService.GeneratorResult result = new SeanceGeneratorService.GeneratorResult(
+                2, 42, List.of());
+
+        when(seanceGeneratorService.importAndGenerate()).thenReturn(result);
+
+        String view = tmbdController.generateNowPlaying(redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+        verify(redirectAttributes).addFlashAttribute("message",
+                "2 films importés et 42 séances générées sur 21 jours");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
+    }
 }
