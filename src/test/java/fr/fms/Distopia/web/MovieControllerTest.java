@@ -280,5 +280,20 @@ class MovieControllerTest {
         verify(model).addAttribute("imgBase", TmdbClient.IMG_BASE);
         verify(model).addAttribute("trailerUrl", "https://youtube.com/trailer");
     }
+
+    @Test
+    @DisplayName("movieDetailTmdb() - loads trailer url from tmdb client")
+    void movieDetailTmdb_ShouldLoadTrailerUrlFromTmdbClient() {
+
+        TmdbMovieDto tmdbMovie = new TmdbMovieDto();
+
+        when(movieService.findByTmdbId(100L)).thenReturn(Optional.empty());
+        when(tmdbClient.getDetail(100L)).thenReturn(tmdbMovie);
+        when(tmdbClient.getTrailerUrl(100L)).thenReturn("https://youtube.com/embed/test");
+
+        movieController.movieDetailTmdb(100L, model);
+
+        verify(tmdbClient).getTrailerUrl(100L);
+    }
 }
 
