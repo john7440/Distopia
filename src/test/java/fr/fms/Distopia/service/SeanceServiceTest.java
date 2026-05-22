@@ -213,4 +213,32 @@ import static org.mockito.Mockito.*;
         assertThat(result.getContent()).isEmpty();
         verify(seanceRepository).searchAdmin(eq("Inconnu"), eq(99L),any(Pageable.class));
     }
+
+    //------------------tests for getUpcomingSeances() ---------------------------
+    @Test
+    @DisplayName("getUpcomingSeances() - returns upcoming seances for movie")
+    void getUpcomingSeances_ShouldReturnUpcomingSeancesForMovie() {
+
+        Page<Seance> page = new PageImpl<>(List.of(seance));
+
+        when(seanceRepository.findUpcomingSeancesByMovie(eq(1L), any(Pageable.class))).thenReturn(page);
+
+        Page<Seance> result = seanceService.getUpcomingSeances(1L, 0, 10);
+
+        assertThat(result.getContent()).containsExactly(seance);
+        verify(seanceRepository).findUpcomingSeancesByMovie(eq(1L), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("getUpcomingSeances() -  returns empty page when no upcoming seances exist")
+    void getUpcomingSeances_ShouldReturnEmptyPageWhenNoUpcomingSeancesExist() {
+        Page<Seance> emptyPage = new PageImpl<>(List.of());
+
+        when(seanceRepository.findUpcomingSeancesByMovie(eq(1L), any(Pageable.class))).thenReturn(emptyPage);
+
+        Page<Seance> result = seanceService.getUpcomingSeances(1L, 0, 10);
+
+        assertThat(result.getContent()).isEmpty();
+        verify(seanceRepository).findUpcomingSeancesByMovie(eq(1L),any(Pageable.class));
+    }
 }
