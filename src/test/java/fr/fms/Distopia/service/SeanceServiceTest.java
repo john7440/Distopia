@@ -14,9 +14,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -86,15 +90,6 @@ import static org.mockito.Mockito.*;
         seanceService.getAll();
 
         verify(seanceRepository).findAll();
-    }
-
-    //-------------test getUpcomingByMovie()-------------------
-    @Test
-    @DisplayName("getUpcomingByMovie() - should call findByMovieAndDateTimeAfterOrderByDateTimeAsc Repo")
-    void getUpcomingByMovie_ShouldCallsTheCorrectRepo() {
-        seanceService.getUpcomingByMovie(1L);
-
-        verify(seanceRepository).findByMovieIdAndDateTimeAfterOrderByDateTimeAsc(eq(1L),any(LocalDateTime.class));
     }
 
     //------------------tests du save()-----------------------
@@ -188,5 +183,21 @@ import static org.mockito.Mockito.*;
         when(seanceRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> seanceService.delete(99L)).isInstanceOf(NoSuchElementException.class);
+    }
+
+    //------------------tests for searchAdmin() ---------------------------
+
+    @Test
+    @DisplayName("searchAdmin() - returns paged seances using keyword and cinema filters")
+    void searchAdmin_ShouldReturnPagedSeancesUsingKeywordAndCinemaFilters() {
+        Page<Seance> page = new PageImpl<>(List.of(seance));
+
+        when(seanceRepository.searchAdmin(eq("Inception"), eq(1L),any(Pageable.class))).thenReturn(page);
+
+        Page<Seance> result = seanceService.searchAdmin("Inception", 1L,0);
+
+        assertThat(result.getContent()).containsExactly(seance);
+        verify(seanceRepository).searchAdmin(eq("Inception"), eq(1L),any(Pageable.class));
+
     }
 }
