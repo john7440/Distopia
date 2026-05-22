@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,8 +26,18 @@ class TmbdClientTest {
     @InjectMocks
     private TmdbClient tmdbClient;
 
+    private TmdbMovieDto movie;
+
     @BeforeEach
     void setUp() {
+        tmdbClient = new TmdbClient();
+        restTemplate = mock(RestTemplate.class);
+
+        movie = new TmdbMovieDto();
+        movie.setId(1L);
+        movie.setTitle("Inception");
+        movie.setReleaseDate(LocalDate.now().toString());
+
         ReflectionTestUtils.setField(tmdbClient, "restTemplate", restTemplate);
         ReflectionTestUtils.setField(tmdbClient, "apiKey", "FAKE_KEY_TEST");
     }
@@ -35,10 +46,6 @@ class TmbdClientTest {
     @Test
     @DisplayName("search() - returns a list of movies when TMDB responds")
     void search_ShouldReturnMoviesWhenTmdbResponds() {
-        TmdbMovieDto movie =  new TmdbMovieDto();
-        movie.setId(26L);
-        movie.setTitle("Inception");
-
         TmdbSearchResponse response = new TmdbSearchResponse();
         response.setResults(List.of(movie));
 
@@ -80,7 +87,6 @@ class TmbdClientTest {
         TmdbGenreDto genre =  new TmdbGenreDto();
         genre.setName("Sci-Fi");
 
-        TmdbMovieDto movie = new TmdbMovieDto();
         movie.setId(26L);
         movie.setTitle("Inception");
         movie.setRuntime(148);
@@ -167,6 +173,21 @@ class TmbdClientTest {
             .thenReturn(response);
 
         assertThat(tmdbClient.getTrailerUrl(1L)).isEqualTo("https://www.youtube.com/embed/youtube123");
+    }
+
+    //------------------------tests for getNowPlaying()------------------------
+    @Test
+    @DisplayName("getNowPlaying() - returns movies when response exists")
+    void getNowPlaying_ShouldReturnMoviesWhenResponseExists() {
+        TmdbSearchResponse response =  new TmdbSearchResponse();
+        response.setResults(List.of(movie));
+
+        when(restTemplate.getForObject(anyString(), eq(TmdbSearchResponse.class)))
+            .thenReturn(response);
+
+        List<TmdbMovieDto> result = tmdbClient.getNowPlaying();
+
+        assertThat(result).containsExactly(movie);
     }
 
 }
