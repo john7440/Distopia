@@ -38,6 +38,23 @@ public class CinemaService {
     }
 
     //-----------------rechercher par mot-clé (nom ou adresse)-------------------------
+    /**
+     * Searches cinemas visible to visitors using optional filters
+     * <p>
+     * This method supports combinations of:
+     * <ul>
+     *     <li>keyword search (name or address)</li>
+     *     <li>town filter</li>
+     *     <li>department filter</li>
+     * </ul>
+     * Results are paginated and sorted alphabetically by cinema name
+     *
+     * @param keyword    the keyword used to search cinemas by name or address
+     * @param townId     the identifier of the selected town
+     * @param department the department code filter
+     * @param page       the requested page number
+     * @return a paginated list of matching cinemas
+     */
     public Page<Cinema> searchPublic(String keyword, Long townId, String department, int page) {
         Pageable pageable = PageRequest.of(page, 9, Sort.by("name").ascending());
 
@@ -64,6 +81,17 @@ public class CinemaService {
     }
 
     //------------------recherche admin--------------------------
+    /**
+     * Searches cinemas for the administration dashboard
+     * <p>
+     * Supports keyword search and dynamic sorting
+     *
+     * @param keyword   the keyword used to search cinemas
+     * @param sortField the field used for sorting
+     * @param sortDir   the sorting direction (asc or desc)
+     * @param page      the requested page number
+     * @return a paginated list of cinemas for administration
+     */
     public Page<Cinema> searchAdmin(String keyword, String sortField, String sortDir, int page) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortField);
         Pageable pageable = PageRequest.of(page, 12, sort);
@@ -91,10 +119,15 @@ public class CinemaService {
      * If an ID is provided, the method attempts to fetch and update the existing cinema.
      * If the ID is null or the cinema is not found, a new {@link Cinema} instance is created
      *
-     * @param id      the unique identifier of the cinema to update, or null to create a new one
-     * @param name    the name of the cinema
+     * @param id the unique identifier of the cinema to update, or null to create a new one
+     * @param name the name of the cinema
      * @param address the address of the cinema
-     * @param townId  the identifier of the town where the cinema is located
+     * @param townId the identifier of the town where the cinema is located
+     * @param website the website URL
+     * @param latitude the latitude of the cinema
+     * @param longitude the longitude of the cinemas
+     * @param imageUrl an image URL about the cinema
+     * @param department the departement where the cinemas are located
      * @return the saved or updated {@link Cinema} entity
      */
     public Cinema save(Long id, String name, String address, Long townId, String website,
@@ -113,6 +146,11 @@ public class CinemaService {
         return cinemaRepository.save(cinema);
     }
 
+    /**
+     * Retrieves all distinct cinema departments stored in the database
+     *
+     * @return a list of unique department codes
+     */
     public List<String> getAllDepartments() {
         return cinemaRepository.findDistinctDepartments();
     }
