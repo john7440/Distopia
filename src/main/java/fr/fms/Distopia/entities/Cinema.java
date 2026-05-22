@@ -53,6 +53,17 @@ public class Cinema implements Serializable {
     private List<Movie> movies = new ArrayList<>();
 
 
+    /**
+     * Builds a Google Maps URL for the cinema location
+     * <p>
+     * If latitude and longitude are available,
+     * the method generates a direct Google Maps coordinates URL
+     * <p>
+     * Otherwise, if the address and town are available,
+     * it generates a Google Maps search URL using the encoded address
+     *
+     * @return the Google Maps URL, or null if no location data is available
+     */
     public String buildMapsUrl() {
         if (latitude != null && longitude != null)
             return "https://www.google.com/maps?q=" + latitude + "," + longitude;
