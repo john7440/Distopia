@@ -4,6 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Data Transfer Object representing a TMDB movie genre
+ * <p>
+ * Used to deserialize genre data returned by the TMDB API
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
