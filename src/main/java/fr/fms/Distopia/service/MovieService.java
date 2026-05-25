@@ -49,7 +49,8 @@ public class MovieService {
      * @param id the unique identifier of the movie
      * @return an {@link Optional} containing the found {@link Movie}, or empty if no movie is found
      */
-    public Optional<Movie> findById(Long id) {return movieRepository.findById(id);
+    public Optional<Movie> findById(Long id) {
+        return movieRepository.findById(id);
     }
 
     //-----tous les films (même supprimés)-----------------
@@ -138,10 +139,22 @@ public class MovieService {
     }
 
     //-------------chercher tous les films actifs---------------
+    /**
+     * Retrieves all active (non-deleted) movies
+     * <p>
+     * Movies are sorted alphabetically by title
+     * @return the list of active movies
+     */
     public List<Movie> getAllActive(){
         return movieRepository.findByDeletedFalse(Sort.by("title"));
     }
 
+    /**
+     * Retrieves all active (non-deleted) movies
+     * using a custom sorting configuration
+     * @param sort the sorting configuration
+     * @return the list of active movies
+     */
     public List<Movie> getAllActive(Sort sort) {
         return movieRepository.findByDeletedFalse(sort);
     }
