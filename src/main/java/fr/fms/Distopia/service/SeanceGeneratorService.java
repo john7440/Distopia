@@ -15,6 +15,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Service responsible for importing movies from TMDB
+ * and generating fictional seances<p>
+ * This service:
+ * <ul>
+ *     <li>imports currently playing TMDB movies</li>
+ *     <li>links movies to cinemas</li>
+ *     <li>generates seances over several days</li>
+ * </ul>
+ */
 @Service
 public class SeanceGeneratorService {
 
@@ -30,6 +40,16 @@ public class SeanceGeneratorService {
 
     // ----------------------- point d'entrée principal--------------------------
 
+    /**
+     * Imports currently playing movies and generates seances<p>
+     * Main workflow:
+     * <ol>
+     *     <li>imports TMDB movies</li>
+     *     <li>links movies to all cinemas</li>
+     *     <li>generates fictional seances</li>
+     * </ol>
+     * @return the generation result containing statistics and errors
+     */
     public GeneratorResult importAndGenerate() {
         List<String> errors = new ArrayList<>();
 
@@ -47,7 +67,11 @@ public class SeanceGeneratorService {
     }
 
     // -------étape 1 - import des films depuis TMDB ----------------------
-
+    /**
+     * Imports currently playing TMDB movies into the database
+     * @param errors the shared error collection
+     * @return the number of successfully imported movies
+     */
     private int importMovies(List<String> errors) {
         List<TmdbMovieDto> nowPlaying = tmdbClient.getNowPlaying();
         if (nowPlaying.isEmpty()) {
@@ -70,6 +94,13 @@ public class SeanceGeneratorService {
         return count;
     }
 
+    /**
+     * Imports a single TMDB movie into the database<p>
+     * Movies already existing locally are ignored
+     * @param tmdbMovie the TMDB movie summary
+     * @param existingTitles the set of existing local movie titles
+     * @return true if the movie was imported, otherwise false
+     */
     private boolean importSingleMovie(TmdbMovieDto tmdbMovie, Set<String> existingTitles) {
         TmdbMovieDto detail = tmdbClient.getDetail(tmdbMovie.getId());
         if (detail == null) return false;
@@ -94,7 +125,11 @@ public class SeanceGeneratorService {
 
 
     //------------étape 2 - association films/cinémas------------------------------------------
-
+    /**
+     * Associates movies without cinemas to all available cinemas
+     *
+     * @param cinemas the list of available cinemas
+     */
     private void linkMoviesToCinemas(List<Cinema> cinemas) {
         List<Long> cinemaIds = cinemas.stream().map(Cinema::getId).toList();
 
@@ -108,7 +143,13 @@ public class SeanceGeneratorService {
     }
 
     //----------------------------étape 3 - génération des séances---------------------
-
+    /**
+     * Generates fictional seances for all active movies and cinemas
+     *
+     * @param cinemas the list of cinemas
+     * @param errors the shared error collection
+     * @return the number of generated seances
+     */
     private int generateSeances(List<Cinema> cinemas, List<String> errors) {
         List<Movie> movies = movieService.getAllActive();
         if (movies.isEmpty()) {
@@ -128,6 +169,16 @@ public class SeanceGeneratorService {
         return count;
     }
 
+    /**
+     * Generates fictional seances for a movie in a cinema
+     * over seven days
+     * <p>
+     * Existing seances are ignored to avoid duplicates
+     * @param movie the movie
+     * @param cinema the cinema
+     * @param startDate the generation start date
+     * @return the number of generated seances
+     */
     public int generateSeancesForMovieAndCinema(Movie movie, Cinema cinema,
                                                  LocalDateTime startDate) {
         Set<LocalDateTime> existing = seanceService
@@ -153,6 +204,15 @@ public class SeanceGeneratorService {
         return count;
     }
 
+    /**
+     * Generates seances for a single movie
+     * across all cinemas<p>
+     * If the movie has no associated cinemas,
+     * it is automatically linked to all cinemas
+     *
+     * @param movie the movie for which seances must be generated
+     * @return the generation result containing statistics and errors
+     */
     public GeneratorResult generateForMovie(Movie movie) {
         List<String> errors = new ArrayList<>();
 
@@ -184,27 +244,53 @@ public class SeanceGeneratorService {
     }
 
     //--------------------------méthodes helpers--------------------------------
-
+    /**
+     * Extracts the main genre of a TMDB movie
+     *
+     * @param detail the TMDB movie detail
+     * @return the first genre name, or "Inconnu" if unavailable
+     */
     private String extractGenre(TmdbMovieDto detail) {
         return (detail.getGenres() != null && !detail.getGenres().isEmpty())
                 ? detail.getGenres().get(0).getName()
                 : "Inconnu";
     }
 
+    /**
+     * Builds the full TMDB poster image URL
+     * @param detail the TMDB movie detail
+     * @return the full image URL, or null if unavailable
+     */
     private String extractImageUrl(TmdbMovieDto detail) {
         return detail.getPosterPath() != null
                 ? TmdbClient.IMG_BASE + detail.getPosterPath()
                 : null;
     }
 
+    /**
+     * Parses a release date string
+     * @param raw the raw release date string
+     * @return the parsed release date, or null if invalid
+     */
     private LocalDate parseReleaseDate(String raw) {
         if (raw == null || raw.isBlank()) return null;
         try { return LocalDate.parse(raw); } catch (Exception e) { return null; }
     }
 
     //---------------------------résultat-----------------------------------------------
-
+    /**
+     * Generation result statistics
+     *
+     * @param moviesImported the number of imported movies
+     * @param seancesCreated the number of generated seances
+     * @param errors the list of generation errors
+     */
     public record GeneratorResult(int moviesImported, int seancesCreated, List<String> errors) {
-        public boolean hasErrors() { return !errors.isEmpty(); }
+        /**
+         * Indicates whether generation errors occurred
+         * @return true if at least one error exists
+         */
+        public boolean hasErrors() {
+            return !errors.isEmpty(); }
     }
 }
