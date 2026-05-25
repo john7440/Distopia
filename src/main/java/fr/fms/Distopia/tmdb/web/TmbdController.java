@@ -16,6 +16,17 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Controller responsible for TMDB movie import and TMDB-related
+ * administration features
+ * <p>
+ * This controller allows administrators to:
+ * <ul>
+ *     <li>search movies from TMDB</li>
+ *     <li>import TMDB movies into the local database</li>
+ *     <li>generate fictional seances for imported movies</li>
+ * </ul>
+ */
 @Controller
 public class TmbdController {
 
@@ -29,6 +40,15 @@ public class TmbdController {
     private SeanceGeneratorService seanceGeneratorService;
 
     // -----------------admin import-movies---------------------
+    /**
+     * Displays the TMDB movie import page
+     * <p>
+     * If a search query is provided, movies matching the query
+     * are retrieved from TMDB and added to the model
+     * @param query the TMDB search keyword
+     * @param model the Spring {@link Model} used to pass data to the view
+     * @return the TMDB administration import page
+     */
     @GetMapping("/admin/import-movies")
     public String importPage(@RequestParam(required = false)String query, Model model) {
         if (query != null && !query.isBlank()) {
@@ -41,6 +61,26 @@ public class TmbdController {
     }
 
     //--------------------importer film tmdb en bdd-------------------
+    /**
+     * Imports a TMDB movie into the local database
+     * and generates fictional seances for it<p>
+     * Imported data includes:
+     * <ul>
+     *     <li>title</li>
+     *     <li>description</li>
+     *     <li>runtime</li>
+     *     <li>genre</li>
+     *     <li>poster image</li>
+     *     <li>trailer URL</li>
+     *     <li>release date</li>
+     * </ul><p>
+     * If the movie cannot be retrieved from TMDB,
+     * an error flash message is added
+     * @param tmdbId the TMDB movie identifier
+     * @param query the optional TMDB search keyword
+     * @param ra the Spring {@link RedirectAttributes} used for flash messages
+     * @return a redirect to the TMDB import administration page
+     */
     @PostMapping("/admin/import-movie")
     public String importMovie(@RequestParam Long tmdbId,@RequestParam(required = false)String query, RedirectAttributes ra) {
         TmdbMovieDto detail = tmdbClient.getDetail(tmdbId);
