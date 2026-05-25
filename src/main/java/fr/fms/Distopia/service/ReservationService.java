@@ -88,17 +88,34 @@ public class ReservationService {
         return  reservationRepository.save(reservation);
     }
 
-
+    /**
+     * Checks whether a user already has a reservation
+     * for a specific seance
+     *
+     * @param userId the user identifier
+     * @param seanceId the seance identifier
+     * @return true if the reservation already exists, otherwise false
+     */
     public boolean existsByUserAndSeance(Long userId, Long seanceId) {
         return reservationRepository.findByUserIdAndSeanceId(userId, seanceId).isPresent();
     }
 
+    /**
+     * Retrieves the movie identifier associated with a seance
+     * @param seanceId the seance identifier
+     * @return the movie identifier, or null if the seance does not exist
+     */
     public Long getMovieIdBySeance(Long seanceId) {
         return seanceRepository.findById(seanceId)
                 .map(s -> s.getMovie().getId())
                 .orElse(null);
     }
 
+    /**
+     * Retrieves the cinema identifier associated with a seance
+     * @param seanceId the seance identifier
+     * @return the cinema identifier, or null if the seance does not exist
+     */
     public Long getCinemaIdBySeance(Long seanceId) {
         return seanceRepository.findById(seanceId)
                 .map(s -> s.getCinema().getId())
