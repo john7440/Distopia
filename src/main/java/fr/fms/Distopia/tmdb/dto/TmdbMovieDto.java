@@ -8,11 +8,10 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * DTO représentant un film retourné par l'API TMDB
- * @JsonIgnoreProperties(ignoreUnknown = true) permet d'ignorer les attributs
- * non nécessaires
+ * Data Transfer Object representing a TMDB movie
+ * <p>
+ * Used to deserialize movie data returned by the TMDB API
  */
-
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
