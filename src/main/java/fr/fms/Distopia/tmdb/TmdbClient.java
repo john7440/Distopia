@@ -13,7 +13,17 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 
-
+/**
+ * Client responsible for communicating with the TMDB API
+ * <p>
+ * This service provides methods for:
+ * <ul>
+ *     <li>searching movies</li>
+ *     <li>retrieving movie details</li>
+ *     <li>retrieving trailers</li>
+ *     <li>retrieving now-playing and upcoming movies</li>
+ * </ul>
+ */
 @Service
 public class TmdbClient {
 
@@ -26,6 +36,12 @@ public class TmdbClient {
     public static final String IMG_BASE= "https://image.tmdb.org/t/p/w500";
 
     //----------Recherche par titre-------------------
+    /**
+     * Searches movies on TMDB using a title keyword<p>
+     * Results are retrieved in French language
+     * @param query the movie title keyword
+     * @return the list of matching TMDB movies
+     */
     public List<TmdbMovieDto> search(String query){
         String encoded =  URLEncoder.encode(query, StandardCharsets.UTF_8);
         String url = BASE_URL + "/search/movie?api_key=" + apiKey + "&query=" + encoded + "&language=fr-FR&page=1";
@@ -34,6 +50,20 @@ public class TmdbClient {
     }
 
     //--------------Détail d'un film------------------------------
+    /**
+     * Retrieves detailed information for a TMDB movie<p>
+     * Returned information may include:
+     * <ul>
+     *     <li>title</li>
+     *     <li>overview</li>
+     *     <li>runtime</li>
+     *     <li>genres</li>
+     *     <li>poster path</li>
+     *     <li>release date</li>
+     * </ul>
+     * @param tmdbId the TMDB movie identifier
+     * @return the detailed TMDB movie information
+     */
     public TmdbMovieDto getDetail(Long tmdbId){
         String url =  BASE_URL + "/movie/" + tmdbId + "?api_key=" + apiKey + "&language=fr-FR";
         return restTemplate.getForObject(url, TmdbMovieDto.class);
@@ -110,6 +140,4 @@ public class TmdbClient {
         TmdbSearchResponse response = restTemplate.getForObject(url, TmdbSearchResponse.class);
         return response != null ? response.getResults() : List.of();
     }
-
-
 }
