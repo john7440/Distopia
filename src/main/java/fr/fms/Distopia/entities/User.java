@@ -15,8 +15,8 @@ import java.util.List;
 /**
  * Represents a User entity in the application
  * <p>
- * This class handles user account details, including authentication credentials
- * and role-based access control
+ * This class handles user account details, including authentication credentials,
+ * email and role-based access control
  * <p>
  * <strong>Database Note:</strong> The {@code @Table(name="users")} annotation is used
  * intentionally because "user" is often a reserved keyword in many SQL databases.
