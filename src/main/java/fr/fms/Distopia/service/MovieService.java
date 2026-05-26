@@ -6,7 +6,6 @@ import fr.fms.Distopia.dao.MovieRepository;
 import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.entities.Movie;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,13 +19,16 @@ import java.util.Optional;
 
 @Service
 public class MovieService {
-    @Autowired
-    private MovieRepository movieRepository;
-    @Autowired
-    private CinemaRepository cinemaRepository;
-    @Autowired
-    private SeanceRepository seanceRepository;
 
+    private final MovieRepository movieRepository;
+    private final CinemaRepository cinemaRepository;
+    private final SeanceRepository seanceRepository;
+
+    public MovieService(MovieRepository movieRepository, CinemaRepository cinemaRepository, SeanceRepository seanceRepository) {
+        this.movieRepository = movieRepository;
+        this.cinemaRepository = cinemaRepository;
+        this.seanceRepository = seanceRepository;
+    }
     private static final int PAGE_SIZE_ADMIN = 12;
 
     //-------les films d'un cinéma (sauf ceux supprimés)-------------
@@ -176,7 +178,7 @@ public class MovieService {
     public Page<Movie> searchAdmin(@Param("keyword") String keyword,boolean showDeleted, String sortField,
                                    String sortDir,int page) {
         Sort sort = sortDir.equals("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
-        Pageable pageable = PageRequest.of(page, 12, sort);
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE_ADMIN, sort);
         return movieRepository.searchAdmin(keyword, showDeleted,pageable);
     }
 
