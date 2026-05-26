@@ -22,12 +22,16 @@ import java.time.LocalDateTime;
  */
 @Controller
 public class SeanceController {
-    @Autowired
-    private SeanceService seanceService;
-    @Autowired
-    private MovieService movieService;
-    @Autowired
-    private CinemaService cinemaService;
+
+    private final SeanceService seanceService;
+    private final MovieService movieService;
+    private final CinemaService cinemaService;
+
+    public SeanceController(SeanceService seanceService, MovieService movieService, CinemaService cinemaService) {
+        this.seanceService = seanceService;
+        this.movieService = movieService;
+        this.cinemaService = cinemaService;
+    }
 
     private static final String SEANCES =  "seances";
 
