@@ -6,6 +6,7 @@ import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
+import fr.fms.Distopia.web.form.MovieForm;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +20,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,20 +33,21 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MovieControllerTest {
+
     @Mock
     private MovieService movieService;
-
     @Mock
     private CinemaService cinemaService;
-
     @Mock
     private SeanceService seanceService;
-
     @Mock
     private TmdbClient  tmdbClient;
-
     @Mock
     private Model model;
+    @Mock
+    private BindingResult bindingResult;
+    @Mock
+    private RedirectAttributes redirectAttributes;
 
     @InjectMocks
     private MovieController movieController;
@@ -77,6 +81,27 @@ class MovieControllerTest {
     void clearContext() {
         // Nettoie le SecurityContext après chaque test pour éviter les effets de bord
         SecurityContextHolder.clearContext();
+    }
+
+    /**
+     * Create a valid Movie Form for test
+     * @return the form
+     */
+    private MovieForm validMovieForm() {
+        MovieForm form = new MovieForm();
+
+        form.setId(null);
+        form.setTmdbId(null);
+        form.setTitle("Inception");
+        form.setDescription("Description");
+        form.setDuration(178);
+        form.setGenre("Sci-Fi");
+        form.setCinemaIds(List.of(1L));
+        form.setImageUrl("image.url");
+        form.setTrailerUrl("trailer.url");
+        form.setReleaseDate(LocalDate.of(2025, 7, 14));
+
+        return form;
     }
 
     private void authenticate(User user) {
@@ -180,14 +205,16 @@ class MovieControllerTest {
     @DisplayName("saveMovie() - saves movie and redirects for admin user")
     void saveMovie_ShouldSaveMovieAndRedirectsForAdminUser(){
         authenticate(adminUser);
-        LocalDate releaseDate = LocalDate.of(2025, 7, 14);
+        MovieForm form = validMovieForm();
 
-        String view = movieController.saveMovie(null,"Inception","Description",
-                178, "Sci-Fi",List.of(1L), "image.url", "trailer.url", releaseDate, null);
+        when(bindingResult.hasErrors()).thenReturn(false);
+
+        String view = movieController.saveMovie(form,bindingResult, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/movies");
-        verify(movieService).save(null,null,"Inception", "Description",178 ,"Sci-Fi","image.url",
-                "trailer.url", List.of(1L),releaseDate);
+        verify(movieService).save(null,null,"Inception", "Description", 178,
+                "Sci-Fi", "image.url", "trailer.url", List.of(1L), LocalDate.of(2025,7,14));
+        verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
     }
 
 
