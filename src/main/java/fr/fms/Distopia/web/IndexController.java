@@ -1,7 +1,5 @@
 package fr.fms.Distopia.web;
 
-import fr.fms.Distopia.service.CinemaService;
-import fr.fms.Distopia.service.TownService;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -46,5 +44,4 @@ public class IndexController {
         }
         return "index";
     }
-
 }
