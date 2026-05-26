@@ -9,7 +9,6 @@ import jakarta.transaction.Transactional;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -32,10 +31,14 @@ import java.util.regex.Pattern;
  */
 @Service
 public class CinemaCsvImporter {
-    @Autowired
-    private CinemaRepository cinemaRepository;
-    @Autowired
-    private TownRepository townRepository;
+
+    private final CinemaRepository cinemaRepository;
+    private final TownRepository townRepository;
+
+    public CinemaCsvImporter(CinemaRepository cinemaRepository, TownRepository townRepository) {
+        this.cinemaRepository = cinemaRepository;
+        this.townRepository = townRepository;
+    }
 
     @Value("classpath:data/cinemas.csv")
     private Resource csvFile;

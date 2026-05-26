@@ -36,7 +36,7 @@ class CinemaCsvImporterTest {
         cinemaRepository = mock(CinemaRepository.class);
         townRepository = mock(TownRepository.class);
 
-        cinemaCsvImporter = new CinemaCsvImporter();
+        cinemaCsvImporter = new CinemaCsvImporter(cinemaRepository, townRepository);
 
         ReflectionTestUtils.setField(cinemaCsvImporter, "cinemaRepository", cinemaRepository);
         ReflectionTestUtils.setField(cinemaCsvImporter, "townRepository", townRepository);
