@@ -4,7 +4,6 @@ import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.service.CinemaCsvImporter;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.TownService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -24,14 +23,15 @@ import java.util.List;
 @Controller
 public class CinemaController {
 
-    @Autowired
-    private CinemaService cinemaService;
+    private final CinemaService cinemaService;
+    private final TownService townService;
+    private final CinemaCsvImporter cinemaCsvImporter;
 
-    @Autowired
-    private TownService townService;
-
-    @Autowired
-    private CinemaCsvImporter cinemaCsvImporter;
+    public CinemaController(CinemaService cinemaService, TownService townService, CinemaCsvImporter cinemaCsvImporter) {
+        this.cinemaService = cinemaService;
+        this.townService = townService;
+        this.cinemaCsvImporter = cinemaCsvImporter;
+    }
 
     private static final String CINEMAS = "cinemas";
     private static final String ADMIN_REDIRECT = "redirect:/admin/cinemas";
