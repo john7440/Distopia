@@ -21,6 +21,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -217,6 +218,23 @@ class MovieControllerTest {
         verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
     }
 
+    @Test
+    @DisplayName("saveMovie() - redirects with error when form is invalid")
+    void saveMovie_ShouldRedirectWithError_WhenFormIsInvalid() {
+        authenticate(adminUser);
+        MovieForm form = validMovieForm();
+        ObjectError error = new ObjectError("movieForm", "Le titre est obligatoire");
+
+        when(bindingResult.hasErrors()).thenReturn(true);
+        when(bindingResult.getAllErrors()).thenReturn(List.of(error));
+
+        String view = movieController.saveMovie(form, bindingResult, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/movies");
+        verify(redirectAttributes).addFlashAttribute("error", "Le titre est obligatoire");
+        verify(movieService, never()).save(any(), any(), any(), any(), anyInt(), any(),
+                any(), any(), any(), any());
+    }
 
     //---------------------------tests for deleteMovie()--------------------------
     @Test
