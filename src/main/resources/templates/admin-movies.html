@@ -240,27 +240,28 @@
 
                                             <div class="modal-body">
                                                 <input type="hidden" name="id" th:value="${m.id}">
+                                                <input type="hidden" name="tmdbId" th:value="${m.tmdbId}">
                                                 <div class="row g-3">
 
                                                     <!-- title-->
                                                     <div class="col-md-6">
                                                         <label class="form-label">Titre</label>
                                                         <input type="text" name="title" class="form-control"
-                                                               th:value="${m.title}" required>
+                                                               th:value="${m.title}" maxlength="150" required>
                                                     </div>
 
                                                     <!-- genre -->
                                                     <div class="col-md-6">
                                                         <label class="form-label">Genre</label>
                                                         <input type="text" name="genre" class="form-control"
-                                                               th:value="${m.genre}">
+                                                               th:value="${m.genre}" maxlength="80">
                                                     </div>
 
                                                     <!-- duration -->
                                                     <div class="col-md-4">
                                                         <label class="form-label">Durée (min)</label>
                                                         <input type="number" name="duration" class="form-control"
-                                                               th:value="${m.duration}">
+                                                               th:value="${m.duration}" min="0" max="600">
                                                     </div>
 
                                                     <!-- release date-->
@@ -275,19 +276,20 @@
                                                     <div class="col-md-4">
                                                         <label class="form-label">Image URL</label>
                                                         <input type="text" name="imageUrl" class="form-control"
-                                                               th:value="${m.imageUrl}">
+                                                               th:value="${m.imageUrl}" maxlength="500">
                                                     </div>
 
                                                     <!-- Trailer -->
                                                     <div class="col-md-6">
                                                         <label class="form-label">Trailer URL</label>
                                                         <input type="text" name="trailerUrl" class="form-control"
-                                                               th:value="${m.trailerUrl}">
+                                                               th:value="${m.trailerUrl}" maxlength="500">
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label class="form-label">Description</label>
-                                                        <input type="text" name="description" class="form-control"
-                                                               th:value="${m.description}">
+                                                        <textarea name="description" class="form-control" rows="3"
+                                                               maxlength="5000" th:value="${m.description}">
+                                                        </textarea>
                                                     </div>
 
                                                 </div>
