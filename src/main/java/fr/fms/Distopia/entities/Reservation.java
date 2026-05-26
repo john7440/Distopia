@@ -1,6 +1,7 @@
 package fr.fms.Distopia.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,7 @@ public class Reservation implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false)
     private LocalDateTime reservedAt;
 
@@ -36,6 +38,8 @@ public class Reservation implements Serializable {
     @ManyToOne
     @JoinColumn(name = "seance_id", nullable = false)
     private Seance seance;
+
+    @Min(value = 1, message = "La quantité doit être au moins de 1")
     @Column(nullable = false)
     private int quantity;
 
