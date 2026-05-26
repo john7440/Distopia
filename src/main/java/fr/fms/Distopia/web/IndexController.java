@@ -1,7 +1,6 @@
 package fr.fms.Distopia.web;
 
 import fr.fms.Distopia.tmdb.TmdbClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,8 +12,12 @@ import java.util.List;
  */
 @Controller
 public class IndexController {
-    @Autowired
-    private TmdbClient tmdbClient;
+
+    private final TmdbClient tmdbClient;
+
+    public IndexController(TmdbClient tmdbClient){
+        this.tmdbClient = tmdbClient;
+    }
 
     /**
      * Displays the home page of the application
