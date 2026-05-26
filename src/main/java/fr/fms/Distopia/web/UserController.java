@@ -16,8 +16,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-
-    //-------------affichage page de connexion -------------------
+    //-------------affichage modale de connexion -------------------
     /**
      * Displays the login modal
      * @return the redirection to the modal
@@ -27,8 +26,7 @@ public class UserController {
         return "redirect:/?openLogin";
     }
 
-    //----------------------------inscription-----------------------------------------
-
+    //------------------------modale inscription---------------------------------
     /**
      * Displays the registration form (modal)
      * @return the redirection to the modal
@@ -38,7 +36,17 @@ public class UserController {
         return "redirect:/?openRegister";
     }
 
-
+    /**
+     * Registers a new user account<p>
+     * If registration fails (for example because the username
+     * or email already exists), the user is redirected
+     * to the registration form with an error flag
+     *
+     * @param username the username chosen by the user
+     * @param email the user email address
+     * @param password the raw user password
+     * @return a redirect to the homepage with registration status flags
+     */
     @PostMapping("/register")
     public String register(@RequestParam String username,
                            @RequestParam String email,
