@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -68,21 +67,21 @@ class CinemaControllerTest {
 
         Page<Cinema> cinemaPage = new PageImpl<>(List.of());
 
-        when(cinemaService.searchPublic("pathe", 1L, "64", 0))
+        when(cinemaService.searchPublic("Ciné", 1L, "64", 0))
                 .thenReturn(cinemaPage);
         when(cinemaService.getAllDepartments()).thenReturn(List.of());
         when(townService.getAll()).thenReturn(List.of());
 
         mockMvc.perform(get("/cinemas")
                         .with(user("user").roles("USER"))
-                        .param("keyword", "pathe")
+                        .param("keyword", "Ciné")
                         .param("townId", "1")
                         .param("department", "64"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("cinemas"))
                 .andExpect(model().attribute("selectedTownId", 1L))
                 .andExpect(model().attribute("selectedDepartment", "64"))
-                .andExpect(model().attribute("keyword", "pathe"));
+                .andExpect(model().attribute("keyword", "Ciné"));
     }
 
     //------------------------test for import-cinemas------------------
@@ -139,7 +138,7 @@ class CinemaControllerTest {
 
         Cinema cinema = new Cinema();
         cinema.setId(1L);
-        cinema.setName("Pathé");
+        cinema.setName("Ciné");
 
         Page<Cinema> cinemaPage = new PageImpl<>(List.of());
         when(cinemaService.searchAdmin(any(), any(), any(), anyInt()))
@@ -179,6 +178,28 @@ class CinemaControllerTest {
                 eq(1L), eq("https://ugc.fr"), eq(43.48), eq(-1.57),
                 eq("image.jpg"), eq("64")
         );
+    }
+
+    @Test
+    @DisplayName("/admin/saveCinema - Should redirect with error when form is invalid")
+    void adminSaveCinema_ShouldRedirectWithError_WhenFormIsInvalid() throws Exception {
+
+        mockMvc.perform(post("/admin/saveCinema")
+                        .with(csrf())
+                        .with(user("admin").roles("ADMIN"))
+                        .param("name", "")
+                        .param("address", "26 rue du test")
+                        .param("townId", "1")
+                        .param("website", "https://ugc.fr")
+                        .param("latitude", "43.48")
+                        .param("longitude", "-1.57")
+                        .param("imageUrl", "image.jpg")
+                        .param("department", "64"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"))
+                .andExpect(flash().attributeExists("error"));
+
+        verify(cinemaService, never()).save(any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
     //----------test for delete()----------------------------------
