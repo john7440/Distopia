@@ -3,7 +3,6 @@ package fr.fms.Distopia.web;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
 import fr.fms.Distopia.service.ReservationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,8 +16,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  */
 @Controller
 public class ReservationController {
-    @Autowired
-    private ReservationService reservationService;
+
+    private final ReservationService reservationService;
+
+    public ReservationController(ReservationService reservationService){
+        this.reservationService = reservationService;
+    }
 
     //----affichage mes reservations-------------------
     /**
