@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -49,14 +48,9 @@ class CinemaControllerTest {
 
         Page<Cinema> cinemaPage = new PageImpl<>(List.of(cinema));
 
-        given(cinemaService.searchPublic(any(), any(), any(), anyInt()))
-                .willReturn(cinemaPage);
-
-        given(cinemaService.getAllDepartments())
-                .willReturn(List.of("64", "75"));
-
-        given(townService.getAll())
-                .willReturn(List.of());
+        when(cinemaService.searchPublic(any(), any(), any(), anyInt())).thenReturn(cinemaPage);
+        when(cinemaService.getAllDepartments()).thenReturn(List.of("64", "75"));
+        when(townService.getAll()).thenReturn(List.of());
 
         mockMvc.perform(get("/cinemas")
                         .with(user("user").roles("USER")))
@@ -76,9 +70,7 @@ class CinemaControllerTest {
 
         when(cinemaService.searchPublic("pathe", 1L, "64", 0))
                 .thenReturn(cinemaPage);
-
         when(cinemaService.getAllDepartments()).thenReturn(List.of());
-
         when(townService.getAll()).thenReturn(List.of());
 
         mockMvc.perform(get("/cinemas")
@@ -104,7 +96,7 @@ class CinemaControllerTest {
         when(cinemaCsvImporter.importFromCsv()).thenReturn(result);
 
         mockMvc.perform(get("/admin/import-cinemas")
-                        .with(user("admin").roles("ADMIN")))
+                 .with(user("admin").roles("ADMIN")))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/cinemas"))
                 .andExpect(flash().attributeExists("message"));
