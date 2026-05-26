@@ -53,17 +53,19 @@ public class SeanceController {
 
     //-------------page de gestion des séances------------
     /**
-     * Displays the seance management dashboard for administrators
+     * Displays the seance administration page
      * <p>
-     * <strong>Security:</strong> This endpoint requires the user to be logged in with
-     * an "ADMIN" role. Unauthorized users are redirected away
-     * <p>
-     * The method loads all seances and movies to populate the management tables and dropdowns.
-     * If an {@code editId} is provided, it fetches that specific seance and adds it to the
-     * model to pre-populate the edit form
-     *
-     * @param model   the Spring {@link Model} used to pass data to the view
-     * @return the view name "admin-seances", or a redirection URL if unauthorized
+     * Supports:
+     * <ul>
+     *     <li>movie keyword search</li>
+     *     <li>cinema filtering</li>
+     *     <li>pagination</li>
+     * </ul>
+     * @param keyword the movie title search keyword
+     * @param cinemaId the selected cinema identifier
+     * @param page the requested page number
+     * @param model the Spring {@link Model} used to pass data to the view
+     * @return the seance administration page
      */
     @GetMapping("/admin/seances")
     public String adminSeances(@RequestParam(required = false)    String  keyword,
