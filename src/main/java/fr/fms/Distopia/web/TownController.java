@@ -20,7 +20,14 @@ public class TownController {
     private TownRepository townRepository;
 
     /**
-     * Displays the admin town management page
+     * Displays the town administration page<p>
+     * If an edit identifier is provided,
+     * the corresponding town is loaded and added to the model
+     * for edition
+     *
+     * @param editId the identifier of the town being edited
+     * @param model the Spring {@link Model} used to pass data to the view
+     * @return the town administration page
      */
     @GetMapping("/admin/towns")
     public String towns(@RequestParam(required = false) Long editId, Model model) {
@@ -32,7 +39,6 @@ public class TownController {
     }
 
     //------méthode pour ajouter ou modifier une ville------------------------
-
     /**
      * Creates a new Town or updates an existing one
      *
@@ -48,7 +54,6 @@ public class TownController {
     }
 
     //---------------méthode pour supprimer une ville----------------
-
     /**
      * Deletes a Town by its id
      *
