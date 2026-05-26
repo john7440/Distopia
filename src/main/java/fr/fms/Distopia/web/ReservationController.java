@@ -3,8 +3,8 @@ package fr.fms.Distopia.web;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
 import fr.fms.Distopia.service.ReservationService;
-import fr.fms.Distopia.utils.SessionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,8 +31,7 @@ public class ReservationController {
      * @return the view name "my-reservations", or a redirection URL to the login page if unauthenticated
      */
     @GetMapping("/my-reservations")
-    public String myReservations(Model model){
-        User user = SessionUtils.getConnectedUser();
+    public String myReservations(@AuthenticationPrincipal User user, Model model){
         model.addAttribute("reservations", reservationService.getByUser(user.getId()));
         return "my-reservations";
     }
@@ -55,9 +54,8 @@ public class ReservationController {
      */
     @PostMapping("/reserve")
     public String reserveSeance(@RequestParam Long seanceId, @RequestParam(defaultValue = "1") int quantity,
-                                @RequestParam(required = false) Boolean confirmed, RedirectAttributes redirectAttributes){
-
-        User user = SessionUtils.getConnectedUser();
+                                @RequestParam(required = false) Boolean confirmed,
+                                @AuthenticationPrincipal User user,RedirectAttributes redirectAttributes){
 
         boolean alreadyBooked = reservationService.existsByUserAndSeance(user.getId(), seanceId);
 
