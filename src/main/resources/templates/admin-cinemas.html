@@ -351,6 +351,8 @@
                                    name="name"
                                    class="form-control"
                                    th:value="${cinemaToEdit.name}"
+                                   minlength="2"
+                                   maxlength="120"
                                    required/>
                         </div>
 
@@ -360,7 +362,9 @@
                             <input type="text"
                                    name="address"
                                    class="form-control"
-                                   th:value="${cinemaToEdit.address}"/>
+                                   th:value="${cinemaToEdit.address}"
+                                   maxlength="255"
+                                   required/>
                         </div>
 
                         <div class="row g-3 mb-3">
@@ -388,6 +392,8 @@
                                        name="department"
                                        class="form-control"
                                        maxlength="3"
+                                       pattern="^$|^\d{2,3}$"
+                                       title="Le département doit contenir 2 ou 3 chiffres"
                                        placeholder="ex: 75"
                                        th:value="${cinemaToEdit.department}"/>
                             </div>
@@ -402,6 +408,7 @@
                                    name="website"
                                    class="form-control"
                                    placeholder="https://..."
+                                   maxlength="500"
                                    th:value="${cinemaToEdit.website}"/>
                         </div>
 
@@ -415,6 +422,7 @@
                                    class="form-control"
                                    placeholder="images/cinemas/monimage.jpg  ou  https://..."
                                    th:value="${cinemaToEdit.imageUrl}"
+                                   maxlength="500"
                                    pattern="^(https?://.+|[^/].+\.(jpg|jpeg|png|webp|gif))$"
                                    title="Chemin relatif (images/cinemas/photo.jpg) ou URL complète (https://...)"/>
 
@@ -454,6 +462,8 @@
                                        name="latitude"
                                        class="form-control"
                                        step="0.0000001"
+                                       min="-90"
+                                       max="90"
                                        placeholder="ex: 48.8566"
                                        th:value="${cinemaToEdit.latitude}"/>
                             </div>
@@ -465,6 +475,8 @@
                                        name="longitude"
                                        class="form-control"
                                        step="0.0000001"
+                                       min="-180"
+                                       max="180"
                                        placeholder="ex: 2.3522"
                                        th:value="${cinemaToEdit.longitude}"/>
                             </div>
