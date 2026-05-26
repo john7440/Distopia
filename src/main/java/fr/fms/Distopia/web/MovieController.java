@@ -7,17 +7,16 @@ import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
+import fr.fms.Distopia.web.form.MovieForm;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,6 +40,7 @@ public class MovieController {
     }
 
     private static final String MOVIES = "movies";
+    private static final String REDIRECT_ADMIN_MOVIES = "redirect:/admin/movies";
 
     //---------------films d'un cinéma--------------------
     /**
@@ -115,29 +115,42 @@ public class MovieController {
 
     //----------créer ou modifier un film-----------------------------
     /**
-     * Creates or updates a movie
+     * Creates or updates a movie<p>
+     * The submitted movie form is validated before saving.
+     * If validation fails, the user is redirected back to the movie administration page
+     * with an error message stored in flash attributes
      *
-     * @param id the movie identifier, or null for creation
-     * @param title the movie title
-     * @param description the movie description
-     * @param duration the movie duration in minutes
-     * @param genre the movie genre
-     * @param cinemaIds the associated cinema identifiers
-     * @param imageUrl the movie poster URL
-     * @param trailerUrl the movie trailer URL
-     * @param releaseDate the movie release date
-     * @param tmdbId the TMDB movie identifier
+     * @param form the validated movie form containing movie data
+     * @param bindingResult the validation result for the submitted form
+     * @param redirectAttributes the Spring {@link RedirectAttributes} used to pass flash messages
      * @return a redirect to the movie administration page
      */
     @PostMapping("/admin/saveMovie")
-    public String saveMovie(@RequestParam(required = false) Long id, @RequestParam String title,
-                            @RequestParam String description, @RequestParam int duration, @RequestParam String genre,
-                            @RequestParam(required = false) List<Long> cinemaIds,
-                            @RequestParam(required = false) String imageUrl,@RequestParam(required = false) String trailerUrl,
-                            @RequestParam(required = false)LocalDate releaseDate,
-                            @RequestParam(required = false) Long tmdbId){
-        movieService.save(id, tmdbId, title, description, duration, genre, imageUrl,trailerUrl,cinemaIds, releaseDate);
-        return "redirect:/admin/movies";
+    public String saveMovie(@Valid @ModelAttribute MovieForm form,
+                            BindingResult bindingResult,
+                            RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            String errorMessage = bindingResult.getAllErrors().isEmpty()
+                    ? "Données invalides"
+                    : bindingResult.getAllErrors().get(0).getDefaultMessage();
+            redirectAttributes.addFlashAttribute("error", errorMessage);
+
+            return REDIRECT_ADMIN_MOVIES;
+        }
+        movieService.save(
+                form.getId(),
+                form.getTmdbId(),
+                form.getTitle(),
+                form.getDescription(),
+                form.getDuration(),
+                form.getGenre(),
+                form.getImageUrl(),
+                form.getTrailerUrl(),
+                form.getCinemaIds(),
+                form.getReleaseDate()
+        );
+        return REDIRECT_ADMIN_MOVIES;
     }
 
     //--------suppression d'un film --------------
@@ -156,7 +169,7 @@ public class MovieController {
     @GetMapping("/admin/deleteMovie")
     public String deleteMovie(@RequestParam Long id){
         movieService.softDelete(id);
-        return "redirect:/admin/movies";
+        return REDIRECT_ADMIN_MOVIES;
     }
 
     /**
