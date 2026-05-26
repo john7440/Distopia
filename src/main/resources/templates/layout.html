@@ -273,31 +273,59 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Nom d'utilisateur</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" name="username" class="form-control"
-                                   placeholder="Choisissez un identifiant" required>
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text"
+                                   name="username"
+                                   class="form-control"
+                                   placeholder="Choisissez un identifiant"
+                                   minlength="3"
+                                   maxlength="50"
+                                   required>
                         </div>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Email</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                            <input type="email" name="email" class="form-control"
-                                   placeholder="votre@email.com" required>
+                            <span class="input-group-text">
+                            <i class="bi bi-envelope"></i>
+                            </span>
+                                <input type="email"
+                                       name="email"
+                                       class="form-control"
+                                       placeholder="votre@email.com"
+                                       maxlength="120"
+                                       required>
                         </div>
                     </div>
+
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Mot de passe</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input type="password" name="password" class="form-control"
-                                   placeholder="Minimum 6 caractères" required>
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input type="password"
+                                   name="password"
+                                   class="form-control"
+                                   placeholder="Minimum 6 caractères"
+                                   minlength="6"
+                                   maxlength="100"
+                                   required>
                         </div>
                     </div>
+
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary w-50">S'inscrire</button>
-                        <button type="button" class="btn btn-danger w-50"
-                                data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary w-50">
+                            S'inscrire
+                        </button>
+                        <button type="button"
+                                class="btn btn-danger w-50"
+                                data-bs-dismiss="modal">
+                            Annuler
+                        </button>
                     </div>
                 </form>
 
@@ -329,15 +357,22 @@
         </div>
     </div>
 
-    <!-- username already exists -->
-    <div id="toastRegisterError" class="toast align-items-center text-bg-danger border-0" role="alert">
+    <!-- register error -->
+    <div id="toastRegisterError"
+         class="toast align-items-center text-bg-danger border-0"
+         role="alert"
+         th:if="${error}">
         <div class="d-flex">
             <div class="toast-body">
                 <i class="bi bi-exclamation-triangle me-2"></i>
-                Ce nom d'utilisateur est déjà pris
+                <span th:text="${error}">
+                Erreur lors de l'inscription
+            </span>
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                    data-bs-dismiss="toast"></button>
+            <button type="button"
+                    class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast">
+            </button>
         </div>
     </div>
 
