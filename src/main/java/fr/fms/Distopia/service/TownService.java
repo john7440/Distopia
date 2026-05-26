@@ -4,7 +4,6 @@ import fr.fms.Distopia.dao.CinemaRepository;
 import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.entities.Town;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,11 +11,13 @@ import java.util.List;
 @Service
 public class TownService {
 
-    @Autowired
-    private TownRepository townRepository;
+    private final TownRepository townRepository;
+    private final CinemaRepository cinemaRepository;
 
-    @Autowired
-    private CinemaRepository cinemaRepository;
+    public TownService(TownRepository townRepository,CinemaRepository cinemaRepository) {
+        this.townRepository = townRepository;
+        this.cinemaRepository = cinemaRepository;
+    }
 
     //----------------------methode pour trouver toutes les villes-----------------------
     /**
