@@ -6,7 +6,6 @@ import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.entities.Seance;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,12 +17,16 @@ import java.util.Optional;
 
 @Service
 public class SeanceService {
-    @Autowired
-    private SeanceRepository seanceRepository;
-    @Autowired
-    private MovieRepository movieRepository;
-    @Autowired
-    private CinemaRepository cinemaRepository;
+
+    private final SeanceRepository seanceRepository;
+    private final MovieRepository movieRepository;
+    private final CinemaRepository cinemaRepository;
+
+    public SeanceService(SeanceRepository seanceRepository, MovieRepository movieRepository, CinemaRepository cinemaRepository) {
+        this.seanceRepository = seanceRepository;
+        this.movieRepository = movieRepository;
+        this.cinemaRepository = cinemaRepository;
+    }
 
     private static final int PAGE_SIZE_ADMIN = 20;
 
