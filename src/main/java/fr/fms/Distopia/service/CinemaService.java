@@ -5,7 +5,6 @@ import fr.fms.Distopia.dao.MovieRepository;
 import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.entities.Cinema;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,13 +17,16 @@ import java.util.Optional;
 
 @Service
 public class CinemaService {
-    @Autowired
-    private CinemaRepository cinemaRepository;
-    @Autowired
-    private TownRepository townRepository;
-    @Autowired
-    private MovieRepository movieRepository;
 
+    private final CinemaRepository cinemaRepository;
+    private final TownRepository townRepository;
+    private final MovieRepository movieRepository;
+
+    public CinemaService(CinemaRepository cinemaRepository, TownRepository townRepository, MovieRepository movieRepository) {
+        this.cinemaRepository = cinemaRepository;
+        this.townRepository = townRepository;
+        this.movieRepository = movieRepository;
+    }
 
     //-------find by id--------------
     /**
