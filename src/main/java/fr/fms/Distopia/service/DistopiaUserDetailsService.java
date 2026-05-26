@@ -1,7 +1,6 @@
 package fr.fms.Distopia.service;
 
 import fr.fms.Distopia.dao.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,8 +14,12 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class DistopiaUserDetailsService implements UserDetailsService {
-    @Autowired
-    private UserRepository userRepository;
+
+    private final UserRepository userRepository;
+
+    public  DistopiaUserDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     /**
      * Loads a user using their username
