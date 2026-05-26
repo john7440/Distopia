@@ -2,7 +2,6 @@ package fr.fms.Distopia.web;
 
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,8 +12,12 @@ import java.util.Optional;
 @Controller
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
 
     //-------------affichage modale de connexion -------------------
     /**
