@@ -1,6 +1,8 @@
 package fr.fms.Distopia.web;
 
 import fr.fms.Distopia.tmdb.TmdbClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,8 @@ import java.util.List;
  */
 @Controller
 public class IndexController {
+
+    private static final Logger logger = LoggerFactory.getLogger(IndexController.class);
 
     private final TmdbClient tmdbClient;
 
@@ -39,8 +43,9 @@ public class IndexController {
             model.addAttribute("nowPlaying", tmdbClient.getNowPlaying().stream().limit(10).toList());
             model.addAttribute("thisWeek",tmdbClient.getThisWeek());
             model.addAttribute("upcoming", tmdbClient.getUpcoming().stream().limit(10).toList());
+            logger.info("TMDB homepage movies loaded successfully");
         } catch (Exception e) {
-            System.err.println("Erreur TMDB index : " + e.getMessage());
+            logger.error("Failed to load TMDB homepage movies", e);
             model.addAttribute("nowPlaying", List.of());
             model.addAttribute("thisWeek",   List.of());
             model.addAttribute("upcoming",   List.of());
