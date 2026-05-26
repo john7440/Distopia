@@ -3,9 +3,11 @@ package fr.fms.Distopia.web;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
 import fr.fms.Distopia.service.ReservationService;
+import jakarta.validation.constraints.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  * Controller responsible for handling user reservations and related web requests
  */
 @Controller
+@Validated
 public class ReservationController {
 
     private final ReservationService reservationService;
@@ -56,7 +59,9 @@ public class ReservationController {
      * @return a redirection URL to the user's reservations page, or to the login page if unauthenticated
      */
     @PostMapping("/reserve")
-    public String reserveSeance(@RequestParam Long seanceId, @RequestParam(defaultValue = "1") int quantity,
+    public String reserveSeance(@RequestParam Long seanceId,
+                                @Min(value = 1, message = "La quantité doit être au moins de 1")
+                                @RequestParam(defaultValue = "1") int quantity,
                                 @RequestParam(required = false) Boolean confirmed,
                                 @AuthenticationPrincipal User user,RedirectAttributes redirectAttributes){
 
