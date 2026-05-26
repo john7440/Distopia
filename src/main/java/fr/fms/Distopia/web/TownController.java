@@ -3,7 +3,6 @@ package fr.fms.Distopia.web;
 import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.service.TownService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,11 +12,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class TownController {
 
-    @Autowired
-    private TownService townService;
+    private final TownService townService;
+    private final TownRepository townRepository;
 
-    @Autowired
-    private TownRepository townRepository;
+    public TownController(TownService townService, TownRepository townRepository) {
+        this.townService = townService;
+        this.townRepository = townRepository;
+    }
 
     /**
      * Displays the town administration page<p>
