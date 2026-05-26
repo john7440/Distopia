@@ -7,7 +7,6 @@ import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -27,14 +26,19 @@ import java.util.Optional;
  */
 @Controller
 public class MovieController {
-    @Autowired
-    private MovieService movieService;
-    @Autowired
-    private CinemaService cinemaService;
-    @Autowired
-    private SeanceService seanceService;
-    @Autowired
-    private TmdbClient  tmdbClient;
+
+    private final MovieService movieService;
+    private final CinemaService cinemaService;
+    private final SeanceService seanceService;
+    private final TmdbClient  tmdbClient;
+
+    public MovieController(MovieService movieService,CinemaService cinemaService,SeanceService seanceService,
+                           TmdbClient tmdbClient){
+        this.movieService = movieService;
+        this.cinemaService = cinemaService;
+        this.seanceService = seanceService;
+        this.tmdbClient = tmdbClient;
+    }
 
     private static final String MOVIES = "movies";
 
