@@ -1,6 +1,7 @@
 package fr.fms.Distopia.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,12 +34,22 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank(message = "Le nom d'utilisateur est obligatoire")
+    @Size(min = 3, max = 50, message = "Le nom d'utilisateur doit contenir entre 3 et 50 caractères")
     @Column(nullable = false, unique = true)
     private String username;
+
+    @NotBlank(message = "Le mot de passe est obligatoire")
     @Column(nullable = false)
     private String password;
-    @Column(unique = true)
+
+    @NotBlank(message = "L'email est obligatoire")
+    @Email(message = "L'email doit être valide")
+    @Size(max = 120, message = "L'email ne doit pas dépasser 120 caractères")
+    @Column(nullable = false,unique = true)
     private String email;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER;
