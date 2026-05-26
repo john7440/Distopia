@@ -5,7 +5,6 @@ import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,10 +27,18 @@ import java.util.stream.Collectors;
 @Service
 public class SeanceGeneratorService {
 
-    @Autowired private TmdbClient     tmdbClient;
-    @Autowired private MovieService   movieService;
-    @Autowired private SeanceService  seanceService;
-    @Autowired private CinemaService  cinemaService;
+    private final TmdbClient tmdbClient;
+    private final MovieService movieService;
+    private final SeanceService seanceService;
+    private final CinemaService cinemaService;
+
+    public SeanceGeneratorService(TmdbClient tmdbClient, MovieService movieService,SeanceService seanceService,
+                                  CinemaService cinemaService) {
+        this.tmdbClient = tmdbClient;
+        this.movieService = movieService;
+        this.seanceService = seanceService;
+        this.cinemaService = cinemaService;
+    }
 
     private static final int[]    HOURS  = {14, 17, 20};
     private static final int[]    MINS   = {0,  30, 45};
