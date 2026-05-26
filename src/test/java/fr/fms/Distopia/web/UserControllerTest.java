@@ -11,8 +11,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.validation.BindingResult;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,6 +58,22 @@ class UserControllerTest {
         assertThat(view).isEqualTo("redirect:/?registered");
         verify(userService).register("john", "john@mail.com", "password123");
         verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
+    }
+
+    @Test
+    @DisplayName("register() - redirects with error when form validation fails")
+    void register_ShouldRedirectWithError_WhenFormValidationFails() {
+        ObjectError error = new ObjectError("registerForm", "Le mot de passe est obligatoire");
+
+        when(bindingResult.hasErrors()).thenReturn(true);
+        when(bindingResult.getAllErrors()).thenReturn(List.of(error));
+
+        String view = userController.register(form, bindingResult, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/?openRegister&registerError");
+        verify(redirectAttributes).addFlashAttribute(
+                        "error", "Le mot de passe est obligatoire");
+        verify(userService, never()).register(any(), any(), any());
     }
 
 }
