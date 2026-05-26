@@ -8,7 +8,6 @@ import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,12 +15,17 @@ import java.util.List;
 
 @Service
 public class ReservationService {
-    @Autowired
-    private ReservationRepository reservationRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private SeanceRepository seanceRepository;
+
+    private final ReservationRepository reservationRepository;
+    private final UserRepository userRepository;
+    private final SeanceRepository seanceRepository;
+
+    public  ReservationService(ReservationRepository reservationRepository, UserRepository userRepository,
+                               SeanceRepository seanceRepository) {
+        this.reservationRepository = reservationRepository;
+        this.userRepository = userRepository;
+        this.seanceRepository = seanceRepository;
+    }
 
     //--------reservations d'un utilisateur--------
     /**
