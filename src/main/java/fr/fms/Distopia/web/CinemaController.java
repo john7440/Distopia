@@ -34,19 +34,25 @@ public class CinemaController {
     private CinemaCsvImporter cinemaCsvImporter;
 
     private static final String CINEMAS = "cinemas";
+    private static final String ADMIN_REDIRECT = "redirect:/admin/cinemas";
 
     //---------pour visiteur — cinémas d'une ville-----------------
     /**
-     * Handles the visitor request to display a list of cinemas
-     * <p>
-     * The results can be optionally filtered by a specific town and/or a search keyword.
-     * The method populates the model with the list of available towns for the filter dropdown,
-     * the filtered list of cinemas, and the current search criteria to retain the form's state in the view
+     * Displays public cinemas with optional filters<p>
+     * Supported filters:
+     * <ul>
+     *     <li>town</li>
+     *     <li>keyword</li>
+     *     <li>department</li>
+     * </ul><p>
+     * Note: results are paginated
      *
-     * @param townId  the unique identifier of the town to filter by (optional)
-     * @param keyword the search term to filter cinemas by name or address (optional)
-     * @param model   the Spring {@link Model} used to pass data to the view
-     * @return the view name "cinemas"
+     * @param townId the selected town identifier
+     * @param keyword the keyword used for cinema search
+     * @param department the selected department code
+     * @param page the requested page number
+     * @param model the Spring {@link Model} used to pass data to the view
+     * @return the public cinemas page
      */
     @GetMapping("/cinemas")
     public String cinemasByTown(@RequestParam(required = false)Long townId,
@@ -70,6 +76,13 @@ public class CinemaController {
     }
 
     //--------------importer cinémas----------------------------------------
+    /**
+     * Imports cinemas from the configured CSV file<p>
+     * Import statistics are stored as flash messages
+     * @param redirectAttributes the Spring {@link RedirectAttributes}
+     * used for flash messages
+     * @return a redirect to the cinema administration page
+     */
     @GetMapping("/admin/import-cinemas")
     public String importCinemas(RedirectAttributes redirectAttributes){
         try {
@@ -79,21 +92,28 @@ public class CinemaController {
         }catch (Exception e){
             redirectAttributes.addFlashAttribute("error", "Erreur import : " + e.getMessage());
         }
-        return "redirect:/admin/cinemas";
+        return ADMIN_REDIRECT;
     }
 
     //------------pour admin - page de gestion des cinémas-------------
     /**
-     * Displays the cinema management page for administrators
+     * Displays the cinema administration page
      * <p>
-     * <strong>Security:</strong> This endpoint requires the user to be logged in with
-     * an "ADMIN" role. If unauthorized, the user is redirected away
-     * <p>
-     * If an {@code editId} is provided, the method fetches the corresponding cinema
-     * and adds it to the model to pre-populate the edit form on the page
+     * Supports:
+     * <ul>
+     *     <li>keyword search</li>
+     *     <li>pagination</li>
+     *     <li>sorting</li>
+     *     <li>cinema edition</li>
+     * </ul>
      *
-     * @param model   the Spring {@link Model} used to pass data to the view
-     * @return the view name "admin-cinemas", or a redirection URL if unauthorized
+     * @param keyword the search keyword
+     * @param page the requested page number
+     * @param sortField the selected sorting field
+     * @param sortDir the sorting direction
+     * @param editId the identifier of the cinema being edited
+     * @param model the Spring {@link Model} used to pass data to the view
+     * @return the cinema administration page
      */
     @GetMapping("/admin/cinemas")
     public String adminCinemas(@RequestParam(required = false) String keyword,
@@ -110,7 +130,7 @@ public class CinemaController {
                 : new Cinema();
 
         model.addAttribute("cinemaPage",    cinemaPage);
-        model.addAttribute("cinemas",       cinemaPage.getContent());
+        model.addAttribute(CINEMAS,cinemaPage.getContent());
         model.addAttribute("pages",         new int[cinemaPage.getTotalPages()]);
         model.addAttribute("currentPage",   page);
         model.addAttribute("keyword",       keyword);
@@ -125,18 +145,19 @@ public class CinemaController {
 
     //--------------créer ou modifier un cinéma -----------------------
     /**
-     * Handles the creation or modification of a cinema
-     * <p>
-     * <strong>Security:</strong> This endpoint is restricted to administrators
-     * <p>
-     * If an ID is provided, it updates the existing cinema; otherwise, it creates a new one.
-     * Upon successful processing, it redirects the user back to the cinema management page
+     * Creates or updates a cinema
      *
-     * @param id      the unique identifier of the cinema to update (null for creation)
-     * @param name    the name of the cinema
-     * @param address the physical address of the cinema
-     * @param townId  the identifier of the town where the cinema is located (optional)
-     * @return a redirection URL to the admin cinemas page, or the default redirection if unauthorized
+     * @param id the cinema identifier, or null for creation
+     * @param editId the edited cinema identifier
+     * @param name the cinema name
+     * @param address the cinema address
+     * @param townId the associated town identifier
+     * @param website the cinema website URL
+     * @param latitude the cinema latitude
+     * @param longitude the cinema longitude
+     * @param imageUrl the cinema image URL
+     * @param department the cinema department code
+     * @return a redirect to the cinema administration page
      */
     @PostMapping("/admin/saveCinema")
     public String saveCinema(@RequestParam(required = false) Long id,
@@ -150,7 +171,7 @@ public class CinemaController {
                              @RequestParam(required = false) String imageUrl,
                              @RequestParam(required = false) String department){
         cinemaService.save(id, name, address, townId, website, latitude, longitude, imageUrl, department);
-        return "redirect:/admin/cinemas";
+        return ADMIN_REDIRECT;
     }
 
     /**
@@ -166,6 +187,6 @@ public class CinemaController {
     @GetMapping("/admin/deleteCinema")
     public String deleteCinema(@RequestParam Long id){
         cinemaService.delete(id);
-        return "redirect:/admin/cinemas";
+        return ADMIN_REDIRECT;
     }
 }
