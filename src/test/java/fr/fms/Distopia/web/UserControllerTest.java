@@ -76,4 +76,19 @@ class UserControllerTest {
         verify(userService, never()).register(any(), any(), any());
     }
 
+    @Test
+    @DisplayName("register() - redirects with error when username or email already exists")
+    void register_ShouldRedirectWithError_WhenUserAlreadyExists() {
+        when(bindingResult.hasErrors()).thenReturn(false);
+
+        when(userService.register("john", "john@mail.com", "password123"))
+                .thenReturn(Optional.empty());
+
+        String view = userController.register(form, bindingResult, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/?openRegister&registerError");
+        verify(redirectAttributes).addFlashAttribute("error",
+                        "Nom d'utilisateur ou email déjà utilisé");
+        verify(userService).register("john", "john@mail.com", "password123");
+    }
 }
