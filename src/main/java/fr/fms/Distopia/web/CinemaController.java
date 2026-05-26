@@ -5,11 +5,15 @@ import fr.fms.Distopia.service.CinemaCsvImporter;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.TownService;
 
+import fr.fms.Distopia.web.form.CinemaForm;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -145,32 +149,41 @@ public class CinemaController {
 
     //--------------créer ou modifier un cinéma -----------------------
     /**
-     * Creates or updates a cinema
+     * Creates or updates a cinema <p>
+     * The submitted cinema form is validated before saving.
+     * If validation fails, the user is redirected back to the cinema administration page
+     * with an error message stored in flash attributes
      *
-     * @param id the cinema identifier, or null for creation
-     * @param editId the edited cinema identifier
-     * @param name the cinema name
-     * @param address the cinema address
-     * @param townId the associated town identifier
-     * @param website the cinema website URL
-     * @param latitude the cinema latitude
-     * @param longitude the cinema longitude
-     * @param imageUrl the cinema image URL
-     * @param department the cinema department code
+     * @param form the validated cinema form containing cinema data
+     * @param bindingResult the validation result for the submitted form
+     * @param ra the Spring {@link RedirectAttributes} used to pass flash messages
      * @return a redirect to the cinema administration page
      */
     @PostMapping("/admin/saveCinema")
-    public String saveCinema(@RequestParam(required = false) Long id,
-                             @RequestParam(required = false) Long editId,
-                             @RequestParam String name,
-                             @RequestParam String address,
-                             @RequestParam(required = false) Long townId,
-                             @RequestParam(required = false) String website,
-                             @RequestParam(required = false) Double latitude,
-                             @RequestParam(required = false) Double longitude,
-                             @RequestParam(required = false) String imageUrl,
-                             @RequestParam(required = false) String department){
-        cinemaService.save(id, name, address, townId, website, latitude, longitude, imageUrl, department);
+    public String saveCinema(@Valid @ModelAttribute CinemaForm form,
+                             BindingResult bindingResult,
+                             RedirectAttributes ra){
+
+        if (bindingResult.hasErrors()) {
+            String errorMessage = bindingResult.getAllErrors().isEmpty()
+                    ? "Données invalides"
+                    : bindingResult.getAllErrors().get(0).getDefaultMessage();
+
+            ra.addFlashAttribute("error", errorMessage);
+
+            return ADMIN_REDIRECT;
+        }
+        cinemaService.save(
+                form.getId(),
+                form.getName(),
+                form.getAddress(),
+                form.getTownId(),
+                form.getWebsite(),
+                form.getLatitude(),
+                form.getLongitude(),
+                form.getImageUrl(),
+                form.getDepartment()
+        );
         return ADMIN_REDIRECT;
     }
 
