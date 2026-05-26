@@ -40,11 +40,14 @@ public class MovieController {
 
     //---------------films d'un cinéma--------------------
     /**
-     * Handles the visitor request to display a list of movies available at a specific cinema
-     *
-     * @param cinemaId the unique identifier of the cinema
-     * @param model    the Spring {@link Model} used to pass data to the view
-     * @return the view name "movies"
+     * Displays movies optionally filtered by cinema
+     * <p>
+     * Movies can also be sorted dynamically
+     * @param cinemaId the selected cinema identifier
+     * @param sort the sorting field
+     * @param dir the sorting direction
+     * @param model the Spring {@link Model} used to pass data to the view
+     * @return the movies page
      */
     @GetMapping("/movies")
     public String moviesByCinema(@RequestParam(required = false) Long cinemaId,
@@ -67,16 +70,21 @@ public class MovieController {
 
     //--------------page de gestion des films---------------------
     /**
-     * Displays the movie management dashboard for administrators
-     * <p>
-     * <strong>Security:</strong> This endpoint requires the user to be logged in with
-     * an "ADMIN" role. If unauthorized, the user is redirected away
-     * <p>
-     * If an {@code editId} is provided in the request, the corresponding movie is fetched
-     * and added to the model to pre-populate the edit form on the page
-     *
-     * @param model   the Spring {@link Model} used to pass data to the view
-     * @return the view name "admin-movies", or a redirection URL if unauthorized
+     * Displays the movie administration page<p>
+     * Supports:
+     * <ul>
+     *     <li>keyword search</li>
+     *     <li>pagination</li>
+     *     <li>sorting</li>
+     *     <li>deleted movie filtering</li>
+     * </ul>
+     * @param keyword the movie search keyword
+     * @param page the requested page number
+     * @param showDeleted whether deleted movies should be displayed
+     * @param sortField the selected sorting field
+     * @param sortDir the sorting direction
+     * @param model the Spring {@link Model} used to pass data to the view
+     * @return the movie administration page
      */
     @GetMapping("/admin/movies")
     public String adminMovies(@RequestParam(required = false) String keyword,
@@ -88,7 +96,7 @@ public class MovieController {
         Page<Movie> moviePage = movieService.searchAdmin(keyword,showDeleted, sortField,sortDir,page);
 
         model.addAttribute("moviePage",moviePage);
-        model.addAttribute("movies",moviePage.getContent());
+        model.addAttribute(MOVIES,moviePage.getContent());
         model.addAttribute("pages", new int[moviePage.getTotalPages()]);
         model.addAttribute("currentPage", page);
         model.addAttribute("keyword", keyword);
@@ -103,22 +111,19 @@ public class MovieController {
 
     //----------créer ou modifier un film-----------------------------
     /**
-     * Handles the creation or modification of a movie
-     * <p>
-     * <strong>Security:</strong> This endpoint is restricted to administrators
-     * <p>
-     * This method processes the form submission to save a movie along with its
-     * associated cinemas. Upon successful completion, it redirects the user back
-     * to the movie management page
+     * Creates or updates a movie
      *
-     * @param id          the unique identifier of the movie to update (null for creation)
-     * @param title       the title of the movie
-     * @param description the synopsis or description of the movie
-     * @param duration    the duration of the movie in minutes
-     * @param genre       the genre of the movie (Action, Sci-Fi)
-     * @param cinemaIds   a list of cinema identifiers where the movie will be screened (optional)
-     * @param imageUrl    the URL pointing to the movie's poster or cover image (optional)
-     * @return a redirection URL to the admin movies page, or the default redirection if unauthorized
+     * @param id the movie identifier, or null for creation
+     * @param title the movie title
+     * @param description the movie description
+     * @param duration the movie duration in minutes
+     * @param genre the movie genre
+     * @param cinemaIds the associated cinema identifiers
+     * @param imageUrl the movie poster URL
+     * @param trailerUrl the movie trailer URL
+     * @param releaseDate the movie release date
+     * @param tmdbId the TMDB movie identifier
+     * @return a redirect to the movie administration page
      */
     @PostMapping("/admin/saveMovie")
     public String saveMovie(@RequestParam(required = false) Long id, @RequestParam String title,
@@ -150,13 +155,23 @@ public class MovieController {
         return "redirect:/admin/movies";
     }
 
+    /**
+     * Displays the detail page of a movie<p>
+     * Upcoming seances associated with the movie
+     * are paginated and added to the model
+     *
+     * @param id the movie identifier
+     * @param page the requested seance page number
+     * @param model the Spring {@link Model} used to pass data to the view
+     * @return the movie detail page
+     */
     @GetMapping("/movie")
     public String movieDetail(@RequestParam Long id, @RequestParam(defaultValue = "0") int page, Model model){
         int size = 10;
 
         Movie movie = movieService.getById(id);
 
-        Page<Seance> seancePage = seanceService.getUpcomingSeances(id, page, 10);
+        Page<Seance> seancePage = seanceService.getUpcomingSeances(id, page, size);
 
         model.addAttribute("movie", movie);
         model.addAttribute("seancePage", seancePage);
