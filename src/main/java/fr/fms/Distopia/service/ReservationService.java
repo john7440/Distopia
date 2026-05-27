@@ -8,6 +8,8 @@ import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,6 +28,8 @@ public class ReservationService {
         this.userRepository = userRepository;
         this.seanceRepository = seanceRepository;
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
 
     //--------reservations d'un utilisateur--------
     /**
@@ -88,6 +92,8 @@ public class ReservationService {
         reservation.setSeance(seance);
         reservation.setUser(user);
         reservation.setQuantity(quantity);
+
+        logger.info("Reservation created: userId={}, seanceId={}, quantity={}", userId, seanceId, quantity);
 
         return  reservationRepository.save(reservation);
     }
