@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -86,7 +88,7 @@ public class TmbdController {
         TmdbMovieDto detail = tmdbClient.getDetail(tmdbId);
         if (detail == null) {
             ra.addFlashAttribute("error", "Film introuvable sur TMDB (id=" + tmdbId + ")!");
-            return "redirect:/admin/import-movies" + (query != null ? "?query=" + query : "");
+            return redirectToImportMovies(query);
         }
         String title       = detail.getTitle() != null ? detail.getTitle() : "Sans titre";
         String description = detail.getOverview() != null ? detail.getOverview() : "";
@@ -112,7 +114,7 @@ public class TmbdController {
                 title, result.seancesCreated(),
                 result.seancesCreated() / (7 * 3)
         ));
-        return "redirect:/admin/import-movies" + (query != null ? "?query=" + query : "");
+        return redirectToImportMovies(query);
 
     }
 
@@ -139,5 +141,21 @@ public class TmbdController {
             ra.addFlashAttribute("warning" , "Avertissements: " + errors);
         }
         return "redirect:/admin/seances";
+    }
+
+    /**
+     * Builds the redirect URL to the TMDB import page<p>
+     * If a query is provided, it is URL-encoded before being added
+     * as a request parameter
+     * @param query the optional search query
+     * @return the redirect URL to the TMDB import page
+     */
+    private String redirectToImportMovies(String query) {
+        if (query == null || query.isBlank()) {
+            return "redirect:/admin/import-movies";
+        }
+        String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+
+        return "redirect:/admin/import-movies?query=" + encodedQuery;
     }
 }
