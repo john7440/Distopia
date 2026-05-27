@@ -1,5 +1,6 @@
 package fr.fms.Distopia.web;
 
+import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -40,5 +41,22 @@ public class GlobalExceptionHandler {
         ra.addFlashAttribute("error", message);
 
         return "redirect:/index";
+    }
+
+    /**
+     * Handles reservation errors when no seats are available
+     *
+     * @param e the no seats available exception
+     * @param ra the Spring {@link RedirectAttributes}
+     * used to send flash messages
+     * @return a redirect to the user's reservations page
+     */
+    @ExceptionHandler(NoSeatsAvailableException.class)
+    public String handleNoSeatsAvailable(NoSeatsAvailableException e, RedirectAttributes ra){
+        logger.warn("Reservation failed: {}",e.getMessage());
+
+        ra.addFlashAttribute("error", e.getMessage());
+
+        return "redirect:/my-reservations";
     }
 }
