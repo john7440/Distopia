@@ -15,10 +15,10 @@ usecase "Gérer le site" as A1
 usecase "Se connecter" as AUTH
 usecase "Créer un compte" as UC5
 
-usecase "Afficher cinémas d'une ville" as UC1
-usecase "Rechercher un cinéma" as UC2
-usecase "Afficher les films d'un cinéma" as UC3
-usecase "Afficher les séances d'un film" as UC4
+usecase "Consulter les films" as UC1
+usecase "Consulter les cinémas" as UC2
+usecase "Consulter les details d'un film" as UC3
+usecase "Consulter les séances d'un film" as UC4
 
 usecase "Réserver une ou plusieurs places" as UC6
 
@@ -30,6 +30,7 @@ note bottom of A1
     - CRUD Cinémas
     - CRUD Films (soft delete)
     - CRUD Séances
+    - Importer films depuis TMDB
 end note
 
 Visiteur -- UC1
