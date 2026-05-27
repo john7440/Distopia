@@ -201,6 +201,25 @@ class SeanceControllerTest {
         verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
     }
 
+    @Test
+    @DisplayName("saveSeance() - updates existing seance when id is provided")
+    void saveSeance_ShouldUpdateExistingSeanceWhenIdIsProvided() {
+        SeanceForm form = validSeanceForm();
+
+        form.setId(1L);
+        form.setAvailableSeats(57);
+        form.setPrice(12.0);
+        form.setMovieId(99L);
+        form.setCinemaId(2L);
+
+        when(bindingResult.hasErrors()).thenReturn(false);
+        String view = seanceController.saveSeance(form, bindingResult,redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+        verify(seanceService).save(1L, LocalDateTime.of(2026, 5, 26, 14, 0),
+                57, 12.0, 99L, 2L);
+    }
+
     //---------------------------tests for deleteSeance()-----------------------------------
     @Test
     @DisplayName("deleteSeance() - deletes seance and redirect for admin user")
