@@ -288,8 +288,24 @@
                                                     <div class="col-md-6">
                                                         <label class="form-label">Description</label>
                                                         <textarea name="description" class="form-control" rows="3"
-                                                               maxlength="5000" th:value="${m.description}">
+                                                               maxlength="5000" th:text="${m.description}">
                                                         </textarea>
+                                                    </div>
+                                                    <!-- cinemas -->
+                                                    <div class="col-md-12">
+                                                        <label class="form-label">Cinémas</label>
+                                                        <select name="cinemaIds"
+                                                                class="form-select"
+                                                                multiple>
+                                                            <option th:each="c : ${cinemas}"
+                                                                    th:value="${c.id}"
+                                                                    th:text="${c.name}"
+                                                                    th:selected="${m.cinemas.contains(c)}">
+                                                            </option>
+                                                        </select>
+                                                        <small class="text-muted">
+                                                            Maintenez Ctrl pour sélectionner plusieurs cinémas
+                                                        </small>
                                                     </div>
 
                                                 </div>

@@ -107,10 +107,10 @@ public class MovieService {
         movie.setReleaseDate(releaseDate);
         movie.setTmdbId(tmdbId);
 
-        movie.getCinemas().forEach(c -> c.getMovies().remove(movie));
-        movie.getCinemas().clear();
-
         if (cinemaIds != null) {
+            movie.getCinemas().forEach(c -> c.getMovies().remove(movie));
+            movie.getCinemas().clear();
+
             cinemaIds.forEach(cinemaId ->
                     cinemaRepository.findById(cinemaId).ifPresent(cinema -> {
                         cinema.getMovies().add(movie);
