@@ -6,6 +6,7 @@ import fr.fms.Distopia.entities.Role;
 import fr.fms.Distopia.entities.Town;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.service.TownService;
+import fr.fms.Distopia.web.form.TownForm;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +19,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,12 +32,14 @@ import static org.mockito.Mockito.*;
 class TownControllerTest {
     @Mock
     private TownService townService;
-
     @Mock
     private TownRepository townRepository;
-
     @Mock
     private Model model;
+    @Mock
+    private BindingResult bindingResult;
+    @Mock
+    private RedirectAttributes ra;
 
     @InjectMocks
     private TownController townController;
@@ -125,21 +130,31 @@ class TownControllerTest {
     @DisplayName("saveTown() - saves town and redirects for admin user")
     void saveTown_ShouldSaveTownAndRedirectsForAdminUser() {
         authenticate(adminUser);
+        TownForm form = validTownForm();
 
-        String view = townController.saveTown(null,"Paris");
+        when(bindingResult.hasErrors()).thenReturn(false);
+
+        String view = townController.saveTown(form, bindingResult,ra);
 
         assertThat(view).isEqualTo("redirect:/admin/towns");
-        verify(townService).save(null, "Paris");
+        verify(townService).save(null,"Dax");
+        verify(ra, never()).addFlashAttribute(eq("error"), any());
     }
 
     @Test
     @DisplayName("saveTown() - updates existing town when id is provided")
     void saveTown_ShouldUpdateExistingTownWhenIdIsProvided() {
         authenticate(adminUser);
+        TownForm form = validTownForm();
 
-        townController.saveTown(1L,"Paris-Updated");
+        form.setId(1L);
+        form.setName("Saint-Geours");
 
-        verify(townService).save(1L, "Paris-Updated");
+        when(bindingResult.hasErrors()).thenReturn(false);
+
+        String view = townController.saveTown(form, bindingResult,ra);
+        assertThat(view).isEqualTo("redirect:/admin/towns");
+        verify(townService).save(1L,"Saint-Geours");
     }
 
     //---------------------------tests for deleteTown()---------------
@@ -154,4 +169,13 @@ class TownControllerTest {
         verify(townService).delete(1L);
     }
 
+    //-------------helper valid form------
+    private TownForm validTownForm() {
+        TownForm form = new TownForm();
+
+        form.setId(null);
+        form.setName("Dax");
+
+        return form;
+    }
 }
