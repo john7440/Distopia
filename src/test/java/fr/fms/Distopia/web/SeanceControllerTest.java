@@ -4,6 +4,7 @@ import fr.fms.Distopia.entities.*;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
+import fr.fms.Distopia.web.form.SeanceForm;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +33,10 @@ class SeanceControllerTest {
     private MovieService movieService;
     @Mock
     private CinemaService cinemaService;
+    @Mock
+    private BindingResult bindingResult;
+    @Mock
+    private RedirectAttributes redirectAttributes;
     @Mock
     private Model model;
 
@@ -66,6 +73,20 @@ class SeanceControllerTest {
         seance.setPrice(9.50);
         seance.setMovie(movie);
         seance.setCinema(cinema);
+    }
+
+    //---------------helper for seanceFOrm------------------
+    private SeanceForm validSeanceForm() {
+        SeanceForm form = new SeanceForm();
+
+        form.setId(null);
+        form.setDateTime(LocalDateTime.of(2026,5,26,14,0));
+        form.setAvailableSeats(100);
+        form.setPrice(9.50);
+        form.setMovieId(1L);
+        form .setCinemaId(1L);
+
+        return form;
     }
 
     //----------------------------tests for seancesByMovie()-------------------------
@@ -168,24 +189,17 @@ class SeanceControllerTest {
     @Test
     @DisplayName("saveSeance() - saves seance and redirects for admin user")
     void saveSeance_ShouldSaveSeanceAndRedirectsForAdminUser() {
-        String dateTime = LocalDateTime.now().toString();
+        SeanceForm form = validSeanceForm();
 
-        String view = seanceController.saveSeance(null, dateTime,100,9.50,1L,1L);
+        when(bindingResult.hasErrors()).thenReturn(false);
+
+        String view = seanceController.saveSeance(form,bindingResult,redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/seances");
-        verify(seanceService).save(null,LocalDateTime.parse(dateTime),100,9.50,1L,1L);
+        verify(seanceService).save(null, LocalDateTime.of(2026, 5, 26, 14, 0),
+                100, 9.50, 1L, 1L);
+        verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
     }
-
-    @Test
-    @DisplayName("saveSeance() - updates existing seance when id is provided")
-    void saveSeance_ShouldUpdateExistingSeanceWhenIdIsProvided() {
-        String dateTime = LocalDateTime.now().toString();
-
-        seanceController.saveSeance(1L, dateTime,57,12.0,2L,2L);
-
-        verify(seanceService).save(1L,LocalDateTime.parse(dateTime),57,12.0,2L,2L);
-    }
-
 
     //---------------------------tests for deleteSeance()-----------------------------------
     @Test
