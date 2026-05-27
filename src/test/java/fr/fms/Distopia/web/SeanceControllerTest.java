@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
@@ -218,6 +219,23 @@ class SeanceControllerTest {
         assertThat(view).isEqualTo("redirect:/admin/seances");
         verify(seanceService).save(1L, LocalDateTime.of(2026, 5, 26, 14, 0),
                 57, 12.0, 99L, 2L);
+    }
+
+    @Test
+    @DisplayName("saveSeance() - redirects with error when form is invalid")
+    void saveSeance_ShouldRedirectWithError_WhenFormIsInvalid() {
+        SeanceForm form = validSeanceForm();
+
+        ObjectError error = new ObjectError("seanceForm", "error test");
+
+        when(bindingResult.hasErrors()).thenReturn(true);
+        when(bindingResult.getAllErrors()).thenReturn(List.of(error));
+
+        String view = seanceController.saveSeance(form, bindingResult,redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+        verify(redirectAttributes).addFlashAttribute("error", "error test");
+        verify(seanceService, never()).save(any(),any(),anyInt(),anyDouble(),any(),any());
     }
 
     //---------------------------tests for deleteSeance()-----------------------------------
