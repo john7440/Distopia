@@ -4,6 +4,8 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 
+<head>
+    <title>Distopia - Gestion des villes</title>
 </head>
 
 <body>
@@ -25,6 +27,16 @@
                     data-bs-target="#addTownModal">
                 <i class="bi bi-plus-lg me-1"></i>
                 Ajouter une ville
+            </button>
+        </div>
+
+        <div th:if="${message}"
+             class="alert alert-success alert-dismissible fade show">
+            <span th:text="${message}"></span>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
             </button>
         </div>
 
