@@ -5,6 +5,8 @@ import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -40,6 +42,8 @@ public class SeanceGeneratorService {
         this.cinemaService = cinemaService;
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(SeanceGeneratorService.class);
+
     private static final int[]    HOURS  = {14, 17, 20};
     private static final int[]    MINS   = {0,  30, 45};
     private static final double[] PRICES = {9.00, 10.50, 12.00};
@@ -58,10 +62,12 @@ public class SeanceGeneratorService {
      * @return the generation result containing statistics and errors
      */
     public GeneratorResult importAndGenerate() {
+        logger.info("Starting TMDB import and seance generation");
         List<String> errors = new ArrayList<>();
 
         List<Cinema> cinemas = cinemaService.getAll();
         if (cinemas.isEmpty()) {
+            logger.warn("Seance generation stopped: no cinemas found");
             errors.add("Aucun cinéma en base, ajoutez des cinémas avant de générer des séances!");
             return new GeneratorResult(0, 0, errors);
         }
@@ -69,6 +75,9 @@ public class SeanceGeneratorService {
         int moviesImported = importMovies(errors);
         linkMoviesToCinemas(cinemas);
         int seancesCreated = generateSeances(cinemas, errors);
+
+        logger.info("TMDB import and seance generation completed: {} movies imported, {} seances created, {} errors",
+                moviesImported, seancesCreated, errors.size());
 
         return new GeneratorResult(moviesImported, seancesCreated, errors);
     }
@@ -82,6 +91,7 @@ public class SeanceGeneratorService {
     private int importMovies(List<String> errors) {
         List<TmdbMovieDto> nowPlaying = tmdbClient.getNowPlaying();
         if (nowPlaying.isEmpty()) {
+            logger.warn("TMDB returned no now-playing movies");
             errors.add("TMDB n'a retourné aucun film ! (vérifier clé API)");
             return 0;
         }
@@ -95,6 +105,7 @@ public class SeanceGeneratorService {
             try {
                 if (importSingleMovie(tmdbMovie, existingTitles)) count++;
             } catch (Exception e) {
+                logger.error("Failed to import TMDB movie id {}", tmdbMovie.getId(), e);
                 errors.add("Erreur import film ID " + tmdbMovie.getId() + " : " + e.getMessage());
             }
         }
