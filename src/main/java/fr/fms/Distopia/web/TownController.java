@@ -2,12 +2,17 @@ package fr.fms.Distopia.web;
 
 import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.service.TownService;
+import fr.fms.Distopia.web.form.TownForm;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class TownController {
@@ -19,6 +24,8 @@ public class TownController {
         this.townService = townService;
         this.townRepository = townRepository;
     }
+
+    private final static String REDIRECT_ADMIN_TOWNS ="redirect:/admin/towns";
 
     /**
      * Displays the town administration page<p>
@@ -41,17 +48,29 @@ public class TownController {
 
     //------méthode pour ajouter ou modifier une ville------------------------
     /**
-     * Creates a new Town or updates an existing one
+     * Creates or updates a town<p>
+     * The submitted town form is validated before saving.
+     * If validation fails, the user is redirected back to the town administration page
+     * with an error message stored in flash attributes
      *
-     * @param id  the ID of the town to update; if null, a new town is created
-     * @param name the name to assign to the town
-     * @return a redirect to /admin/towns on success, or to
-     *         /index if the user is not an admin
+     * @param form the validated town form containing town data
+     * @param bindingResult the validation result for the submitted form
+     * @param ra the Spring {@link RedirectAttributes} used to pass flash messages
+     * @return a redirect to the town administration page
      */
     @PostMapping("/admin/saveTown")
-    public String saveTown(@RequestParam(required = false) Long id,@RequestParam String name) {
-        townService.save(id, name);
-        return "redirect:/admin/towns";
+    public String saveTown(@Valid @ModelAttribute TownForm form, BindingResult bindingResult, RedirectAttributes ra) {
+        if(bindingResult.hasErrors()) {
+            String errorMessage = bindingResult.getAllErrors().isEmpty()
+                    ? "Données invalides"
+                    : bindingResult.getAllErrors().get(0).getDefaultMessage();
+            ra.addFlashAttribute("error", errorMessage);
+
+            return REDIRECT_ADMIN_TOWNS;
+        }
+
+        townService.save(form.getId(), form.getName());
+        return REDIRECT_ADMIN_TOWNS;
     }
 
     //---------------méthode pour supprimer une ville----------------
@@ -66,7 +85,7 @@ public class TownController {
     @GetMapping("/admin/deleteTown")
     public String deleteTown(@RequestParam Long id) {
         townService.delete(id);
-        return "redirect:/admin/towns";
+        return REDIRECT_ADMIN_TOWNS;
     }
 
 }
