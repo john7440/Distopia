@@ -20,6 +20,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -157,6 +158,24 @@ class TownControllerTest {
         verify(townService).save(1L,"Saint-Geours");
     }
 
+    @Test
+    @DisplayName("saveTown() - redirects with error when form is invalid")
+    void saveTown_ShouldRedirectWithError_WhenFormIsInvalid() {
+        TownForm form = validTownForm();
+
+        form.setName("");
+
+        ObjectError error = new ObjectError("townForm", "error test");
+
+        when(bindingResult.hasErrors()).thenReturn(true);
+        when(bindingResult.getAllErrors()).thenReturn(List.of(error));
+
+        String view = townController.saveTown(form, bindingResult, ra);
+
+        assertThat(view).isEqualTo("redirect:/admin/towns");
+        verify(ra).addFlashAttribute("error", "error test");
+        verify(townService, never()).save(any(), any());
+    }
     //---------------------------tests for deleteTown()---------------
     @Test
     @DisplayName("deleteTown() - deletes town and redirects for admin user")
