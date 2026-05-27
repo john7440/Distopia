@@ -28,6 +28,16 @@
             </button>
         </div>
 
+        <div th:if="${error}"
+             class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${error}"></span>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+
         <!-- table-->
         <div class="table-container">
 
@@ -128,6 +138,8 @@
                                    name="name"
                                    class="form-control"
                                    placeholder="Ex : Lyon"
+                                   minlength="2"
+                                   maxlength="100"
                                    required>
                         </div>
                     </div>
@@ -186,6 +198,8 @@
                                    name="name"
                                    class="form-control"
                                    th:value="${editTown != null ? editTown.name : ''}"
+                                   minlength="2"
+                                   maxlength="100"
                                    required>
                         </div>
 
