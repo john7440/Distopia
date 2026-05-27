@@ -4,13 +4,17 @@ import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceService;
-import org.springframework.beans.factory.annotation.Autowired;
+import fr.fms.Distopia.web.form.SeanceForm;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 
@@ -34,6 +38,7 @@ public class SeanceController {
     }
 
     private static final String SEANCES =  "seances";
+    private static final String REDIRECT_ADMIN_SEANCES = "redirect:/admin/seances";
 
     //----------------seances d'un film----------------
     /**
@@ -92,28 +97,32 @@ public class SeanceController {
 
     //--------------créer ou modifier une séance----------
     /**
-     * Handles the creation or modification of a seance
-     * <p>
-     * <strong>Security:</strong> This endpoint is restricted to administrators
-     * <p>
-     * <strong>Data Conversion:</strong> The scheduling date and time are received as a standard
-     * {@link String} from the HTML form and are parsed into a {@link LocalDateTime} object
-     * before being sent to the service layer
+     * Creates or updates a seance<p>
+     * The submitted seance form is validated before saving.
+     * If validation fails, the user is redirected back to the seance administration page
+     * with an error message stored in flash attributes
      *
-     * @param id             the unique identifier of the seance to update (null for creation)
-     * @param dateTime       the scheduled date and time as a string (must be in ISO-8601 format,"YYYY-MM-DDTHH:mm")
-     * @param availableSeats the initial total number of available seats for this screening
-     * @param price          the ticket price for this screening
-     * @param movieId        the identifier of the movie to be screened
-     * @param cinemaId       the identifier of the cinema
-     * @return a redirection URL to the admin seances page, or the default redirection if unauthorized
-     * @throws java.time.format.DateTimeParseException if the {@code dateTime} string cannot be parsed
+     * @param form the validated seance form containing seance data
+     * @param bindingResult the validation result for the submitted form
+     * @param ra the Spring {@link RedirectAttributes} used to pass flash messages
+     * @return a redirect to the seance administration page
      */
     @PostMapping("/admin/saveSeance")
-    public String saveSeance(@RequestParam(required = false) Long id, @RequestParam String dateTime,@RequestParam int availableSeats,
-                             @RequestParam double price, @RequestParam Long movieId,@RequestParam Long cinemaId){
-        seanceService.save(id, LocalDateTime.parse(dateTime), availableSeats, price, movieId,cinemaId);
-        return "redirect:/admin/seances";
+    public String saveSeance(@Valid @ModelAttribute SeanceForm form, BindingResult bindingResult,
+                             RedirectAttributes ra){
+        if (bindingResult.hasErrors()) {
+            String errorMessage = bindingResult.getAllErrors().isEmpty()
+                    ? "Donneés invalides"
+                    : bindingResult.getAllErrors().get(0).getDefaultMessage();
+
+            ra.addFlashAttribute("error",errorMessage);
+
+            return REDIRECT_ADMIN_SEANCES;
+        }
+        seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(),
+                form.getMovieId(), form.getCinemaId());
+
+        return REDIRECT_ADMIN_SEANCES;
     }
 
     //-------------------------supprimer une séance----------------
@@ -131,6 +140,6 @@ public class SeanceController {
     @GetMapping("/admin/deleteSeance")
     public String deleteSeance(@RequestParam Long id){
         seanceService.delete(id);
-        return "redirect:/admin/seances";
+        return REDIRECT_ADMIN_SEANCES;
     }
 }
