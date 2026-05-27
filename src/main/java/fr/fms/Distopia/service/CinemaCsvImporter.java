@@ -9,6 +9,8 @@ import jakarta.transaction.Transactional;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,8 @@ public class CinemaCsvImporter {
         this.townRepository = townRepository;
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(CinemaCsvImporter.class);
+
     @Value("classpath:data/cinemas.csv")
     private Resource csvFile;
 
@@ -59,6 +63,7 @@ public class CinemaCsvImporter {
      */
     @Transactional
     public ImportResult importFromCsv() throws ImportFailException {
+        logger.info("Starting cinema CSV import");
         int imported = 0;
         int skipped = 0;
 
@@ -103,6 +108,8 @@ public class CinemaCsvImporter {
         } catch (IOException e) {
             throw new ImportFailException("Erreur d'import csv: " + e.getMessage());
         }
+        logger.info("Cinema CSV import completed: {} imported, {} skipped", imported,skipped);
+
         return new ImportResult(imported, skipped);
     }
 
