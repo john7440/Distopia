@@ -1,0 +1,72 @@
+@startuml
+left to right direction
+title Distopia - entities
+
+
+class User {
+    - Long id
+    - String username
+    - String password
+    - String email
+    - Role role
+    + getAuthorities()
+}
+
+enum Role {
+    USER
+    ADMIN
+}
+
+class Town {
+    - Long id
+    - String name
+}
+
+class Cinema {
+    - Long id
+    - String name
+    - String address
+    - String website
+    - Double latitude
+    - Double longitude
+    - String imageUrl
+    - String department
+    + buildMapsUrl()
+}
+
+class Movie {
+    - Long id
+    - Long tmdbId
+    - String title
+    - String description
+    - int duration
+    - String genre
+    - boolean deleted
+    - String imageUrl
+    - String trailerUrl
+    - LocalDate releaseDate
+}
+
+class Seance {
+    - Long id
+    - LocalDateTime dateTime
+    - int availableSeats
+    - double price
+}
+
+class Reservation {
+    - Long id
+    - LocalDateTime reservedAt
+    - int quantity
+}
+
+User --> Role
+
+Town "1" <-- "0..*" Cinema : belongs to
+Cinema "0..*" -- "0..*" Movie : screens
+Movie "1" <-- "0..*" Seance : scheduled as
+Cinema "1" <-- "0..*" Seance : hosts
+User "1" <-- "0..*" Reservation : makes
+Seance "1" <-- "0..*" Reservation : concerns
+
+@enduml
