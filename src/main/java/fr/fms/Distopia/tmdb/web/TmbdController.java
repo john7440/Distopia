@@ -5,6 +5,8 @@ import fr.fms.Distopia.service.MovieService;
 import fr.fms.Distopia.service.SeanceGeneratorService;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,12 +36,12 @@ public class TmbdController {
 
     @Autowired
     private TmdbClient tmdbClient;
-
     @Autowired
     private MovieService movieService;
-
     @Autowired
     private SeanceGeneratorService seanceGeneratorService;
+
+    private static final Logger logger = LoggerFactory.getLogger(TmbdController.class);
 
     // -----------------admin import-movies---------------------
     /**
@@ -85,8 +87,10 @@ public class TmbdController {
      */
     @PostMapping("/admin/import-movie")
     public String importMovie(@RequestParam Long tmdbId,@RequestParam(required = false)String query, RedirectAttributes ra) {
+        logger.info("Starting TMDB movie import for id {}", tmdbId);
         TmdbMovieDto detail = tmdbClient.getDetail(tmdbId);
         if (detail == null) {
+            logger.warn("TMDB movie not found for id {}", tmdbId);
             ra.addFlashAttribute("error", "Film introuvable sur TMDB (id=" + tmdbId + ")!");
             return redirectToImportMovies(query);
         }
@@ -114,8 +118,11 @@ public class TmbdController {
                 title, result.seancesCreated(),
                 result.seancesCreated() / (7 * 3)
         ));
-        return redirectToImportMovies(query);
 
+        logger.info("Movie '{}' imported from TMDB id {} with {} generated seances",
+                title, tmdbId, result.seancesCreated());
+
+        return redirectToImportMovies(query);
     }
 
     //-----------------------POST - import auto (de films à l'affiche) + génération de séances (fictives)-------------------------
