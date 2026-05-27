@@ -18,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final String ERROR = "error";
 
     /**
      * Handles validation errors on request parameters<p>
@@ -38,7 +39,7 @@ public class GlobalExceptionHandler {
                 .map(ConstraintViolation::getMessage)
                 .orElse("Données invalides");
 
-        ra.addFlashAttribute("error", message);
+        ra.addFlashAttribute(ERROR, message);
 
         return "redirect:/index";
     }
@@ -55,8 +56,24 @@ public class GlobalExceptionHandler {
     public String handleNoSeatsAvailable(NoSeatsAvailableException e, RedirectAttributes ra){
         logger.warn("Reservation failed: {}",e.getMessage());
 
-        ra.addFlashAttribute("error", e.getMessage());
+        ra.addFlashAttribute(ERROR, e.getMessage());
 
         return "redirect:/my-reservations";
+    }
+
+    /**
+     * Handles unexpected errors
+     *
+     * @param e the unexpected exception
+     * @param ra the Spring {@link RedirectAttributes}
+     * used to send flash messages
+     * @return a redirect to the home page
+     */
+    @ExceptionHandler(Exception.class)
+    public String handleGenericException(Exception e, RedirectAttributes ra) {
+        logger.error("Unexpected app error",e);
+        ra.addFlashAttribute(ERROR, "Une erreur inattendue est survenue");
+
+        return "redirect:/index";
     }
 }
