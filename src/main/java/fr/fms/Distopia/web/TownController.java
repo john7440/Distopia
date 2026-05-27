@@ -25,7 +25,7 @@ public class TownController {
         this.townRepository = townRepository;
     }
 
-    private final static String REDIRECT_ADMIN_TOWNS ="redirect:/admin/towns";
+    private static final String REDIRECT_ADMIN_TOWNS ="redirect:/admin/towns";
 
     /**
      * Displays the town administration page<p>
