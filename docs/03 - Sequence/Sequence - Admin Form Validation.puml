@@ -1,0 +1,38 @@
+@startuml
+title Admin Form Validation Sequence
+
+actor Administrator
+activate Administrator
+participant "Admin Controller" as Controller
+participant "Form DTO" as Form
+participant "Service" as Service
+participant "Repository" as Repository
+
+Administrator -> Controller : POST admin form
+activate Controller
+
+Controller -> Form : bind and validate input
+activate Form
+Form --> Controller : validation result
+deactivate Form
+
+alt invalid form
+    Controller --> Administrator : redirect with error message
+else valid form
+    Controller -> Service : save(form data)
+    activate Service
+
+    Service -> Repository : save(entity)
+    activate Repository
+    Repository --> Service : saved entity
+    deactivate Repository
+
+    Service --> Controller : saved result
+    deactivate Service
+
+    Controller --> Administrator : redirect with success
+end
+
+deactivate Controller
+
+@enduml
