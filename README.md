@@ -94,13 +94,18 @@ Les formulaires utilisent aussi `BindingResult` pour rediriger l'utilisateur ave
 | Composant           | Technologie                                |
 |---------------------|--------------------------------------------|
 | **Langage**         | Java 17                                    |
-| **Framework**       | Spring Boot 4.0.5                          |
+| **Framework**       | Spring Boot 3.5.6                          |
+| **Web**             | Spring MVC                                 |
 | **Vue**             | Thymeleaf + Thymeleaf Layout               |
 | **ORM**             | Spring Data JPA / Hibernate                |
-| **Sécurité**        | Spring Security (BCrypt, session custom)   |
+| **Sécurité**        | Spring Security                            |
+| **Validation**      | Jakarta Validation                         |
 | **Base de données** | MariaDB                                    |
-| **Frontend**        | Bootstrap 5.3, Bootstrap Icons, vanilla JS |
+| **API externe**     | TMDB API                                   |
+| **Frontend**        | Bootstrap 5.3, Bootstrap Icons, JavaScript |
 | **Build**           | Maven                                      |
+| **Tests**           | JUnit 5, Mockito, AssertJ, MockMvc         |
+| **Couverture**      | JaCoCo                                     |
 | **IDE**             | IntelliJ IDEA                              |
 
 ---
