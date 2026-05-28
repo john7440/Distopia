@@ -323,6 +323,12 @@ Règles principales :
 
 Les mots de passe sont hachés avec BCrypt
 
+## Screenshots
+
+### Page d'Acceuil
+
+![Acceuil](docs/Screenshots/home.png)
+
 # Licence
 
 Ce projet est réalisé dans le cadre d'un exercice d'évaluation Spring Boot / JPA / Thymeleaf et est destiné à des fins pédagogiques uniquement.
