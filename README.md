@@ -15,12 +15,14 @@ Spring Boot / JPA / Thymeleaf
 
 ## Présentation
 
-Distopia est une application web permettant de consulter et gérer un parc de cinémas répartis en France où  
-les visiteurs peuvent rechercher des cinémas par ville ou par mot-clé, consulter les films à l'affiche et les séances disponibles.  
+Distopia est une application web permettant de consulter et gérer un parc de cinémas répartis en France.  
+Les visiteurs peuvent consulter les films, les cinémas, les séances dipsonibles et accéder aux informations issues
+de l'API TMDB.  
 Les utilisateurs connectés peuvent réserver une ou plusieurs places pour une séance donnée et voir leurs réservations.  
-L'administrateur dispose d'une interface complète pour gérer les villes, cinémas, films et séances.
+L'administrateur dispose d'une interface complète pour gérer les villes, les cinémas, les films, les séances, ainsi que les
+imports depuis TMDB (API) et CSV.
 
-> L'authentification est gérée via session HTTP avec hachage des mots de passe BCrypt
+> L'authentification est gérée avec Spring Security, session HTTP et hachage des mots de passe avec BCrypt
 ---
 
 ## Fonctionnalités
