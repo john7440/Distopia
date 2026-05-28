@@ -28,10 +28,15 @@ imports depuis TMDB (API) et CSV.
 ## Fonctionnalités
 
 ### Visiteur (non connecté) 
-- Rechercher des cinémas par **ville** et/ ou par **mot-clé**
-- Afficher tous les **films à l'affiche** d'un cinéma
-- Consulter les **séances disponibles** d'un film avec prix et nombre de places restantes
-- S'inscrire/ Se connecter
+- Consulter la page d'acceuil avec les films TMDB:
+  - films à l'affiche
+  - sorties de la semaine
+  - films prochainement disponibles
+- Consulter les Cinémas
+- Consulter la liste des films
+- Voir les détails d'un film 
+- Consulter les **séances disponibles**
+- S'inscrire / Se connecter
 
 ### Utilisateur connecté
 - **Réserver une ou plusieurs places** pour une séance (avec contrôle du nombre de places dispos)
@@ -39,9 +44,11 @@ imports depuis TMDB (API) et CSV.
 
 ### Administrateur
 - Gérer les **Villes** : ajouter, modifier, supprimer (les cinémas associés conservent leur existence, leur ville passe à `null`)
-- Gérer les **Cinémas** : ajouter, modifier, supprimer, associer à une ville
-- Gérer les **Films** : ajouter, modifier, suppression logique (*soft delete* -le film reste en bdd)
+- Gérer les **Cinémas** : ajouter, modifier, supprimer, associer à une ville, importer depuis un fichier CSV
+- Gérer les **Films** : ajouter, modifier, suppression logique (*soft delete* -le film reste en bdd), importer depuis TMDB
 - Gérer les **Séances** : ajouter, modifier, supprimer (bloqué si des réservations existent)
+- Générer automatiquement des séances fictives pour les films importés
+- Importer automatiquement des films actuellement à l'affiche depuis TMDB
 ---
 
 ## Architecture
