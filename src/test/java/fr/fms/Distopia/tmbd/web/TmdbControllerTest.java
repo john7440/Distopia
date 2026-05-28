@@ -6,7 +6,7 @@ import fr.fms.Distopia.service.SeanceGeneratorService;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbGenreDto;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
-import fr.fms.Distopia.tmdb.web.TmbdController;
+import fr.fms.Distopia.tmdb.web.TmdbController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ class TmdbControllerTest {
     @Mock
     private SeanceGeneratorService seanceGeneratorService;
     @InjectMocks
-    private TmbdController tmbdController;
+    private TmdbController tmdbController;
 
     private TmdbMovieDto validDetail;
 
@@ -59,7 +59,7 @@ class TmdbControllerTest {
     @Test
     @DisplayName("importPage() - returns admin-import-movies view")
     void importPage_ShouldReturnAdminImportMovieView() {
-        String view = tmbdController.importPage(null,model);
+        String view = tmdbController.importPage(null,model);
 
         assertThat(view).isEqualTo("admin-import-movies");
     }
@@ -67,7 +67,7 @@ class TmdbControllerTest {
     @Test
     @DisplayName("importPage() - does not call tmdb if the query is null")
     void importPage_ShouldNotCallTmdb_WhenQueryIsNull() {
-        tmbdController.importPage(null,model);
+        tmdbController.importPage(null,model);
 
         verify(tmdbClient, never()).search(any());
     }
@@ -79,7 +79,7 @@ class TmdbControllerTest {
         movie.setTitle("Inception");
         when(tmdbClient.search("Inception")).thenReturn(List.of(movie));
 
-        tmbdController.importPage("Inception",model);
+        tmdbController.importPage("Inception",model);
 
         verify(tmdbClient).search("Inception");
         verify(model).addAttribute("results",List.of(movie));
@@ -89,7 +89,7 @@ class TmdbControllerTest {
     @Test
     @DisplayName("importPage() - always adds imgBase to the model")
     void importPage_ShouldAlwaysAddImgBaseToModel() {
-        tmbdController.importPage(null,model);
+        tmdbController.importPage(null,model);
 
         verify(model).addAttribute("imgBase",TmdbClient.IMG_BASE);
     }
@@ -104,7 +104,7 @@ class TmdbControllerTest {
         when(seanceGeneratorService.generateForMovie(any()))
                 .thenReturn(new SeanceGeneratorService.GeneratorResult(1, 3, List.of()));
 
-        String view = tmbdController.importMovie(1L, null, redirectAttributes);
+        String view = tmdbController.importMovie(1L, null, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/import-movies");
         verify(redirectAttributes).addFlashAttribute(eq("message"), contains("Inception"));
@@ -115,7 +115,7 @@ class TmdbControllerTest {
     void importMovie_ShouldAddFlashErrorWhenTmdbReturnsNull() {
         when(tmdbClient.getDetail(99L)).thenReturn(null);
 
-        String view = tmbdController.importMovie(99L, null, redirectAttributes);
+        String view = tmdbController.importMovie(99L, null, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/import-movies");
         verify(redirectAttributes).addFlashAttribute(eq("error"), anyString());
@@ -133,7 +133,7 @@ class TmdbControllerTest {
         when(seanceGeneratorService.generateForMovie(any()))
                 .thenReturn(new SeanceGeneratorService.GeneratorResult(1, 3, List.of()));
 
-        tmbdController.importMovie(1L,null,redirectAttributes);
+        tmdbController.importMovie(1L,null,redirectAttributes);
 
         verify(movieService).save(isNull(),any(), anyString(),anyString(),anyInt(),eq("Inconnu"),any(), any(), isNull(), any());
     }
@@ -148,7 +148,7 @@ class TmdbControllerTest {
         when(seanceGeneratorService.generateForMovie(any()))
                 .thenReturn(new SeanceGeneratorService.GeneratorResult(1, 3, List.of()));
 
-        tmbdController.importMovie(1L,null,redirectAttributes);
+        tmdbController.importMovie(1L,null,redirectAttributes);
 
         verify(movieService).save(isNull(),
                 any(), anyString(), anyString(), eq(0), any(), any(), any(), isNull(), any());
@@ -163,7 +163,7 @@ class TmdbControllerTest {
         when(seanceGeneratorService.generateForMovie(any()))
                 .thenReturn(new SeanceGeneratorService.GeneratorResult(1, 3, List.of()));
 
-        String view = tmbdController.importMovie(1L,"Inception",redirectAttributes);
+        String view = tmdbController.importMovie(1L,"Inception",redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/import-movies?query=Inception");
     }
@@ -178,7 +178,7 @@ class TmdbControllerTest {
 
         when(seanceGeneratorService.importAndGenerate()).thenReturn(result);
 
-        String view = tmbdController.generateNowPlaying(redirectAttributes);
+        String view = tmdbController.generateNowPlaying(redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/seances");
         verify(redirectAttributes).addFlashAttribute("message",
@@ -194,7 +194,7 @@ class TmdbControllerTest {
                 );
         when(seanceGeneratorService.importAndGenerate()).thenReturn(result);
 
-        String view = tmbdController.generateNowPlaying(redirectAttributes);
+        String view = tmdbController.generateNowPlaying(redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/seances");
         verify(redirectAttributes).addFlashAttribute("message",

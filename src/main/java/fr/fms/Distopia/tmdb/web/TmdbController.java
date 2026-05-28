@@ -32,7 +32,7 @@ import java.util.List;
  * </ul>
  */
 @Controller
-public class TmbdController {
+public class TmdbController {
 
     @Autowired
     private TmdbClient tmdbClient;
@@ -41,7 +41,7 @@ public class TmbdController {
     @Autowired
     private SeanceGeneratorService seanceGeneratorService;
 
-    private static final Logger logger = LoggerFactory.getLogger(TmbdController.class);
+    private static final Logger logger = LoggerFactory.getLogger(TmdbController.class);
 
     // -----------------admin import-movies---------------------
     /**
