@@ -1,38 +1,53 @@
 @startuml
-title Réserver une ou plusieurs places
+title Movie Reservation Sequence
 
-actor Utilisateur
-participant "Frontend" as FE
-participant "ReservationController" as CTRL
-participant "ReservationService" as SVC
-database "MariaDB" as DB
+actor "Authenticated User" as User
+participant "ReservationController" as Controller
+participant "ReservationService" as Service
+participant "ReservationRepository" as ReservationRepo
+participant "SeanceRepository" as SeanceRepo
 
-Utilisateur -> FE : Sélectionne séance\net nombre de places
-activate FE
+activate User
+User -> Controller : POST /reserve
+activate Controller
 
-FE -> CTRL : POST /reserve\n{ seanceId, quantity }
-activate CTRL
+Controller -> Service : existsByUserAndSeance(userId, seanceId)
+activate Service
 
-CTRL -> SVC : createReservation(seanceId, userId, quantity)
-activate SVC
+Service -> ReservationRepo : findByUserIdAndSeanceId(userId, seanceId)
+activate ReservationRepo
+ReservationRepo --> Service : Optional<Reservation>
+deactivate ReservationRepo
 
-alt availableSeats < quantity
-    SVC --> CTRL : NoSeatsAvailableException
-    CTRL --> FE : error
-    FE --> Utilisateur : "Pas assez de places disponibles"
-else availableSeats >= quantity
-    SVC -> DB : UPDATE seance\nSET availableSeats = availableSeats - quantity
-    activate DB
-    SVC -> DB : INSERT reservation\n(userId, seanceId, quantity, reservedAt)
-    DB --> SVC : Reservation
-    deactivate DB
-    SVC --> CTRL : Reservation
-    deactivate SVC
-    CTRL --> FE : success
-    deactivate CTRL
-    FE --> Utilisateur : "Réservation bien enregistrée"
+Service --> Controller : alreadyBooked
+deactivate Service
+
+alt already booked and not confirmed
+    Controller --> User : redirect and ask confirmation
+else new or confirmed reservation
+    Controller -> Service : createReservation(seanceId, userId, quantity)
+    activate Service
+
+    Service -> SeanceRepo : findByIdForUpdate(seanceId)
+    activate SeanceRepo
+    SeanceRepo --> Service : locked seance
+    deactivate SeanceRepo
+
+    alt not enough seats
+        Service --> Controller : NoSeatsAvailableException
+        deactivate Service
+        Controller --> User : redirect with error
+    else enough seats
+        Service -> ReservationRepo : save(reservation)
+        activate ReservationRepo
+        ReservationRepo --> Service : saved reservation
+        deactivate ReservationRepo
+
+        Service --> Controller : reservation created
+        deactivate Service
+
+        Controller --> User : redirect with success
+        deactivate Controller
+    end
 end
-
-deactivate FE
-
 @enduml
