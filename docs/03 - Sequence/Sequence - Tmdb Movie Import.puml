@@ -1,0 +1,56 @@
+@startuml
+title TMDB Movie Import Sequence
+
+actor Administrator
+participant "TmbdController" as Controller
+participant "TmdbClient" as TMDB
+participant "MovieService" as MovieService
+participant "MovieRepository" as MovieRepo
+participant "SeanceGeneratorService" as Generator
+participant "SeanceService" as SeanceService
+
+activate Administrator
+Administrator -> Controller : POST /admin/import-movie
+activate Controller
+
+Controller -> TMDB : getDetail(tmdbId)
+activate TMDB
+TMDB --> Controller : TmdbMovieDto or null
+deactivate TMDB
+
+alt movie not found
+    Controller --> Administrator : redirect with error
+else movie found
+    Controller -> TMDB : getTrailerUrl(tmdbId)
+    activate TMDB
+    TMDB --> Controller : trailerUrl
+    deactivate TMDB
+
+    Controller -> MovieService : save(movie data)
+    activate MovieService
+
+    MovieService -> MovieRepo : save(movie)
+    activate MovieRepo
+    MovieRepo --> MovieService : saved movie
+    deactivate MovieRepo
+
+    MovieService --> Controller : saved movie
+    deactivate MovieService
+
+    Controller -> Generator : generateForMovie(savedMovie)
+    activate Generator
+
+    Generator -> SeanceService : save generated seances
+    activate SeanceService
+    SeanceService --> Generator : seances saved
+    deactivate SeanceService
+
+    Generator --> Controller : GeneratorResult
+    deactivate Generator
+
+    Controller --> Administrator : redirect with success
+end
+
+deactivate Controller
+
+@enduml
