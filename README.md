@@ -312,6 +312,8 @@ La documentation du projet contiens les diagrammes suivants:
 - Diagramme de couches de l'application
 - Diagramme des modules fonctionnels
 
+Des screenshots des différentes pages de l'application sont également disponible dans: `docs/Screenshots`
+
 ## Sécurité
 
 L'application utilise Spring Security.
@@ -322,10 +324,6 @@ Règles principales :
 - les routes /admin/** nécessitent le rôle ADMIN
 
 Les mots de passe sont hachés avec BCrypt
-
-## Screenshots
-
-### Page d'Acceuil
 
 ![Acceuil](docs/Screenshots/home.png)
 
