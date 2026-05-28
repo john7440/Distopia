@@ -9,6 +9,7 @@ Spring Boot / JPA / Thymeleaf
 - [Architecture](#architecture)
 - [Technologies](#technologies)
 - [Installation](#installation)
+- [Configuration](#configuration)
 - [Base de données](#base-de-données)
 - [Utilisation](#utilisation)
 - [Structure du projet](#structure-du-projet)
@@ -123,6 +124,49 @@ git clone https://github.com/john7440/Distopia.git
 1. `File` -> `Open` -> Sélectionner le dossier du projet
 2. Attendre qu'IntelliJ indexe le projet et télécharger les dépendances Maven
 3. Vérifier que `pom.xml` est bien reconnu
+
+### 3. Vérifier Java
+
+```bash
+java -version
+```
+### 4. Installer les dépendances
+
+```bash
+mvn clean install
+```
+Note: commande disponible si Maven est installé sinon utiliser le wrapper `.\mvnw`
+
+## Configuration
+
+La configuration principale se trouve dans:
+`src/main/resources/application.properties`
+
+Example:
+```bash
+spring.application.name=Distopia
+
+# Database
+spring.datasource.url=jdbc:mariadb://localhost:3308/distopia2?createDatabaseIfNotExist=true
+spring.datasource.username=root
+spring.datasource.password=${DB_PASS}
+spring.datasource.driver-class-name=org.mariadb.jdbc.Driver
+
+# JPA
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+
+# Thymeleaf
+spring.thymeleaf.cache=false
+
+# TMDB API
+tmdb.api.key=${TMDB_API_KEY}
+```
+
+### Variables d'environnement nécessaires
+Le projet utilise des variables d'environnement pour éviter de stocker les mots de passe et clés API dans le code:
+- DB_PASS = Mot de passe MariaDB
+- TMDB_API_KEY = clé API TMDB
 
 ---
 
