@@ -55,13 +55,37 @@ imports depuis TMDB (API) et CSV.
 
 L'application suit une **architecture MVC multi-couches** :
 
-- **View Layer** : Thymeleaf + Bootstrap 5 - templates avec héritage de layout
-- **Controller**: Spring MVC @Controller - gestion des requêtes HTTP
-- **Service** : Logique métier — validation, transactions, règles de gestion
-- **Repository** : Accès base de données via JpaRepository (Spring Data JPA)
-- **Entity** :Objets mappés JPA
-- **Security** :Authentification par session + BCrypt via Spring Security
-- **Database** : MariaDB
+### Couches principales
+
+- **Web Layer** : contrôleurs Spring MVC
+- **Form Layer** : objets de formulaire validés avec Jakarta Validation
+- **Service Layer** : logique métier
+- **Data Access Layer** : repositories Spring Data JPA
+- **Domain Layer** : entités JPA
+- **External API Layer** : client TMDB
+- **Exception Layer** : exceptions métier et gestion globale des erreurs
+
+### Validation
+
+Les formulaires principaux utilisent des objets dédiés :
+
+- `RegisterForm`
+- `CinemaForm`
+- `MovieForm`
+- `SeanceForm`
+- `TownForm`
+
+Ces objets permettent de valider les entrées utilisateur avant d'appeler les services métier
+
+### Gestion des erreurs
+
+L'application utilise un `GlobalExceptionHandler` pour centraliser certaines erreurs :
+
+- erreurs de validation de paramètres
+- erreurs métier non interceptées localement
+- erreurs inattendues
+
+Les formulaires utilisent aussi `BindingResult` pour rediriger l'utilisateur avec un message d'erreur clair en cas de donnée invalide
 
 ---
 
