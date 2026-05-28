@@ -12,6 +12,8 @@ Spring Boot / JPA / Thymeleaf
 - [Configuration](#configuration)
 - [Utilisation](#utilisation)
 - [Structure du projet](#structure-du-projet)
+- [Documentation](#documentation)
+- [Sécurité](#sécurité)
 
 ## Présentation
 
@@ -238,7 +240,6 @@ mvn spring-boot:run
 ```
 Puis ouvrir votre navigateur à l'adresse : [http://localhost:8080/index](http://localhost:8080/index)
 
----
 ### Tableau des routes
 
 | Route                | Accès    | Description                                |
@@ -298,6 +299,29 @@ src
 | `web.form`   | DTO de formulaires validés    |
 
 ---
+
+## Documentation
+La documentation du projet contiens les diagrammes suivants:
+- Diagramme de Use Case
+- Diagramme de Classe avec les entitées principales
+- Diagramme de Séquence:
+  - Inscription Utilisateur
+  - Reservation Séance pour un film
+  - Import de film Tmdb
+  - Validation formulaire Admin
+- Diagramme de couches de l'application
+- Diagramme des modules fonctionnels
+
+## Sécurité
+
+L'application utilise Spring Security.
+
+Règles principales :
+- les pages publiques sont accessibles sans authentification
+- les réservations nécessitent un utilisateur connecté
+- les routes /admin/** nécessitent le rôle ADMIN
+
+Les mots de passe sont hachés avec BCrypt
 
 # Licence
 
