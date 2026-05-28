@@ -13,6 +13,7 @@ Spring Boot / JPA / Thymeleaf
 - [Utilisation](#utilisation)
 - [Structure du projet](#structure-du-projet)
 - [Documentation](#documentation)
+- [Screenshots](#screenshots)
 - [Sécurité](#sécurité)
 
 ## Présentation
@@ -312,7 +313,32 @@ La documentation du projet contiens les diagrammes suivants:
 - Diagramme de couches de l'application
 - Diagramme des modules fonctionnels
 
-Des screenshots des différentes pages de l'application sont également disponible dans: `docs/Screenshots`
+
+## Screenshots
+
+### Page d'acceuil
+
+![Home page](docs/Screenshots/home.png)
+
+### Détails d'un film
+
+![Movie detail](docs/Screenshots/details.png)
+
+### Cinemas
+
+![Cinemas](docs/Screenshots/cinemas.png)
+
+### Admin movies
+
+![Admin movies](docs/Screenshots/admin-movies.png)
+
+### Admin cinemas
+
+![Admin cinemas](docs/Screenshots/admin-cinemas.png)
+
+### Admin seances
+
+![Admin seances](docs/Screenshots/admin-seances.png)
 
 ## Sécurité
 
@@ -324,8 +350,6 @@ Règles principales :
 - les routes /admin/** nécessitent le rôle ADMIN
 
 Les mots de passe sont hachés avec BCrypt
-
-![Acceuil](docs/Screenshots/home.png)
 
 # Licence
 
