@@ -1,0 +1,49 @@
+@startuml
+title User Registration Sequence
+
+actor Visitor
+participant "AuthController" as Controller
+participant "RegisterForm" as Form
+participant "UserService" as Service
+participant "UserRepository" as Repository
+
+activate Visitor
+Visitor -> Controller : POST /register
+activate Controller
+
+Controller -> Form : bind and validate input
+activate Form
+Form --> Controller : validation result
+deactivate Form
+
+alt invalid form
+    Controller --> Visitor : redirect with error
+else valid form
+    Controller -> Service : register(username, email, password)
+    activate Service
+
+    Service -> Repository : check existing user
+    activate Repository
+    Repository --> Service : result
+    deactivate Repository
+
+    alt user already exists
+        Service --> Controller : Optional.empty()
+        deactivate Service
+        Controller --> Visitor : redirect with error
+    else user can be created
+        Service -> Repository : save(user)
+        activate Repository
+        Repository --> Service : saved user
+        deactivate Repository
+
+        Service --> Controller : Optional<User>
+        deactivate Service
+
+        Controller --> Visitor : redirect with success
+    end
+end
+
+deactivate Controller
+
+@enduml
