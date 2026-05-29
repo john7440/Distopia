@@ -322,6 +322,7 @@ Le projet contient des tests unitaires et MVC
 ```bash
 mvn test
 ```
+![Resultats Tests]
 ### Générer le rapport Jacoco
 ```bash
 mvn clean verify
@@ -343,7 +344,7 @@ Le projet inclus également des tests Selenium pour:
 - AssertJ
 - MockMvc
 - JaCoCo
-- Sealenium
+- Selenium
 - h2database
 
 ## Screenshots
