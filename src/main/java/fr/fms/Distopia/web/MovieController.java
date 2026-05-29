@@ -62,13 +62,14 @@ public class MovieController {
         Sort sortObj = Sort.by(direction, sort);
 
         if (cinemaId != null){
-            model.addAttribute(MOVIES, movieService.getByCinema(cinemaId, sortObj));
+            model.addAttribute(MOVIES, movieService.getByCinemaWithUpcomingSeances(cinemaId, sortObj));
         } else {
             model.addAttribute(MOVIES, movieService.getAllActive(sortObj));
         }
-        model.addAttribute("cinemaId", null);
+        model.addAttribute("cinemaId", cinemaId);
         model.addAttribute("sort", sort);
         model.addAttribute("dir", dir);
+
         return MOVIES;
     }
 
