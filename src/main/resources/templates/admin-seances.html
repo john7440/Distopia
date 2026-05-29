@@ -338,65 +338,130 @@
         <nav class="mt-4"
              th:if="${seancePage.totalPages > 1}">
 
-            <ul class="pagination justify-content-center">
+            <ul class="pagination justify-content-center flex-wrap">
 
-                <!-- PREV -->
+                <!-- first page -->
                 <li class="page-item"
                     th:classappend="${currentPage == 0} ? 'disabled'">
 
                     <a class="page-link"
                        th:href="@{/admin/seances(
-                       page=${currentPage - 1},
-                       keyword=${keyword},
-                       cinemaId=${cinemaId})}">
-                        &laquo;
+                   page=0,
+                   keyword=${keyword},
+                   cinemaId=${cinemaId},
+                   sortField=${sortField},
+                   sortDir=${sortDir})}">
+                        «
                     </a>
-
                 </li>
 
-                <!-- WINDOW -->
+                <!-- previous page -->
                 <li class="page-item"
+                    th:classappend="${currentPage == 0} ? 'disabled'">
 
-                    th:each="i : ${#numbers.sequence(
-                    currentPage > 2 ? currentPage - 2 : 0,
-                    currentPage + 2 < seancePage.totalPages - 1 ?
-                    currentPage + 2 :
-                    seancePage.totalPages - 1)}"
+                    <a class="page-link"
+                       th:href="@{/admin/seances(
+                   page=${currentPage - 1},
+                   keyword=${keyword},
+                   cinemaId=${cinemaId},
+                   sortField=${sortField},
+                   sortDir=${sortDir})}">
+                        ‹
+                    </a>
+                </li>
 
+                <!-- first visible page -->
+                <li th:if="${currentPage > 3}"
+                    class="page-item">
+
+                    <a class="page-link"
+                       th:href="@{/admin/seances(
+                               page=0,
+                               keyword=${keyword},
+                               cinemaId=${cinemaId},
+                               sortField=${sortField},
+                               sortDir=${sortDir})}">1
+                    </a>
+                </li>
+
+                <!-- left ellipsis -->
+                <li th:if="${currentPage > 4}"
+                    class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+
+                <!-- page window -->
+                <li th:each="i : ${#numbers.sequence(
+                        currentPage > 2 ? currentPage - 2 : 0,
+                        currentPage + 2 < seancePage.totalPages - 1 ?
+                        currentPage + 2 :
+                        seancePage.totalPages - 1)}"
+                    class="page-item"
                     th:classappend="${i == currentPage} ? 'active'">
 
                     <a class="page-link"
                        th:text="${i + 1}"
-
                        th:href="@{/admin/seances(
-                       page=${i},
-                       keyword=${keyword},
-                       cinemaId=${cinemaId})}">
+                           page=${i},
+                           keyword=${keyword},
+                           cinemaId=${cinemaId},
+                           sortField=${sortField},
+                           sortDir=${sortDir})}">
                     </a>
-
                 </li>
 
-                <!-- NEXT -->
-                <li class="page-item"
+                <!-- right ellipsis -->
+                <li th:if="${currentPage < seancePage.totalPages - 5}"
+                    class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
 
-                    th:classappend="${currentPage >= seancePage.totalPages - 1}
-                    ? 'disabled'">
+                <!-- last visible page -->
+                <li th:if="${currentPage < seancePage.totalPages - 4}"
+                    class="page-item">
 
                     <a class="page-link"
-
+                       th:text="${seancePage.totalPages}"
                        th:href="@{/admin/seances(
-                       page=${currentPage + 1},
-                       keyword=${keyword},
-                       cinemaId=${cinemaId})}">
-                        &raquo;
+                           page=${seancePage.totalPages - 1},
+                           keyword=${keyword},
+                           cinemaId=${cinemaId},
+                           sortField=${sortField},
+                           sortDir=${sortDir})}">
                     </a>
-
                 </li>
 
+                <!-- next page -->
+                <li class="page-item"
+                    th:classappend="${currentPage >= seancePage.totalPages - 1} ? 'disabled'">
+
+                    <a class="page-link"
+                       th:href="@{/admin/seances(
+                           page=${currentPage + 1},
+                           keyword=${keyword},
+                           cinemaId=${cinemaId},
+                           sortField=${sortField},
+                           sortDir=${sortDir})}">
+                        ›
+                    </a>
+                </li>
+
+                <!-- last page -->
+                <li class="page-item"
+                    th:classappend="${currentPage >= seancePage.totalPages - 1} ? 'disabled'">
+
+                    <a class="page-link"
+                       th:href="@{/admin/seances(
+                           page=${seancePage.totalPages - 1},
+                           keyword=${keyword},
+                           cinemaId=${cinemaId},
+                           sortField=${sortField},
+                           sortDir=${sortDir})}">
+                        »
+                    </a>
+                </li>
             </ul>
-
         </nav>
-
     </div>
 
     <!---------------------------------------ADD MODAL-------->
