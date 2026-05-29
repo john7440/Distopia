@@ -32,6 +32,22 @@ public interface MovieRepository extends JpaRepository<Movie,Long> {
     List<Movie> findByCinemasIdAndDeletedFalse(Long cinemaId, Sort sort);
 
     /**
+     *  Retrieves movies with upcoming seance in designed cinema with sort
+     * @param cinemaId the cinema identifier
+     * @param sort the sorting configuration
+     * @return the list of movies active in the cinema
+     */
+    @Query("""
+        SELECT DISTINCT m
+        FROM Movie m
+        JOIN m.seances s
+        WHERE s.cinema.id = :cinemaId
+        AND s.dateTime >= CURRENT_TIMESTAMP
+        AND m.deleted = false
+        """)
+    List<Movie> findMoviesWithUpcomingSeancesByCinemaId(@Param("cinemaId") Long cinemaId, Sort sort);
+
+    /**
      * Retrieves all non-deleted movies
      *
      * @param sort the sorting configuration
