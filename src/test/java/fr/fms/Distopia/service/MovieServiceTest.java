@@ -333,4 +333,21 @@ class MovieServiceTest {
         assertThat(result).isEmpty();
         verify(movieRepository).findByTmdbId(999L);
     }
+
+    @Test
+    @DisplayName("getByCinemaWithUpcomingSeances() - returns movies with upcoming seances for cinema")
+    void getByCinemaWithUpcomingSeances_ShouldReturnMoviesWithUpcomingSeancesForCinema() {
+        Sort sort = Sort.by("title").ascending();
+
+        movie.setId(1L);
+        movie.setTitle("Inception");
+
+        when(movieRepository.findMoviesWithUpcomingSeancesByCinemaId(1L, sort))
+                .thenReturn(List.of(movie));
+
+        List<Movie> result = movieService.getByCinemaWithUpcomingSeances(1L, sort);
+
+        assertThat(result).containsExactly(movie);
+        verify(movieRepository).findMoviesWithUpcomingSeancesByCinemaId(1L, sort);
+    }
 }
