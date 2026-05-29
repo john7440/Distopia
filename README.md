@@ -322,13 +322,15 @@ Le projet contient des tests unitaires et MVC
 ```bash
 mvn test
 ```
-![Resultats Tests]
+![Resultats Tests](docs/05-Test-Coverage/ResultsUnitTests.png)
 ### Générer le rapport Jacoco
 ```bash
 mvn clean verify
 ```
 Le rapport est généré dans:
 `target/site/jacoco/index.html`
+
+![Resultats Tests](docs/05-Test-Coverage/JacocoReport.png)
 
 ### Tests end-to-end
 
