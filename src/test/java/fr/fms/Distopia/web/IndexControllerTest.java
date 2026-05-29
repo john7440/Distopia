@@ -42,7 +42,6 @@ class IndexControllerTest {
         movie.setTitle("Inception");
 
         when(tmdbClient.getNowPlaying()).thenReturn(List.of(movie));
-        when(tmdbClient.getThisWeek()).thenReturn(List.of(movie));
         when(tmdbClient.getUpcoming()).thenReturn(List.of(movie));
 
         String view = indexController.index(model);
@@ -51,7 +50,6 @@ class IndexControllerTest {
 
         verify(model).addAttribute("imgBase", TmdbClient.IMG_BASE);
         verify(model).addAttribute("nowPlaying", List.of(movie));
-        verify(model).addAttribute("thisWeek",List.of(movie));
         verify(model).addAttribute("upcoming", List.of(movie));
     }
 
@@ -67,7 +65,6 @@ class IndexControllerTest {
                 }).toList();
 
         when(tmdbClient.getNowPlaying()).thenReturn(movies);
-        when(tmdbClient.getThisWeek()).thenReturn(movies);
         when(tmdbClient.getUpcoming()).thenReturn(movies);
 
         indexController.index(model);
@@ -76,7 +73,6 @@ class IndexControllerTest {
                 list instanceof List<?> l && l.size() == 10
         ));
 
-        verify(model).addAttribute("thisWeek", movies);
 
         verify(model).addAttribute(eq("upcoming"), argThat(list ->
                 list instanceof List<?> l && l.size() == 10
@@ -94,7 +90,6 @@ class IndexControllerTest {
 
         verify(model).addAttribute("imgBase", TmdbClient.IMG_BASE);
         verify(model).addAttribute("nowPlaying", List.of());
-        verify(model).addAttribute("thisWeek", List.of());
         verify(model).addAttribute("upcoming", List.of());
     }
 }
