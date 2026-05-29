@@ -112,7 +112,24 @@
                         <th>ID</th>
                         <th>Film</th>
                         <th>Cinéma</th>
-                        <th>Date</th>
+                        <th>
+                            <a th:href="@{/admin/seances(
+                                keyword=${keyword},
+                                cinemaId=${cinemaId},
+                                page=0,
+                                sortField='dateTime',
+                                sortDir=${sortField == 'dateTime' ? reverseSortDir : 'asc'})}"
+                               class="text-white text-decoration-none d-flex align-items-center gap-1">
+                                Date
+                                <i th:if="${sortField == 'dateTime'}"
+                                   class="bi ms-1"
+                                   th:classappend="${sortDir == 'asc'} ? 'bi-caret-up-fill' : 'bi-caret-down-fill'">
+                                </i>
+                                <i th:if="${sortField != 'dateTime'}"
+                                   class="bi bi-chevron-expand ms-1 opacity-50">
+                                </i>
+                            </a>
+                        </th>
                         <th>Places</th>
                         <th>Prix</th>
                         <th class="text-center" style="width:180px">Actions</th>
