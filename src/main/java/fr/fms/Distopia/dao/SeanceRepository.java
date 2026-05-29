@@ -91,12 +91,13 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
      * @param pageable the pagination configuration
      * @return a paginated list of matching seances
      */
-    @Query("SELECT s FROM Seance s " +
-            "JOIN s.movie m JOIN s.cinema c WHERE " +
-            "(:keyword IS NULL OR :keyword = '' OR " +
-            " LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
-            "(:cinemaId IS NULL OR c.id = :cinemaId) " +
-            "ORDER BY s.dateTime ASC")
+    @Query("""
+    SELECT s FROM Seance s
+    JOIN s.movie m
+    JOIN s.cinema c
+    WHERE (:keyword IS NULL OR :keyword = ''
+           OR LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
+    AND (:cinemaId IS NULL OR c.id = :cinemaId)
+    """)
     Page<Seance> searchAdmin(@Param("keyword") String keyword, @Param("cinemaId") Long cinemaId, Pageable pageable);
-
 }

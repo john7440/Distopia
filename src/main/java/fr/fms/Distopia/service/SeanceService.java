@@ -9,6 +9,7 @@ import fr.fms.Distopia.entities.Seance;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -119,18 +120,23 @@ public class SeanceService {
 
     //--------------recherche paginé admin-----------------
     /**
-     * Searches seances for the administration dashboard
-     * <p>
-     * Supports keyword filtering, cinema filtering
-     * and pagination
+     * Searches seances for the administration page with pagination and sorting
      *
-     * @param keyword the keyword used to search seances
-     * @param cinemaId the selected cinema identifier
-     * @param page the requested page number
-     * @return a paginated list of matching seances
+     * @param keyword the optional movie title keyword
+     * @param cinemaId the optional cinema identifier filter
+     * @param sortField the field used for sorting
+     * @param sortDir the sorting direction, either "asc" or "desc"
+     * @param page the requested page index
+     * @return a paginated list of seances matching the filters
      */
-    public Page<Seance> searchAdmin(String keyword, Long cinemaId, int page) {
-        Pageable pageable = PageRequest.of(page, PAGE_SIZE_ADMIN);
+    public Page<Seance> searchAdmin(String keyword, Long cinemaId, String sortField,
+                                    String sortDir, int page) {
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortField).descending()
+                : Sort.by(sortField).ascending();
+
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE_ADMIN, sort);
+
         return seanceRepository.searchAdmin(keyword, cinemaId, pageable);
     }
 
