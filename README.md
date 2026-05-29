@@ -13,6 +13,7 @@ Spring Boot / JPA / Thymeleaf
 - [Utilisation](#utilisation)
 - [Structure du projet](#structure-du-projet)
 - [Documentation](#documentation)
+- [Tests](#tests)
 - [Screenshots](#screenshots)
 - [Sécurité](#sécurité)
 
@@ -313,6 +314,37 @@ La documentation du projet contiens les diagrammes suivants:
 - Diagramme de couches de l'application
 - Diagramme des modules fonctionnels
 
+## Tests
+
+Le projet contient des tests unitaires et MVC
+
+### Pour lancer les tests
+```bash
+mvn test
+```
+### Générer le rapport Jacoco
+```bash
+mvn clean verify
+```
+Le rapport est généré dans:
+`target/site/jacoco/index.html`
+
+### Tests end-to-end
+
+Le projet inclus également des tests Selenium pour:
+- la navigation de la page d'acceuil
+- l'inscription d'un nouvel utilisateur
+- la réservation d'une séance pour un utilisateur connecté
+- la navigation admin
+
+### Outils utilisés
+- JUnit 5
+- Mockito
+- AssertJ
+- MockMvc
+- JaCoCo
+- Sealenium
+- h2database
 
 ## Screenshots
 
