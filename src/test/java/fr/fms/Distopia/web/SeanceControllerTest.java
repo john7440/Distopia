@@ -128,11 +128,11 @@ class SeanceControllerTest {
     @DisplayName("adminSeances() - return 'admin-seances' view for admin user")
     void adminSeances_ShouldReturnAdminSeancesViewForAdminUser() {
         Page<Seance> seancePage = new PageImpl<>(List.of(seance));
-        when(seanceService.searchAdmin(null, null, 0)).thenReturn(seancePage);
+        when(seanceService.searchAdmin(null, null,"sortField","sortDir", 0)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        String view = seanceController.adminSeances(null, null, 0, model);
+        String view = seanceController.adminSeances(null, null, 0,"sortField","sortDir", model);
 
         assertThat(view).isEqualTo("admin-seances");
     }
@@ -143,11 +143,11 @@ class SeanceControllerTest {
     void adminSeances_ShouldAddSeancesMoviesAndCinemasToModel() {
         Page<Seance> seancePage = new PageImpl<>(List.of(seance),
                 PageRequest.of(0, 12), 1);
-        when(seanceService.searchAdmin(null, null, 0)).thenReturn(seancePage);
+        when(seanceService.searchAdmin(null, null,"sortField","sortDir", 0)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        seanceController.adminSeances(null, null, 0, model);
+        seanceController.adminSeances(null, null, 0,"sortField","sortDir", model);
 
         verify(model).addAttribute("seancePage", seancePage);
         verify(model).addAttribute("seances", List.of(seance));
@@ -159,13 +159,13 @@ class SeanceControllerTest {
     @DisplayName("adminSeances() - forwards keyword and cinemaId to service")
     void adminSeances_ShouldForwardKeywordAndCinemaIdToService() {
         Page<Seance> seancePage = new PageImpl<>(List.of(seance));
-        when(seanceService.searchAdmin("14h", 1L, 0)).thenReturn(seancePage);
+        when(seanceService.searchAdmin("14h", 1L,"sortField","sortDir",0)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        seanceController.adminSeances("14h", 1L, 0, model);
+        seanceController.adminSeances("14h", 1L, 0,"sortField","sortDir", model);
 
-        verify(seanceService).searchAdmin("14h", 1L, 0);
+        verify(seanceService).searchAdmin("14h", 1L,"sortField", "sortDir", 0);
         verify(model).addAttribute("keyword", "14h");
         verify(model).addAttribute("cinemaId", 1L);
     }
@@ -175,14 +175,14 @@ class SeanceControllerTest {
     void adminSeances_ShouldHandlePageGreaterThanZero() {
         Page<Seance> seancePage = new PageImpl<>(List.of(seance),
                 PageRequest.of(2, 12), 30);
-        when(seanceService.searchAdmin(null, null, 2)).thenReturn(seancePage);
+        when(seanceService.searchAdmin(null, null,"sortField","sortDir",2)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of());
         when(cinemaService.getAll()).thenReturn(List.of());
 
 
-        seanceController.adminSeances(null, null, 2, model);
+        seanceController.adminSeances(null, null, 2,"sortField","sortDir", model);
 
-        verify(seanceService).searchAdmin(null, null, 2);
+        verify(seanceService).searchAdmin(null, null,"sortField","sortDir", 2);
         verify(model).addAttribute("currentPage", 2);
     }
 

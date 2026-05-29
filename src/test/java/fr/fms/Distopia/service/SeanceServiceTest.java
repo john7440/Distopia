@@ -194,7 +194,7 @@ import static org.mockito.Mockito.*;
 
         when(seanceRepository.searchAdmin(eq("Inception"), eq(1L),any(Pageable.class))).thenReturn(page);
 
-        Page<Seance> result = seanceService.searchAdmin("Inception", 1L,0);
+        Page<Seance> result = seanceService.searchAdmin("Inception", 1L,"sortField","sortDir",0);
 
         assertThat(result.getContent()).containsExactly(seance);
         verify(seanceRepository).searchAdmin(eq("Inception"), eq(1L),any(Pageable.class));
@@ -208,7 +208,7 @@ import static org.mockito.Mockito.*;
 
         when(seanceRepository.searchAdmin(eq("Inconnu"), eq(99L),any(Pageable.class))).thenReturn(emptyPage);
 
-        Page<Seance> result = seanceService.searchAdmin("Inconnu", 99L,0);
+        Page<Seance> result = seanceService.searchAdmin("Inconnu", 99L,"sortField","sortDir",0);
 
         assertThat(result.getContent()).isEmpty();
         verify(seanceRepository).searchAdmin(eq("Inconnu"), eq(99L),any(Pageable.class));
