@@ -202,4 +202,15 @@ public class MovieService {
     public Optional<Movie> findByTmdbId(Long tmdbId) {
         return movieRepository.findByTmdbId(tmdbId);
     }
+
+    /**
+     * Returns active movies shown in a given cinema with at least one upcoming seance
+     *
+     * @param cinemaId the cinema identifier
+     * @param sort the sorting configuration
+     * @return the list of active movies with upcoming seances for the selected cinema
+     */
+    public List<Movie> getByCinemaWithUpcomingSeances(Long cinemaId, Sort sort) {
+        return movieRepository.findMoviesWithUpcomingSeancesByCinemaId(cinemaId, sort);
+    }
 }
