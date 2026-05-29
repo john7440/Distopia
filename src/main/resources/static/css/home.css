@@ -113,6 +113,13 @@ body {
     transform: scale(1.08);
 }
 
+.seance-info-row {
+    min-width: 0;
+}
+
+.seance-info-row .fw-semibold {
+    white-space: nowrap;
+}
 /* overlay hover */
 
 .movie-overlay {
