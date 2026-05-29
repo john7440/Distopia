@@ -6,19 +6,18 @@
 
 <head>
     <title>Distopia – Accueil</title>
-
-    <!-- feuille de style dédiée -->
-    <link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
 
+<body>
 <section layout:fragment="content">
 
-    <!-- hero banner -->
+    <!-- hero -->
     <div class="py-5 text-center bg-dark text-white mb-5 hero-banner">
+
         <div class="container">
 
             <h1 class="display-4 fw-bold mb-3">
-                Distopia
+               Bienvenue sur Distopia
             </h1>
 
             <p class="lead text-white-50 mb-4">
@@ -26,16 +25,15 @@
             </p>
 
             <div class="d-flex justify-content-center flex-wrap gap-3">
+
                 <a th:href="@{/movies}"
                    class="btn btn-danger btn-lg rounded-pill px-4">
-
                     <i class="bi bi-film me-2"></i>
                     Voir tous les films
                 </a>
 
                 <a th:href="@{/cinemas}"
                    class="btn btn-outline-light btn-lg rounded-pill px-4">
-
                     <i class="bi bi-camera-reels me-2"></i>
                     Nos cinémas
                 </a>
@@ -49,7 +47,8 @@
         <div th:if="${not #lists.isEmpty(nowPlaying)}"
              class="movie-section mb-5">
 
-            <div class="section-header">
+            <div class="section-header enhanced-header">
+
                 <div>
                     <span class="section-subtitle">
                         En salle
@@ -58,9 +57,30 @@
                         À l'affiche
                     </h2>
                 </div>
+                <div class="section-actions">
+                    <a th:href="@{/movies}"
+                       class="see-all-link">
+                        Voir tout
+                    </a>
+                    <div class="slider-controls">
+                        <button type="button"
+                                class="slider-btn"
+                                onclick="scrollSlider('nowPlayingSlider', -1)"
+                                aria-label="défiler à gauche">
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <button type="button"
+                                class="slider-btn"
+                                onclick="scrollSlider('nowPlayingSlider', 1)"
+                                aria-label="défiler à droite">
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div class="movie-slider">
+            <div class="movie-slider custom-slider"
+                 id="nowPlayingSlider">
                 <div th:each="m : ${nowPlaying}"
                      class="movie-item">
                     <a th:href="@{/movie/tmdb/{tmdbId}(tmdbId=${m.id})}"
@@ -68,7 +88,6 @@
 
                         <div class="card movie-card border-0">
                             <div class="movie-poster-wrapper">
-                                <!-- protection contre poster null -->
                                 <img th:src="${m.posterPath != null ? imgBase + m.posterPath : '/images/no-poster.jpg'}"
                                      th:alt="${m.title}"
                                      class="movie-poster"
@@ -81,28 +100,15 @@
                                     <i class="bi bi-play-fill"></i>
                                 </div>
 
-                                <div class="movie-genre">
-
-                                    <span class="badge text-dark bg-warning rounded-pill px-3 py-2"
-                                          th:text="${#strings.listJoin(m.genres, ', ')}">
-
-                                        Action
-                                    </span>
-                                </div>
                             </div>
 
                             <div class="card-body p-3">
                                 <h5 class="movie-title"
                                     th:text="${m.title}">
-                                    Titre
                                 </h5>
-
                                 <div class="movie-date">
-
                                     <i class="bi bi-calendar3 me-1"></i>
-
                                     <span th:text="${m.releaseDate}"></span>
-
                                 </div>
                             </div>
                         </div>
@@ -115,18 +121,42 @@
         <div th:if="${not #lists.isEmpty(upcoming)}"
              class="movie-section mb-5">
 
-            <div class="section-header">
+            <div class="section-header enhanced-header">
+
                 <div>
                     <span class="section-subtitle">
                         Bientôt
                     </span>
+
                     <h2 class="section-title">
                         Prochainement
                     </h2>
                 </div>
+
+                <div class="section-actions">
+                    <a th:href="@{/movies}"
+                       class="see-all-link">
+                        Voir tout
+                    </a>
+                    <div class="slider-controls">
+                        <button type="button"
+                                class="slider-btn"
+                                onclick="scrollSlider('upcomingSlider', -1)"
+                                aria-label="défiler à gauche">
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <button type="button"
+                                class="slider-btn"
+                                onclick="scrollSlider('upcomingSlider', 1)"
+                                aria-label="défiler à droite">
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div class="movie-slider">
+            <div class="movie-slider custom-slider"
+                 id="upcomingSlider">
 
                 <div th:each="m : ${upcoming}"
                      class="movie-item">
@@ -146,22 +176,15 @@
                                 <div class="movie-play">
                                     <i class="bi bi-play-fill"></i>
                                 </div>
-                                <div class="movie-genre">
-                                    <span class="badge text-dark bg-warning rounded-pill px-3 py-2"
-                                          th:text="${#strings.listJoin(m.genres, ', ')}">
-                                        Action
-                                    </span>
-                                </div>
+
                             </div>
                             <div class="card-body p-3">
 
                                 <h5 class="movie-title"
                                     th:text="${m.title}">
-                                    Movie title
                                 </h5>
                                 <div class="movie-date">
                                     <i class="bi bi-calendar3 me-1"></i>
-
                                     <span th:text="${m.releaseDate}"></span>
                                 </div>
                             </div>
@@ -172,6 +195,24 @@
         </div>
     </div>
 
+    <script>
+        function scrollSlider(sliderId, direction) {
+            const slider = document.getElementById(sliderId);
+
+            if (!slider) {
+                return;
+            }
+
+            const scrollAmount = slider.clientWidth * 0.85;
+
+            slider.scrollBy({
+                left: direction * scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+
 </section>
 
+</body>
 </html>
