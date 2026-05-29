@@ -133,11 +133,11 @@ class MovieControllerTest {
     @DisplayName("moviesByCinema() - loads movies by cinema when cinemaId provided")
     void moviesByCinema_ShouldLoadsMoviesByCinemaId(){
         Sort sort = Sort.by(Sort.Direction.ASC, "title");
-        when(movieService.getByCinema(1L,sort)).thenReturn(List.of(movie));
+        when(movieService.getByCinemaWithUpcomingSeances(1L,sort)).thenReturn(List.of(movie));
 
         movieController.moviesByCinema(1L,DEFAULT_SORT,DEFAULT_DIR, model);
 
-        verify(movieService).getByCinema(1L,sort);
+        verify(movieService).getByCinemaWithUpcomingSeances(1L,sort);
         verify(movieService, never()).getAllActive(any(Sort.class));
         verify(model).addAttribute("movies", List.of(movie));
     }
