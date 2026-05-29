@@ -1,6 +1,6 @@
 package fr.fms.Distopia.e2e;
 
-import fr.fms.Distopia.dao.UserRepository;
+import fr.fms.Distopia.dao.*;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
@@ -35,7 +35,17 @@ class RegisterFlowSeleniumTest {
     @MockitoBean
     private TmdbClient tmdbClient;
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository  userRepository;
+    @Autowired
+    private ReservationRepository reservationRepository;
+    @Autowired
+    private TownRepository townRepository;
+    @Autowired
+    private CinemaRepository cinemaRepository;
+    @Autowired
+    private MovieRepository movieRepository;
+    @Autowired
+    private SeanceRepository seanceRepository;
 
     private WebDriver driver;
     private WebDriverWait wait;
@@ -46,7 +56,7 @@ class RegisterFlowSeleniumTest {
         when(tmdbClient.getThisWeek()).thenReturn(List.of());
         when(tmdbClient.getUpcoming()).thenReturn(List.of());
 
-        userRepository.deleteAll();
+        clearDatabase();
 
         WebDriverManager.chromedriver().setup();
 
@@ -82,5 +92,17 @@ class RegisterFlowSeleniumTest {
 
         assertThat(userRepository.findByUsername("newuser")).isPresent();
         assertThat(driver.getPageSource()).contains("Compte créé");
+    }
+
+    /**
+     *  Used to clear the database easily before the test
+     */
+    private void clearDatabase() {
+        reservationRepository.deleteAll();
+        seanceRepository.deleteAll();
+        movieRepository.deleteAll();
+        cinemaRepository.deleteAll();
+        townRepository.deleteAll();
+        userRepository.deleteAll();
     }
 }

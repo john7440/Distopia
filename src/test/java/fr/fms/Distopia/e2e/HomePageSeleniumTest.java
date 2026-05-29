@@ -1,6 +1,7 @@
 package fr.fms.Distopia.e2e;
 
 
+import fr.fms.Distopia.dao.*;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
@@ -12,6 +13,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
@@ -31,6 +33,16 @@ class HomePageSeleniumTest {
 
     @MockitoBean
     private TmdbClient tmdbClient;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private TownRepository townRepository;
+    @Autowired
+    private CinemaRepository cinemaRepository;
+    @Autowired
+    private MovieRepository movieRepository;
+    @Autowired
+    private SeanceRepository seanceRepository;
 
     private WebDriver driver;
 
@@ -39,6 +51,8 @@ class HomePageSeleniumTest {
         when(tmdbClient.getNowPlaying()).thenReturn(List.of());
         when(tmdbClient.getThisWeek()).thenReturn(List.of());
         when(tmdbClient.getUpcoming()).thenReturn(List.of());
+
+        clearDatabase();
 
         WebDriverManager.chromedriver().setup();
 
@@ -73,5 +87,16 @@ class HomePageSeleniumTest {
         moviesButton.click();
 
         assertThat(driver.getCurrentUrl()).contains("/movies");
+    }
+
+    /**
+     *  Used to clear the database easily before the test
+     */
+    private void clearDatabase() {
+        seanceRepository.deleteAll();
+        movieRepository.deleteAll();
+        cinemaRepository.deleteAll();
+        townRepository.deleteAll();
+        userRepository.deleteAll();
     }
 }

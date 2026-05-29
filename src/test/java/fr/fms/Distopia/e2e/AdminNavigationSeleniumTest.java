@@ -1,6 +1,6 @@
 package fr.fms.Distopia.e2e;
 
-import fr.fms.Distopia.dao.UserRepository;
+import fr.fms.Distopia.dao.*;
 import fr.fms.Distopia.entities.Role;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.tmdb.TmdbClient;
@@ -40,6 +40,16 @@ class AdminNavigationSeleniumTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private ReservationRepository reservationRepository;
+    @Autowired
+    private SeanceRepository seanceRepository;
+    @Autowired
+    private MovieRepository movieRepository;
+    @Autowired
+    private CinemaRepository cinemaRepository;
+    @Autowired
+    private TownRepository townRepository;
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private WebDriver driver;
@@ -51,7 +61,7 @@ class AdminNavigationSeleniumTest {
         when(tmdbClient.getThisWeek()).thenReturn(List.of());
         when(tmdbClient.getUpcoming()).thenReturn(List.of());
 
-        userRepository.deleteAll();
+        clearDatabase();
 
         User admin = new User();
         admin.setUsername("admin");
@@ -77,6 +87,18 @@ class AdminNavigationSeleniumTest {
         if (driver != null) {
             driver.quit();
         }
+    }
+
+    /**
+     *  Used to clear the database easily before the test
+     */
+    private void clearDatabase() {
+        reservationRepository.deleteAll();
+        seanceRepository.deleteAll();
+        movieRepository.deleteAll();
+        cinemaRepository.deleteAll();
+        townRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     //------------------tests for admin navigation ---------------------------
