@@ -58,7 +58,7 @@
                         <!-- réserver-->
                         <div sec:authorize="isAuthenticated()">
                             <form th:action="@{/reserve}" method="post"
-                                  th:if="${seance.availableSeats > 0" and sec:authorize="isAuthenticated()">
+                                  th:if="${seance.availableSeats gt 0}" and sec:authorize="isAuthenticated()">
                                 <input type="hidden" name="seanceId" th:value="${seance.id}">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Places</span>
