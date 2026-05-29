@@ -60,36 +60,41 @@ public class SeanceController {
 
     //-------------page de gestion des séances------------
     /**
-     * Displays the seance administration page
-     * <p>
-     * Supports:
-     * <ul>
-     *     <li>movie keyword search</li>
-     *     <li>cinema filtering</li>
-     *     <li>pagination</li>
-     * </ul>
-     * @param keyword the movie title search keyword
-     * @param cinemaId the selected cinema identifier
-     * @param page the requested page number
+     * Displays the seance administration page<p>
+     * Seances can be filtered by movie keyword and cinema, then sorted by date
+     * in ascending or descending order
+     *
+     * @param keyword the optional movie title keyword
+     * @param cinemaId the optional cinema identifier filter
+     * @param page the requested page index
+     * @param sortField the field used for sorting
+     * @param sortDir the sorting direction, either "asc" or "desc"
      * @param model the Spring {@link Model} used to pass data to the view
-     * @return the seance administration page
+     * @return the view name "admin-seances"
      */
     @GetMapping("/admin/seances")
-    public String adminSeances(@RequestParam(required = false)    String  keyword,
-                               @RequestParam(required = false)    Long    cinemaId,
-                               @RequestParam(defaultValue = "0")  int     page,
-                               Model model){
+    public String adminSeances(@RequestParam(required = false) String keyword,
+                               @RequestParam(required = false) Long cinemaId,
+                               @RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "dateTime") String sortField,
+                               @RequestParam(defaultValue = "asc") String sortDir,
+                               Model model) {
 
-        Page<Seance> seancePage = seanceService.searchAdmin(keyword, cinemaId, page);
+        Page<Seance> seancePage =
+                seanceService.searchAdmin(keyword, cinemaId, sortField, sortDir, page);
 
-        model.addAttribute("seancePage",   seancePage);
-        model.addAttribute(SEANCES,seancePage.getContent());
-        model.addAttribute("pages",new int[seancePage.getTotalPages()]);
-        model.addAttribute("currentPage",page);
+        model.addAttribute("seancePage", seancePage);
+        model.addAttribute(SEANCES, seancePage.getContent());
+        model.addAttribute("pages", new int[seancePage.getTotalPages()]);
+        model.addAttribute("currentPage", page);
         model.addAttribute("keyword", keyword);
         model.addAttribute("cinemaId", cinemaId);
-        model.addAttribute("movies",movieService.getAll());
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+        model.addAttribute("movies", movieService.getAll());
         model.addAttribute("cinemas", cinemaService.getAll());
+
         return "admin-seances";
     }
 
