@@ -62,9 +62,9 @@
                                 <input type="hidden" name="seanceId" th:value="${seance.id}">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Places</span>
-                                    <input type="number" name="quantity" class="form-control"
-                                           value="1" min="1"
-                                           th:max="${seance.availableSeats}">
+                                        <input type="number" name="quantity" class="form-control"
+                                               value="1" min="1"
+                                               th:max="${seance.availableSeats}">
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100">
                                     <i class="bi bi-ticket-perforated"></i> Réserver
@@ -76,9 +76,9 @@
                             </button>
                         </div>
 
-                        <!-- redirection login + sauvegarde de l'url avant redirection-->
+                        <!-- redirection login + sauvegarde de l'Url avant redirection-->
                         <div sec:authorize="!isAuthenticated()">
-                            <a th:href="@{/login(redirect=${'/seances?movieId=' + movieId + '&cinemaId=' + cinemaId})}"
+                            <a th:href="@{/login(redirect=${'/seances?movieId=' + movieId + '&cinemaId=' + cinemaId})}">
                                 <i class="bi bi-person-circle"></i> Connectez-vous pour réserver
                             </a>
                         </div>
