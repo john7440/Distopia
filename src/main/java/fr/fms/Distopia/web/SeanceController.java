@@ -169,4 +169,39 @@ public class SeanceController {
         }
         return REDIRECT_ADMIN_SEANCES;
     }
+
+    /**
+     * Deletes all seances matching the given admin filters
+     * <p>Filters are optional and cumulative:
+     * <ul>
+     *   <li>{@code keyword} - case-insensitive partial match on movie title or cinema name</li>
+     *   <li>{@code cinemaId} - exact match on the cinema ID</li>
+     *   <li>{@code movieId} - exact match on the movie ID</li>
+     * </ul>
+     *
+     * <p>After deletion, redirects back to the filtered seances list,
+     * preserving the current filter parameters in the URL
+     *
+     * @param keyword optional search term to filter seances
+     * @param cinemaId  optional cinema ID to filter seances
+     * @param movieId  optional movie ID to filter seances
+     * @param redirectAttributes flash attributes used to pass feedback to the redirected view
+     * @return redirect to the admin seances page with current filters applied
+     */
+    @PostMapping("/admin/deleteFilteredSeances")
+    public String deleteFilteredSeances(@RequestParam(required = false) String keyword, @RequestParam(required = false) Long cinemaId,
+                                        @RequestParam(required = false) Long movieId, RedirectAttributes redirectAttributes) {
+
+        int deleted = seanceService.deleteByAdminFilters(keyword, cinemaId, movieId);
+
+        if (deleted == 0) {
+            redirectAttributes.addFlashAttribute("warning", "Aucune séance ne correspond aux filtres actuels !");
+        } else {
+            redirectAttributes.addFlashAttribute("message", deleted + " séance(s) supprimée(s) selon les filtres actuels");
+        }
+
+        return "redirect:/admin/seances?keyword=" + UriUtils.encode(keyword == null ? "" : keyword, StandardCharsets.UTF_8)
+                + (cinemaId != null ? "&cinemaId=" + cinemaId : "")
+                + (movieId != null ? "&movieId=" + movieId : "");
+    }
 }
