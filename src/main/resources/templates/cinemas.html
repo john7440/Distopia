@@ -5,6 +5,7 @@
       layout:decorate="~{layout}">
 <head>
     <title>Cinémas - Distopia</title>
+    <link rel="stylesheet" th:href="@{/css/cinemas.css}" />
 </head>
 
 <body>
@@ -110,7 +111,7 @@
                         <div class="cinema-bottom-content">
 
                             <h4 class="fw-bold text-white mb-1"
-                                th:text="${cinema.name}">
+                                th:text="${cinema.name}">Nom du Cinéma
                             </h4>
 
                             <div th:if="${cinema.town != null}"
@@ -259,94 +260,6 @@
                 </ul>
             </nav>
         </div>
-
-        <style>
-
-            .cinema-card {
-                border-radius: 1.5rem;
-                overflow: hidden;
-                transition: all .3s ease;
-                background: #fff;
-            }
-
-            .cinema-card:hover {
-                transform: translateY(-6px);
-                box-shadow: 0 1rem 2rem rgba(0,0,0,.12) !important;
-            }
-
-            .cinema-cover-wrapper {
-                position: relative;
-                height: 240px;
-                overflow: hidden;
-            }
-
-            .cinema-cover {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                transition: transform .5s ease;
-            }
-
-            .cinema-card:hover .cinema-cover {
-                transform: scale(1.06);
-            }
-
-            .cinema-overlay {
-                position: absolute;
-                inset: 0;
-                background:
-                        linear-gradient(
-                                to top,
-                                rgba(0,0,0,.82) 0%,
-                                rgba(0,0,0,.25) 45%,
-                                rgba(0,0,0,.08) 100%
-                        );
-            }
-
-            .cinema-top-content {
-                position: absolute;
-                top: 1rem;
-                right: 1rem;
-                z-index: 2;
-            }
-
-            .cinema-bottom-content {
-                position: absolute;
-                left: 1.5rem;
-                bottom: 1.25rem;
-                z-index: 2;
-            }
-
-            .cinema-info-box {
-                background: #f8f9fa;
-                border-radius: 1rem;
-                padding: 1rem;
-            }
-
-            .cinema-info-icon {
-                width: 42px;
-                height: 42px;
-                border-radius: 12px;
-                background: #212529;
-                color: white;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-            }
-
-            .cinema-card .btn {
-                transition: all .2s ease;
-            }
-
-            .cinema-card .btn:hover {
-                transform: translateY(-1px);
-            }
-
-            form .btn {
-                height: 38px;
-            }
-        </style>
 </div>
 
 </body>
