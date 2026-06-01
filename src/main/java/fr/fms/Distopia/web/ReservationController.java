@@ -33,7 +33,8 @@ public class ReservationController {
      * <strong>Security:</strong> This endpoint requires an active user session.
      * If the user is not authenticated, they are automatically redirected to the login page
      *
-     * @param model   the Spring {@link Model} used to pass data to the view
+     * @param user the currently authenticated user
+     * @param model the Spring {@link Model} used to pass data to the view
      * @return the view name "my-reservations", or a redirection URL to the login page if unauthenticated
      */
     @GetMapping("/my-reservations")
@@ -55,6 +56,8 @@ public class ReservationController {
      *
      * @param seanceId           the unique identifier of the seance being booked
      * @param quantity           the number of seats to reserve (defaults to 1 if not explicitly provided)
+     * @param confirmed          whether the user confirmed adding seats to an existing reservation
+     * @param user               the currently authenticated user
      * @param redirectAttributes the Spring {@link RedirectAttributes} used to pass flash messages across the redirect
      * @return a redirection URL to the user's reservations page, or to the login page if unauthenticated
      */

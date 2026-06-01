@@ -14,6 +14,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * Controller responsible for town administration pages.
+ * <p>
+ * It displays towns and handles creation, edition and deletion actions.
+ */
 @Controller
 public class TownController {
 
@@ -78,8 +83,7 @@ public class TownController {
      * Deletes a Town by its id
      *
      * @param id the ID of the town to delete
-     * @return a redirect to /admin/towns on success, or to
-     *         /index if the user is not an admin
+     * @return a redirect to the town administration page
      */
     @Transactional
     @PostMapping("/admin/deleteTown")

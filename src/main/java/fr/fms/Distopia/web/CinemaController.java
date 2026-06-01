@@ -83,11 +83,10 @@ public class CinemaController {
     /**
      * Imports cinemas from the configured CSV file<p>
      * Import statistics are stored as flash messages
-     * @param redirectAttributes the Spring {@link RedirectAttributes}
-     * used for flash messages
+     * @param redirectAttributes the Spring {@link RedirectAttributes} used for flash messages
      * @return a redirect to the cinema administration page
      */
-    @GetMapping("/admin/import-cinemas")
+    @PostMapping("/admin/import-cinemas")
     public String importCinemas(RedirectAttributes redirectAttributes){
         try {
             CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
@@ -195,7 +194,7 @@ public class CinemaController {
      * After attempting to delete the cinema by its ID, the user is redirected
      * back to the cinema management dashboard.
      * @param id      the unique identifier of the cinema to delete
-     * @return a redirection URL to the admin cinemas page, or the default redirection if unauthorized
+     * @return a redirection URL to the admin cinemas page
      */
     @GetMapping("/admin/deleteCinema")
     public String deleteCinema(@RequestParam Long id){
