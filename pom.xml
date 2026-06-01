@@ -90,14 +90,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- ===================== GROOVY ===================== -->
-
-        <dependency>
-            <groupId>org.apache.groovy</groupId>
-            <artifactId>groovy</artifactId>
-            <version>4.0.21</version>
-        </dependency>
-
         <!-- ===================== TESTS ===================== -->
 
         <!-- selenium e2e tests -->
