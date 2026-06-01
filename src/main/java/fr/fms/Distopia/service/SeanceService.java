@@ -16,6 +16,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Service responsible for seance business operations.
+ * <p>
+ * It manages seance retrieval, creation, deletion rules, administrative search
+ * and upcoming seance pagination.
+ */
 @Service
 public class SeanceService {
 

@@ -8,6 +8,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service responsible for town business operations.
+ * <p>
+ * It manages town listing, creation, edition and deletion with cinema
+ * association cleanup.
+ */
 @Service
 public class TownService {
 

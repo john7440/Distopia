@@ -15,6 +15,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Service responsible for cinema business operations.
+ * <p>
+ * It centralizes public and administrative searches, cinema persistence,
+ * department listing and deletion rules.
+ */
 @Service
 public class CinemaService {
 

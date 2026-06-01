@@ -17,6 +17,12 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Service responsible for movie business operations.
+ * <p>
+ * It manages active/deleted movie queries, TMDB identifiers, cinema
+ * associations, administrative search and soft deletion.
+ */
 @Service
 public class MovieService {
 

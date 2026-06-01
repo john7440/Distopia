@@ -9,6 +9,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Optional;
 
+/**
+ * Service responsible for user account operations.
+ * <p>
+ * It handles registration and password verification while keeping password
+ * encoding logic outside the web controllers.
+ */
 @Service
 public class UserService {
 
@@ -38,16 +44,18 @@ public class UserService {
 
     //-----------l'inscription----------------------------------
     /**
-     * Registers a new user with a default 'USER' role
+     * Registers a new user with a default 'USER' role.
      * <p>
-     * This method first checks if the requested username is already taken. If it is,
-     * the registration is aborted. Otherwise, it secures the provided password via
-     * encoding, assigns the default {@link Role#USER}, and persists the new user to the database
+     * This method first checks if the requested username or email is already taken.
+     * If one of them is already used, the registration is aborted. Otherwise, it
+     * secures the provided password via encoding, assigns the default {@link Role#USER},
+     * and persists the new user to the database.
      *
-     * @param username    the desired username for the new account
+     * @param username the desired username for the new account
+     * @param email the email address for the new account
      * @param rawPassword the plain-text password to be securely encoded and saved
      * @return an {@link Optional} containing the newly registered {@link User},
-     * or empty if the username is already in use
+     * or empty if the username or email is already in use
      */
     public Optional<User> register(String username, String email,String rawPassword) {
         if (userRepository.findByUsername(username).isPresent()) {

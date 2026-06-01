@@ -15,6 +15,12 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Service responsible for reservation business operations.
+ * <p>
+ * It retrieves user reservations and creates bookings while protecting seat
+ * updates with a pessimistic lock.
+ */
 @Service
 public class ReservationService {
 
