@@ -178,4 +178,21 @@ public class SeanceService {
         return ids.size();
     }
 
+    /**
+     * Deletes all seances matching the current admin filters<p>
+     * @param keyword  the search keyword used in the admin page
+     * @param cinemaId the selected cinema identifier, or null
+     * @param movieId  the selected movie identifier, or null
+     * @return the number of deleted seances
+     */
+    @Transactional
+    public int deleteByAdminFilters(String keyword, Long cinemaId, Long movieId) {
+        List<Long> ids = seanceRepository.findIdsByAdminFilters(keyword, cinemaId, movieId);
+
+        if (ids.isEmpty()) {
+            return 0;
+        }
+        seanceRepository.deleteAllByIdInBatch(ids);
+        return ids.size();
+    }
 }
