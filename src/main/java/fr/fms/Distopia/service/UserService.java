@@ -26,22 +26,6 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    //-----------------le login------------------------------------
-    /**
-     * Authenticates a user by their username and raw password
-     * <p>
-     * This method retrieves the user by their username and verifies the provided
-     * plain-text password against the securely hashed password stored in the database
-     *
-     * @param username    the username of the user attempting to log in
-     * @param rawPassword the plain-text password provided by the user
-     * @return an {@link Optional} containing the authenticated {@link User} if the
-     * credentials are valid, or empty if the user is not found or the password does not match
-     */
-    public Optional<User> login(@RequestParam String username, @RequestParam String rawPassword) {
-        return userRepository.findByUsername(username).filter(user -> passwordEncoder.matches(rawPassword, user.getPassword()));
-    }
-
     //-----------l'inscription----------------------------------
     /**
      * Registers a new user with a default 'USER' role.

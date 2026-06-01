@@ -42,42 +42,6 @@ class UserServiceTest {
         user.setRole(Role.USER);
     }
 
-    // -------tests de la méthode login()---------------------------------------
-
-    @Test
-    @DisplayName("login() - returns user when credentials are valid")
-    void login_shouldReturnUser_whenCredentialsAreValid() {
-        when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("rawPassword", user.getPassword())).thenReturn(true);
-
-        Optional<User> result = userService.login("john", "rawPassword");
-
-        assertThat(result).isPresent();
-        assertThat(result.get().getUsername()).isEqualTo("john");
-    }
-
-    @Test
-    @DisplayName("login() - returns empty when username not found")
-    void login_shouldReturnEmpty_whenUsernameNotFound() {
-        when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
-
-        Optional<User> result = userService.login("unknown", "anyPassword");
-
-        assertThat(result).isEmpty();
-        verify(passwordEncoder, never()).matches(anyString(), anyString());
-    }
-
-    @Test
-    @DisplayName("login() - returns empty when password does not match")
-    void login_shouldReturnEmpty_whenPasswordIsWrong() {
-        when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("wrongPassword", user.getPassword())).thenReturn(false);
-
-        Optional<User> result = userService.login("john", "wrongPassword");
-
-        assertThat(result).isEmpty();
-    }
-
     // -----------tests de la méthode register()--------------------------------------------------
 
     @Test
