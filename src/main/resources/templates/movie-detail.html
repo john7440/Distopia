@@ -21,7 +21,7 @@
                      th:src="${movie.imageUrl}"
                      th:alt="${movie.title}"
                      class="img-fluid rounded shadow"
-                     style="width:100%; object-fit:cover;">
+                     style="width:100%; object-fit:cover;" alt="">
                 <div th:if="${movie.imageUrl == null or movie.imageUrl.isBlank()}"
                      class="bg-dark rounded d-flex align-items-center justify-content-center"
                      style="height:400px;">
@@ -31,7 +31,7 @@
 
             <!-- infos -->
             <div class="col-md-9">
-                <h1 class="fw-bold mb-2" th:text="${movie.title}"></h1>
+                <h1 class="fw-bold mb-2" th:text="${movie.title}">Titre du film</h1>
 
                 <div class="d-flex flex-wrap gap-2 mb-3">
                 <span class="badge bg-primary fs-6"
@@ -44,7 +44,7 @@
 
                 <p class="lead text-muted" th:text="${movie.description}"></p>
 
-                <!-- youtube trailer -->
+                <!-- YouTube trailer -->
                 <div th:if="${movie.trailerUrl != null and !movie.trailerUrl.isBlank()}"
                      class="ratio ratio-16x9 mt-4" style="max-width: 640px;">
                     <iframe th:src="${movie.trailerUrl}"
@@ -84,7 +84,7 @@
                 <div th:if="${iter.first or seancePage.content[__${iter.index - 1}__].cinema.id != seance.cinema.id}"
                      class="d-flex align-items-center gap-2 mt-4 mb-3">
                     <i class="bi bi-geo-alt-fill text-primary fs-5"></i>
-                    <h5 class="fw-bold mb-0" th:text="${seance.cinema.name}"></h5>
+                    <h5 class="fw-bold mb-0" th:text="${seance.cinema.name}">Seances</h5>
                     <span class="text-muted small"
                           th:text="${seance.cinema.address}"></span>
                 </div>
@@ -265,7 +265,7 @@
         <p class="fs-5">Film introuvable</p>
         <a th:href="@{/cinemas}" class="btn btn-outline-primary">Retour aux cinémas</a>
     </div>
-
+    </div>
 </section>
 </body>
 </html>
