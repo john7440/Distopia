@@ -312,7 +312,7 @@ class MovieControllerTest {
     void movieDetailTmdb_ShouldAddTmdbMovieDataToModelWhenMovieDoesNotExistLocally() {
         TmdbMovieDto tmdbMovie = new TmdbMovieDto();
         tmdbMovie.setId(100L);
-        tmdbMovie.setTitle("Film tmbd");
+        tmdbMovie.setTitle("Film tmdb");
 
         when(movieService.findByTmdbId(100L)).thenReturn(Optional.empty());
         when(tmdbClient.getDetail(100L)).thenReturn(tmdbMovie);

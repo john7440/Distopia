@@ -94,8 +94,9 @@ class CinemaControllerTest {
 
         when(cinemaCsvImporter.importFromCsv()).thenReturn(result);
 
-        mockMvc.perform(get("/admin/import-cinemas")
-                 .with(user("admin").roles("ADMIN")))
+        mockMvc.perform(post("/admin/import-cinemas")
+                        .with(csrf())
+                        .with(user("admin").roles("ADMIN")))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/cinemas"))
                 .andExpect(flash().attributeExists("message"));
@@ -107,7 +108,8 @@ class CinemaControllerTest {
 
         when(cinemaCsvImporter.importFromCsv()).thenThrow(new RuntimeException("CSV error"));
 
-        mockMvc.perform(get("/admin/import-cinemas")
+        mockMvc.perform(post("/admin/import-cinemas")
+                        .with(csrf())
                         .with(user("admin").roles("ADMIN")))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/cinemas"))
