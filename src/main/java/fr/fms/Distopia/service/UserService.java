@@ -51,21 +51,24 @@ public class UserService {
      * secures the provided password via encoding, assigns the default {@link Role#USER},
      * and persists the new user to the database.
      *
-     * @param username the desired username for the new account
-     * @param email the email address for the new account
+     * @param username    the desired username for the new account
+     * @param email       the email address for the new account
      * @param rawPassword the plain-text password to be securely encoded and saved
      * @return an {@link Optional} containing the newly registered {@link User},
      * or empty if the username or email is already in use
      */
-    public Optional<User> register(String username, String email,String rawPassword) {
-        if (userRepository.findByUsername(username).isPresent()) {
+    public Optional<User> register(String username, String email, String rawPassword) {
+        if (userRepository.findByUsername(username).isPresent()
+                || userRepository.findByEmail(email).isPresent()) {
             return Optional.empty();
         }
+
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setRole(Role.USER);
+
         return Optional.of(userRepository.save(user));
     }
 
