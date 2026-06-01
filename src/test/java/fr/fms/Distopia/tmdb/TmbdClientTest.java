@@ -1,6 +1,5 @@
-package fr.fms.Distopia.tmbd;
+package fr.fms.Distopia.tmdb;
 
-import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -102,7 +101,7 @@ class TmbdClientTest {
     }
 
     @Test
-    @DisplayName("getDetail() - returns null if the movie is not found on tmbd")
+    @DisplayName("getDetail() - returns null if the movie is not found on tmdb")
     void getDetail_ShouldReturnsNullIfMovieWithNotFound() {
         when(restTemplate.getForObject(contains("/movie/999"), eq(TmdbMovieDto.class))).thenReturn(null);
 

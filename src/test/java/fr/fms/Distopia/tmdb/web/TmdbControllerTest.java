@@ -1,4 +1,4 @@
-package fr.fms.Distopia.tmbd.web;
+package fr.fms.Distopia.tmdb.web;
 
 import fr.fms.Distopia.entities.Movie;
 import fr.fms.Distopia.service.MovieService;
@@ -6,7 +6,6 @@ import fr.fms.Distopia.service.SeanceGeneratorService;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbGenreDto;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
-import fr.fms.Distopia.tmdb.web.TmdbController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
