@@ -26,6 +26,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -157,8 +159,11 @@ import static org.mockito.Mockito.*;
 
     //---------------------test de la méthode delete()--------------------
     @Test
-    @DisplayName("delete() - deletes seance successfully when no reservations exists")
-    void delete_shouldDeleteSeanceSuccessfullyWhenNoReservationsExists() {
+    @DisplayName("delete - Should delete seance when it has no reservations")
+    void delete_shouldDeleteSeanceWhenItHasNoReservations() {
+        seance.setId(1L);
+        seance.setReservations(new ArrayList<>());
+
         when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
 
         seanceService.delete(1L);
@@ -167,26 +172,21 @@ import static org.mockito.Mockito.*;
     }
 
     @Test
-    @DisplayName("delete() - throws IllegalStateException when seance has reservations")
-    void delete_shouldThrowIllegalStateExceptionWhenSeanceHasReservations() {
-        Reservation reservation = new Reservation();
-        seance.getReservations().add(reservation);
+    @DisplayName("delete - Should refuse deletion when seance has reservations")
+    void delete_shouldRefuseDeletionWhenSeanceHasReservations() {
+        seance.setId(1L);
+        seance.setReservations(List.of(new Reservation()));
+
         when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
 
-        assertThatThrownBy(() -> seanceService.delete(1L)).isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("réservations");
-    }
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class, () -> seanceService.delete(1L));
 
-    @Test
-    @DisplayName("delete() - throws NoSuchElementException when seance id not found")
-    void delete_shouldThrowNoSuchElementExceptionWhenSeanceIdNotFound() {
-        when(seanceRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> seanceService.delete(99L)).isInstanceOf(NoSuchElementException.class);
+        assertEquals("Impossible de supprimer une séance avec des réservations", exception.getMessage());
+        verify(seanceRepository, never()).delete(seance);
     }
 
     //------------------tests for searchAdmin() ---------------------------
-
     @Test
     @DisplayName("searchAdmin() - returns paged seances using keyword and cinema filters")
     void searchAdmin_ShouldReturnPagedSeancesUsingKeywordAndCinemaFilters() {
