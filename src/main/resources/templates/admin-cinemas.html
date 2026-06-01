@@ -21,16 +21,18 @@
             </h2>
 
             <div class="d-flex gap-2">
-                <a th:href="@{/admin/import-cinemas}"
-                   class="btn btn-outline-success"
-                   onclick="return confirm('Lancer l\'import des cinémas depuis le CSV ?')">
-                    <i class="bi bi-cloud-download"></i> Importer CSV
-                </a>
+                <form th:action="@{/admin/import-cinemas}" method="get" style="display:inline">
+                    <button type="submit" class="btn btn-outline-success"
+                            onclick="return confirm('Lancer l\'import des cinémas depuis le CSV ?')">
+                        <i class="bi bi-cloud-download"></i> Importer CSV
+                    </button>
+                </form>
 
                 <button type="button"
                         class="btn btn-success"
                         data-bs-toggle="modal"
-                        data-bs-target="#modalAddCinema">
+                        data-bs-target="#modalAddCinema"
+                        data-mode="add">
                     <i class="bi bi-plus"></i> Ajouter un cinéma
                 </button>
             </div>
@@ -61,11 +63,11 @@
               class="row g-3 mb-4">
 
             <div class="col-md-9">
-                <input type="text"
-                       name="keyword"
-                       class="form-control"
-                       placeholder="Rechercher par nom ou ville..."
-                       th:value="${keyword}">
+                    <input type="text"
+                           name="keyword"
+                           class="form-control"
+                           placeholder="Rechercher par nom ou ville..."
+                           th:value="${keyword}">
             </div>
 
             <input type="hidden"
@@ -230,11 +232,11 @@
                                 Modifier
                             </a>
 
-                            <a th:href="@{/admin/deleteCinema(id=${cinema.id})}"
-                               class="btn btn-sm btn-danger"
-                               onclick="return confirm('Supprimer ce cinéma ?')">
-                                Supprimer
-                            </a>
+                            <form th:action="@{/admin/deleteCinema}" method="post" style="display:inline">
+                                <input type="hidden" name="id" th:value="${cinema.id}" />
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Supprimer ce cinéma ?')">Supprimer</button>
+                            </form>
 
                         </td>
                     </tr>
@@ -326,8 +328,8 @@
 
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">
-                        <i class="bi bi-pencil-square me-1"
-                           th:if="${cinemaToEdit.id != null}"></i>
+                        <i class="bi bi-pencil-square me-1" aria-hidden="true"
+                           th:if="${cinemaToEdit.id != null}"></i> Formulaire:
                         <i class="bi bi-plus-circle me-1"
                            th:unless="${cinemaToEdit.id != null}"></i>
                         <span th:text="${cinemaToEdit.id != null} ? 'Modifier le cinéma' : 'Ajouter un cinéma'"></span>
@@ -347,24 +349,24 @@
                         <!-- Nom -->
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Nom</label>
-                            <input type="text"
-                                   name="name"
-                                   class="form-control"
-                                   th:value="${cinemaToEdit.name}"
-                                   minlength="2"
-                                   maxlength="120"
-                                   required/>
+                                <input type="text"
+                                       name="name"
+                                       class="form-control"
+                                       th:value="${cinemaToEdit.name}"
+                                       minlength="2"
+                                       maxlength="120"
+                                       required/>
                         </div>
 
                         <!-- Adresse -->
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Adresse</label>
-                            <input type="text"
-                                   name="address"
-                                   class="form-control"
-                                   th:value="${cinemaToEdit.address}"
-                                   maxlength="255"
-                                   required/>
+                                <input type="text"
+                                       name="address"
+                                       class="form-control"
+                                       th:value="${cinemaToEdit.address}"
+                                       maxlength="255"
+                                       required/>
                         </div>
 
                         <div class="row g-3 mb-3">
@@ -372,15 +374,15 @@
                             <!-- Ville -->
                             <div class="col-md-8">
                                 <label class="form-label fw-semibold">Ville</label>
-                                <select name="townId" class="form-select">
-                                    <option value="">-- Aucune ville --</option>
-                                    <option th:each="town : ${towns}"
-                                            th:value="${town.id}"
-                                            th:text="${town.name}"
-                                            th:selected="${cinemaToEdit.town != null
-                                                       and cinemaToEdit.town.id == town.id}">
-                                    </option>
-                                </select>
+                                    <select name="townId" class="form-select">
+                                        <option value="">-- Aucune ville --</option>
+                                        <option th:each="town : ${towns}"
+                                                th:value="${town.id}"
+                                                th:text="${town.name}"
+                                                th:selected="${cinemaToEdit.town != null
+                                                           and cinemaToEdit.town.id == town.id}">
+                                        </option>
+                                    </select>
                             </div>
 
                             <!-- Département -->
@@ -404,12 +406,12 @@
                             <label class="form-label fw-semibold">
                                 <i class="bi bi-globe me-1"></i>Site web
                             </label>
-                            <input type="url"
-                                   name="website"
-                                   class="form-control"
-                                   placeholder="https://..."
-                                   maxlength="250"
-                                   th:value="${cinemaToEdit.website}"/>
+                                <input type="url"
+                                       name="website"
+                                       class="form-control"
+                                       placeholder="https://..."
+                                       maxlength="250"
+                                       th:value="${cinemaToEdit.website}"/>
                         </div>
 
                         <!-- Image URL -->
@@ -427,23 +429,13 @@
                                    title="Chemin relatif (images/cinemas/photo.jpg) ou URL complète (https://...)"/>
 
                             <!-- Prévisualisation dynamique -->
-                            <div class="mt-2" id="imgPreviewWrapper"
-                                 th:if="${cinemaToEdit.imageUrl != null and !cinemaToEdit.imageUrl.isBlank()}">
+                            <div class="mt-2" id="imgPreviewWrapper">
                                 <img id="imgPreview"
-                                     th:src="${cinemaToEdit.imageUrl.startsWith('http') ?
-                      cinemaToEdit.imageUrl :
-                      '/' + cinemaToEdit.imageUrl}"
+                                     th:src="${cinemaToEdit.imageUrl != null and !cinemaToEdit.imageUrl.isBlank()} ? ${cinemaToEdit.imageUrl.startsWith('http') ? cinemaToEdit.imageUrl : cinemaToEdit.imageUrl} : ''"
+                                     th:classappend="${cinemaToEdit.imageUrl != null and !cinemaToEdit.imageUrl.isBlank()} ? '' : 'd-none'"
                                      alt="Aperçu"
                                      class="img-thumbnail"
-                                     style="max-height: 100px; object-fit: cover;"
-                                     onerror="this.style.display='none'"/>
-                            </div>
-                            <div class="mt-2" id="imgPreviewWrapper"
-                                 th:unless="${cinemaToEdit.imageUrl != null and !cinemaToEdit.imageUrl.isBlank()}">
-                                <img id="imgPreview" src="" alt="Aperçu"
-                                     class="img-thumbnail d-none"
-                                     style="max-height: 100px; object-fit: cover;"
-                                     onerror="this.style.display='none'"/>
+                                     style="max-height: 100px; object-fit: cover;"/>
                             </div>
                             <small class="text-muted">
                                 <i class="bi bi-info-circle me-1"></i>
@@ -458,27 +450,27 @@
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-geo-alt me-1"></i>Latitude
                                 </label>
-                                <input type="number"
-                                       name="latitude"
-                                       class="form-control"
-                                       step="0.0000001"
-                                       min="-90"
-                                       max="90"
-                                       placeholder="ex: 48.8566"
-                                       th:value="${cinemaToEdit.latitude}"/>
+                                    <input type="number"
+                                           name="latitude"
+                                           class="form-control"
+                                           step="0.0000001"
+                                           min="-90"
+                                           max="90"
+                                           placeholder="ex: 48.8566"
+                                           th:value="${cinemaToEdit.latitude}"/>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-geo-alt me-1"></i>Longitude
                                 </label>
-                                <input type="number"
-                                       name="longitude"
-                                       class="form-control"
-                                       step="0.0000001"
-                                       min="-180"
-                                       max="180"
-                                       placeholder="ex: 2.3522"
-                                       th:value="${cinemaToEdit.longitude}"/>
+                                    <input type="number"
+                                           name="longitude"
+                                           class="form-control"
+                                           step="0.0000001"
+                                           min="-180"
+                                           max="180"
+                                           placeholder="ex: 2.3522"
+                                           th:value="${cinemaToEdit.longitude}"/>
                             </div>
                         </div>
                         <small class="text-muted mt-1 d-block">
@@ -505,17 +497,39 @@
         </div>
     </div>
 
+    <!--handles image preview, modal reset on add--->
     <script>
+        // Handles image preview, modal reset on add
+        const preview = document.getElementById('imgPreview');
+
+        preview.addEventListener('error', function () {
+            this.classList.add('d-none');
+        });
+
         document.querySelector('input[name="imageUrl"]').addEventListener('input', function () {
-            const preview = document.getElementById('imgPreview');
             const val = this.value.trim();
             if (!val) { preview.classList.add('d-none'); return; }
             preview.src = val.startsWith('http') ? val : '/' + val;
             preview.classList.remove('d-none');
         });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('modalAddCinema');
+
+            modal.addEventListener('show.bs.modal', function (event) {
+                const trigger = event.relatedTarget;
+                if (trigger && trigger.dataset.mode === 'add') {
+                    modal.querySelector('form').reset();
+                    preview.classList.add('d-none');
+                    preview.src = '';
+                    const hiddenId = modal.querySelector('input[name="id"]');
+                    if (hiddenId) hiddenId.value = '';
+                }
+            });
+        });
     </script>
 
-    <!-- open if editId is present -->
+    <!--auto-open modal only when editing an existing cinema -->
     <script th:if="${cinemaToEdit.id != null}">
         document.addEventListener('DOMContentLoaded', function () {
             new bootstrap.Modal(document.getElementById('modalAddCinema')).show();
@@ -524,6 +538,5 @@
 
 
 </section>
-
 </body>
 </html>
