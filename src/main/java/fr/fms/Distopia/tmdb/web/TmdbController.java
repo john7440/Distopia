@@ -106,7 +106,9 @@ public class TmdbController {
         LocalDate releaseDate  = null;
         String raw = detail.getReleaseDate();
         if (raw != null && !raw.isBlank()) {
-            try { releaseDate = LocalDate.parse(raw); } catch (Exception ignored) {}
+            try { releaseDate = LocalDate.parse(raw); } catch (Exception ignored) {
+                logger.info("TMDB movie release date not found for id {}", tmdbId);
+            }
         }
 
         Movie saved = movieService.save(null,tmdbId, title, description, duration, genre, imageUrl, trailerUrl, null, releaseDate);
