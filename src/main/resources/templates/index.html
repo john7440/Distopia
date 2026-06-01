@@ -91,8 +91,7 @@
                                 <img th:src="${m.posterPath != null ? imgBase + m.posterPath : '/images/no-poster.jpg'}"
                                      th:alt="${m.title}"
                                      class="movie-poster"
-                                     loading="lazy"
-                                     onerror="this.src='/images/no-poster.jpg'"/>
+                                     loading="lazy"/>
 
                                 <div class="movie-overlay"></div>
 
@@ -104,7 +103,7 @@
 
                             <div class="card-body p-3">
                                 <h5 class="movie-title"
-                                    th:text="${m.title}">
+                                    th:text="${m.title}">Titre du film
                                 </h5>
                                 <div class="movie-date">
                                     <i class="bi bi-calendar3 me-1"></i>
@@ -168,8 +167,7 @@
                                 <img th:src="${m.posterPath != null ? imgBase + m.posterPath : '/images/no-poster.jpg'}"
                                      th:alt="${m.title}"
                                      class="movie-poster"
-                                     loading="lazy"
-                                     onerror="this.src='/images/no-poster.jpg'"/>
+                                     loading="lazy"/>
 
                                 <div class="movie-overlay"></div>
 
@@ -181,7 +179,7 @@
                             <div class="card-body p-3">
 
                                 <h5 class="movie-title"
-                                    th:text="${m.title}">
+                                    th:text="${m.title}">Titre du film
                                 </h5>
                                 <div class="movie-date">
                                     <i class="bi bi-calendar3 me-1"></i>
