@@ -2,6 +2,7 @@ package fr.fms.Distopia.service;
 
 import fr.fms.Distopia.dao.CinemaRepository;
 import fr.fms.Distopia.dao.MovieRepository;
+import fr.fms.Distopia.dao.ReservationRepository;
 import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
@@ -29,11 +30,14 @@ public class SeanceService {
     private final SeanceRepository seanceRepository;
     private final MovieRepository movieRepository;
     private final CinemaRepository cinemaRepository;
+    private final ReservationRepository reservationRepository;
 
-    public SeanceService(SeanceRepository seanceRepository, MovieRepository movieRepository, CinemaRepository cinemaRepository) {
+    public SeanceService(SeanceRepository seanceRepository, MovieRepository movieRepository, CinemaRepository cinemaRepository,
+                        ReservationRepository reservationRepository) {
         this.seanceRepository = seanceRepository;
         this.movieRepository = movieRepository;
         this.cinemaRepository = cinemaRepository;
+        this.reservationRepository = reservationRepository;
     }
 
     private static final int PAGE_SIZE_ADMIN = 20;
@@ -117,6 +121,7 @@ public class SeanceService {
      * @throws java.util.NoSuchElementException if the seance with the specified ID cannot be found
      * @throws IllegalStateException            if the seance has one or more associated reservations
      */
+    @Transactional
     public void delete(Long id){
         Seance seance = seanceRepository.findById(id).orElseThrow();
         if (!seance.getReservations().isEmpty()){
@@ -168,12 +173,14 @@ public class SeanceService {
      *
      * @param ids the seance identifiers to delete
      * @return the number of deleted seances
+     * @throws IllegalStateException if one or more selected seances have existing reservations
      */
     @Transactional
     public int deleteSelected(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return 0;
         }
+        ensureSeancesHaveNoReservations(ids);
         seanceRepository.deleteAllByIdInBatch(ids);
         return ids.size();
     }
@@ -182,17 +189,37 @@ public class SeanceService {
      * Deletes all seances matching the current admin filters<p>
      * @param keyword  the search keyword used in the admin page
      * @param cinemaId the selected cinema identifier, or null
-     * @param movieId  the selected movie identifier, or null
      * @return the number of deleted seances
+     * @throws IllegalStateException if one or more matching seances have existing reservations
      */
     @Transactional
-    public int deleteByAdminFilters(String keyword, Long cinemaId, Long movieId) {
-        List<Long> ids = seanceRepository.findIdsByAdminFilters(keyword, cinemaId, movieId);
+    public int deleteByAdminFilters(String keyword, Long cinemaId) {
+        List<Long> ids = seanceRepository.findIdsByAdminFilters(keyword, cinemaId);
 
         if (ids.isEmpty()) {
             return 0;
         }
+
+        ensureSeancesHaveNoReservations(ids);
         seanceRepository.deleteAllByIdInBatch(ids);
         return ids.size();
+    }
+
+    /**
+     * Ensures that none of the given seances are linked to existing reservations
+     *
+     * @param seanceIds the seance identifiers to check
+     * @throws IllegalStateException if at least one seance has an existing reservation
+     */
+    private void ensureSeancesHaveNoReservations(List<Long> seanceIds) {
+        if (seanceIds == null || seanceIds.isEmpty()) {
+            return;
+        }
+        long reservationCount = reservationRepository.countBySeanceIds(seanceIds);
+        if (reservationCount > 0) {
+            throw new IllegalStateException(
+                    "Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations"
+            );
+        }
     }
 }
