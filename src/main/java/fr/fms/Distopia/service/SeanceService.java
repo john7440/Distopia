@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -161,4 +162,20 @@ public class SeanceService {
         Pageable pageable = PageRequest.of(page, size);
         return seanceRepository.findUpcomingSeancesByMovie(movieId, pageable);
     }
+
+    /**
+     * Deletes selected seances by their identifiers
+     *
+     * @param ids the seance identifiers to delete
+     * @return the number of deleted seances
+     */
+    @Transactional
+    public int deleteSelected(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return 0;
+        }
+        seanceRepository.deleteAllByIdInBatch(ids);
+        return ids.size();
+    }
+
 }
