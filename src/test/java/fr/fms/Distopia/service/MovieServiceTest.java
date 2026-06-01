@@ -242,19 +242,6 @@ class MovieServiceTest {
         assertThat(oldCinema.getMovies()).doesNotContain(existingMovie);
     }
 
-    //--------------------test de getByCinema()----------------------
-    @Test
-    @DisplayName("getByCinema() - returns only non-deleted movies for a cinema")
-    void getByCinema_shouldReturnOnlyNonDeletedMovies() {
-        Sort sort = Sort.by(Sort.Direction.DESC, "releaseDate");
-        when(movieRepository.findByCinemasIdAndDeletedFalse(1L,sort))
-                .thenReturn(List.of(movie));
-
-        List<Movie> result = movieService.getByCinema(1L, sort);
-
-        assertThat(result).containsOnly(movie);
-    }
-
     //------------------tests for searchAdmin() ---------------------------
 
     @Test

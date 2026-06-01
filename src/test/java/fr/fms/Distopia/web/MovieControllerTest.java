@@ -151,7 +151,7 @@ class MovieControllerTest {
         movieController.moviesByCinema(null,DEFAULT_SORT,DEFAULT_DIR, model);
 
         verify(movieService).getAllActive(sort);
-        verify(movieService, never()).getByCinema(any(),any());
+        verify(movieService, never()).getByCinemaWithUpcomingSeances(any(),any());
     }
 
     @Test

@@ -37,19 +37,6 @@ public class MovieService {
     }
     private static final int PAGE_SIZE_ADMIN = 12;
 
-    //-------les films d'un cinéma (sauf ceux supprimés)-------------
-    /**
-     * Retrieves a list of active movies available at a specific cinema
-     * <p>
-     * This method filters out movies that have been marked as deleted
-     *
-     * @param cinemaId the unique identifier of the cinema
-     * @return a list of non-deleted {@link Movie} objects associated with the given cinema
-     */
-    public List<Movie> getByCinema(Long cinemaId, Sort sort) {
-        return movieRepository.findByCinemasIdAndDeletedFalse(cinemaId, sort);
-    }
-
     //----------find by id----------------------
     /**
      * Retrieves a movie by its unique identifier
