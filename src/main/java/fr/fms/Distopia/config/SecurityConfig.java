@@ -55,12 +55,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, DistopiaUserDetailsService userDetailsService) throws Exception {
         http
-                // CSRF désactivé, car nos formulaires Thymeleaf n'envoient pas encore de token CSRF!!!
-                // À réactiver en production en ajoutant th:action dans chaque <form>
-                .csrf(AbstractHttpConfigurer::disable)
-
                 .userDetailsService(userDetailsService)
-
                 .authorizeHttpRequests(auth -> auth
                         // Accès admin uniquement
                         .requestMatchers("/admin/**").hasRole("ADMIN")

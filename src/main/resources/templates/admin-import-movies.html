@@ -50,6 +50,7 @@
                     </p>
                 </div>
                 <form th:action="@{/admin/generate-now-playing}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <button type="submit" class="btn btn-warning fw-bold px-4"
                             onclick="return confirm('Importer les films à l\'affiche et générer les séances sur 7 jours ?')">
                         Importer + Générer les séances
@@ -116,14 +117,15 @@
                                 style="font-size:0.85rem;">Titre du film</h6>
                             <p class="text-muted mb-0"
                                style="font-size:0.75rem;"
-                               th:text="${film.releaseDate != null
-                                      ? film.releaseDate.substring(0,4) : '—'}">
+                               th:text="${film.releaseYear}">
                             </p>
                         </div>
 
                         <!-- bouton importer -->
                         <div class="card-footer bg-transparent border-0 p-2">
                             <form th:action="@{/admin/import-movie}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <input type="hidden" name="tmdbId" th:value="${film.id}">
                                 <input type="hidden" name="query"  th:value="${query}">
                                 <button type="submit"

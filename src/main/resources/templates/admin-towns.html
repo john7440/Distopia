@@ -101,6 +101,7 @@
 
                         <!-- delete -->
                         <form th:action="@{/admin/deleteTown}" method="post" class="d-inline">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="id" th:value="${town.id}" />
                             <button type="submit"
                                     class="btn btn-sm btn-danger"
@@ -127,8 +128,8 @@
 
             <div class="modal-content">
 
-                <form th:action="@{/admin/saveTown}"
-                      method="post">
+                <form th:action="@{/admin/saveTown}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
                     <div class="modal-header">
                         <h5 class="modal-title fw-bold">
@@ -188,8 +189,8 @@
 
             <div class="modal-content">
 
-                <form th:action="@{/admin/saveTown}"
-                      method="post">
+                <form th:action="@{/admin/saveTown}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <input type="hidden"
                            name="id"
                            th:value="${editTown != null ? editTown.id : ''}">

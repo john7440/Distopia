@@ -233,6 +233,7 @@
                             </a>
 
                             <form th:action="@{/admin/deleteCinema}" method="post" style="display:inline">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <input type="hidden" name="id" th:value="${cinema.id}" />
                                 <button type="submit" class="btn btn-sm btn-danger"
                                         onclick="return confirm('Supprimer ce cinéma ?')">Supprimer</button>
@@ -338,7 +339,7 @@
                 </div>
 
                 <form th:action="@{/admin/saveCinema}" method="post">
-
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <!-- ID caché : présent seulement en modification -->
                     <input type="hidden" name="id"
                            th:if="${cinemaToEdit.id != null}"
