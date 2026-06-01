@@ -28,8 +28,7 @@
 
                 <img th:src="${tmdbMovie.posterPath != null ? imgBase + tmdbMovie.posterPath : '/images/no-poster.jpg'}"
                      th:alt="${tmdbMovie.title}"
-                     class="img-fluid rounded-4 shadow-lg movie-poster"
-                     onerror="this.src='/images/no-poster.jpg'"/>
+                     class="img-fluid rounded-4 shadow-lg movie-poster" alt=""/>
             </div>
 
             <!-- infos film -->
@@ -79,7 +78,8 @@
                 <!-- trailer -->
                 <div th:if="${trailerUrl != null}"
                      class="ratio ratio-16x9 mt-4 mb-4 trailer-container">
-                    <iframe th:src="${trailerUrl}"
+                    <iframe title="trailer"
+                            th:src="${trailerUrl}"
                             allowfullscreen
                             class="rounded-4 shadow">
                     </iframe>
@@ -88,15 +88,14 @@
                 <!-- film non programmé -->
                 <div class="alert alert-info border-0 shadow-sm rounded-4 mt-4">
                     <strong>
-                        Ce film n'est pas encore programmé dans nos cinémas.
+                        Ce film n'est pas encore programmé dans nos cinémas
                     </strong>
                     <br/>
-                    Revenez prochainement pour découvrir les séances disponibles.
+                    Revenez prochainement pour découvrir les séances disponibles
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-</html>
 </html>
