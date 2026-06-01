@@ -196,7 +196,7 @@ public class CinemaController {
      * @param id      the unique identifier of the cinema to delete
      * @return a redirection URL to the admin cinemas page
      */
-    @GetMapping("/admin/deleteCinema")
+    @PostMapping("/admin/deleteCinema")
     public String deleteCinema(@RequestParam Long id){
         cinemaService.delete(id);
         return ADMIN_REDIRECT;

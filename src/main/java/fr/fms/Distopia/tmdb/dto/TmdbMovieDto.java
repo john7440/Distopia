@@ -34,4 +34,17 @@ public class TmdbMovieDto {
     @JsonProperty("genre_ids")
     private List<Integer> genreIds;
 
+    /**
+     * Returns the release year extracted from the TMDB release date<p>
+     * TMDB may return an empty string when the release date is unknown.
+     * This method avoids StringIndexOutOfBoundsException in Thymeleaf templates.
+     *
+     * @return the release year, or "—" when unavailable
+     */
+    public String getReleaseYear() {
+        if (releaseDate == null || releaseDate.length() < 4) {
+            return "—";
+        }
+        return releaseDate.substring(0, 4);
+    }
 }
