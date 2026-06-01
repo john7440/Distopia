@@ -34,12 +34,15 @@ import java.util.List;
 @Controller
 public class TmdbController {
 
-    @Autowired
-    private TmdbClient tmdbClient;
-    @Autowired
-    private MovieService movieService;
-    @Autowired
-    private SeanceGeneratorService seanceGeneratorService;
+    private final TmdbClient tmdbClient;
+    private final MovieService movieService;
+    private final SeanceGeneratorService seanceGeneratorService;
+
+    public TmdbController(TmdbClient tmdbClient, MovieService movieService, SeanceGeneratorService seanceGeneratorService) {
+        this.tmdbClient = tmdbClient;
+        this.movieService = movieService;
+        this.seanceGeneratorService = seanceGeneratorService;
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(TmdbController.class);
 
