@@ -140,7 +140,7 @@ public class SeanceController {
      * @param id      the unique identifier of the seance to delete
      * @return a redirection URL to the admin seances page, or the default redirection if unauthorized
      */
-    @GetMapping("/admin/deleteSeance")
+    @PostMapping("/admin/deleteSeance")
     public String deleteSeance(@RequestParam Long id){
         seanceService.delete(id);
         return REDIRECT_ADMIN_SEANCES;

@@ -193,11 +193,14 @@
                             </button>
 
                             <!-- delete -->
-                            <a th:href="@{/admin/deleteSeance(id=${s.id})}"
-                               class="btn btn-danger btn-sm"
-                               onclick="return confirm('Supprimer cette séance ?')">
-                                Supprimer
-                            </a>
+                            <form th:action="@{/admin/deleteSeance}" method="post" class="d-inline">
+                                <input type="hidden" name="id" th:value="${s.id}" />
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Supprimer cette séance ?')">
+                                    Supprimer
+                                </button>
+                            </form>
 
                             <!-----------------------------MODAL EDIT--------------------------->
                             <div class="modal fade"
