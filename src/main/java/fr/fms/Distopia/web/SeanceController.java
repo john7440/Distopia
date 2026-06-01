@@ -15,6 +15,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriUtils;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * Controller responsible for handling seance related web requests
@@ -143,6 +147,26 @@ public class SeanceController {
     @PostMapping("/admin/deleteSeance")
     public String deleteSeance(@RequestParam Long id){
         seanceService.delete(id);
+        return REDIRECT_ADMIN_SEANCES;
+    }
+
+    /**
+     * Deletes a selection of seances by their IDs
+     *
+     * @param selectedIds list of seance IDs to delete (maybe {@code null} or empty)
+     * @param redirectAttributes flash attributes used to pass feedback to the redirected view
+     * @return redirect to the admin seances page
+     */
+    @PostMapping("/admin/deleteSelectedSeances")
+    public String deleteSelectedSeances(@RequestParam(required = false) List<Long> selectedIds,
+                                        RedirectAttributes redirectAttributes) {
+
+        int deleted = seanceService.deleteSelected(selectedIds);
+        if (deleted == 0) {
+            redirectAttributes.addFlashAttribute("warning", "Aucune séance sélectionnée!");
+        } else {
+            redirectAttributes.addFlashAttribute("message", deleted + " séance(s) supprimée(s)");
+        }
         return REDIRECT_ADMIN_SEANCES;
     }
 }
