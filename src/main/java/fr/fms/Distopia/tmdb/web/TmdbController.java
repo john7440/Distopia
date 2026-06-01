@@ -7,7 +7,6 @@ import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -145,7 +144,7 @@ public class TmdbController {
     public String generateNowPlaying(RedirectAttributes ra) {
         SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
 
-        String message = String.format("%d films importés et %d séances générées sur 21 jours", result.moviesImported(), result.seancesCreated());
+        String message = String.format("%d films importés et %d séances générées sur 7 jours", result.moviesImported(), result.seancesCreated());
         ra.addFlashAttribute("message", message);
 
         if (result.hasErrors()){
