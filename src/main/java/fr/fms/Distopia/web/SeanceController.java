@@ -115,7 +115,7 @@ public class SeanceController {
                              RedirectAttributes ra){
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getAllErrors().isEmpty()
-                    ? "Donneés invalides"
+                    ? "Données invalides"
                     : bindingResult.getAllErrors().get(0).getDefaultMessage();
 
             ra.addFlashAttribute("error",errorMessage);
