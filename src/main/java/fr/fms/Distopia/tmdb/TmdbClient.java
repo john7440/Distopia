@@ -44,7 +44,7 @@ public class TmdbClient {
      */
     public List<TmdbMovieDto> search(String query){
         String encoded =  URLEncoder.encode(query, StandardCharsets.UTF_8);
-        String url = BASE_URL + "/search/movie?api_key=" + apiKey + "&query=" + encoded + "&language=fr-FR&page=1";
+        String url = BASE_URL + "search/movie?api_key=" + apiKey + "&query=" + encoded + "&language=fr-FR&page=1";
         TmdbSearchResponse response = restTemplate.getForObject(url, TmdbSearchResponse.class);
         return response !=null ? response.getResults() : List.of();
     }
@@ -65,7 +65,7 @@ public class TmdbClient {
      * @return the detailed TMDB movie information
      */
     public TmdbMovieDto getDetail(Long tmdbId){
-        String url =  BASE_URL + "/movie/" + tmdbId + "?api_key=" + apiKey + "&language=fr-FR";
+        String url =  BASE_URL + "movie/" + tmdbId + "?api_key=" + apiKey + "&language=fr-FR";
         return restTemplate.getForObject(url, TmdbMovieDto.class);
     }
 
@@ -80,7 +80,7 @@ public class TmdbClient {
      * @return the embeddable YouTube trailer URL, or null if no trailer is found
      */
     public String getTrailerUrl(Long tmdbId){
-        String url = BASE_URL + "/movie/" + tmdbId + "/videos?api_key=" + apiKey;
+        String url = BASE_URL + "movie/" + tmdbId + "/videos?api_key=" + apiKey;
         TmdbVideosResponse response = restTemplate.getForObject(url, TmdbVideosResponse.class);
         if (response == null || response.getResults() == null){
             return null;
@@ -99,7 +99,7 @@ public class TmdbClient {
      * @return a list of movies currently playing in France, or an empty list if no response is returned
      */
     public List<TmdbMovieDto> getNowPlaying(){
-        String url = BASE_URL + "/movie/now_playing?api_key=" + apiKey +  "&language=fr-FR&region=FR&page=1";
+        String url = BASE_URL + "movie/now_playing?api_key=" + apiKey +  "&language=fr-FR&region=FR&page=1";
         TmdbSearchResponse response = restTemplate.getForObject(url, TmdbSearchResponse.class);
         return response !=null ? response.getResults() : List.of();
     }
