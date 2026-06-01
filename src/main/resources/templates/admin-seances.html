@@ -3,7 +3,7 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
-    <title>Distopia - admin-seances</title>
+<title>Distopia - admin-seances</title>
 
 <div layout:fragment="content">
 
@@ -28,6 +28,16 @@
         <div th:if="${message}"
              class="alert alert-success alert-dismissible fade show">
             <span th:text="${message}"></span>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+
+        <div th:if="${warning}"
+             class="alert alert-warning alert-dismissible fade show">
+            <span th:text="${warning}"></span>
 
             <button type="button"
                     class="btn-close"
@@ -88,15 +98,63 @@
 
         </form>
 
-        <div class="mb-3 text-muted small">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
 
-            <span th:text="${seancePage.totalElements}"></span>
-            séance(s) - page
-            <span th:text="${currentPage + 1}"></span>
-            /
-            <span th:text="${seancePage.totalPages > 0 ?
-                            seancePage.totalPages : 1}">
-            </span>
+            <div class="text-muted small">
+
+                <span th:text="${seancePage.totalElements}"></span>
+                séance(s) - page
+                <span th:text="${currentPage + 1}"></span>
+                /
+                <span th:text="${seancePage.totalPages > 0 ?
+                                seancePage.totalPages : 1}">
+                </span>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+
+                <form id="deleteSelectedSeancesForm"
+                      th:action="@{/admin/deleteSelectedSeances}"
+                      method="post"
+                      class="d-inline">
+
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}">
+
+                    <input type="hidden" name="keyword" th:value="${keyword}">
+                    <input type="hidden" name="cinemaId" th:value="${cinemaId}">
+                    <input type="hidden" name="sortField" th:value="${sortField}">
+                    <input type="hidden" name="sortDir" th:value="${sortDir}">
+
+                    <button type="submit"
+                            class="btn btn-danger btn-sm"
+                            onclick="return confirm('Supprimer les séances sélectionnées ?')">
+                        <i class="bi bi-trash"></i> Supprimer la sélection
+                    </button>
+                </form>
+
+                <form th:action="@{/admin/deleteFilteredSeances}"
+                      method="post"
+                      class="d-inline">
+
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}">
+
+                    <input type="hidden" name="keyword" th:value="${keyword}">
+                    <input type="hidden" name="cinemaId" th:value="${cinemaId}">
+                    <input type="hidden" name="sortField" th:value="${sortField}">
+                    <input type="hidden" name="sortDir" th:value="${sortDir}">
+
+                    <button type="submit"
+                            class="btn btn-outline-danger btn-sm"
+                            onclick="return confirm('Supprimer toutes les séances correspondant aux filtres actuels ? Cette action est irréversible.')">
+                        <i class="bi bi-exclamation-triangle"></i> Supprimer les résultats filtrés
+                    </button>
+                </form>
+
+            </div>
         </div>
 
         <!-- table-->
@@ -109,6 +167,9 @@
                     <thead class="table-dark">
 
                     <tr>
+                        <th>
+                            <input type="checkbox" id="selectAllSeances">
+                        </th>
                         <th>ID</th>
                         <th>Film</th>
                         <th>Cinéma</th>
@@ -142,7 +203,7 @@
                     <!-- if empty -->
                     <tr th:if="${#lists.isEmpty(seances)}">
 
-                        <td colspan="7"
+                        <td colspan="8"
                             class="text-center py-5 text-muted">
                             <i class="bi bi-calendar-event fs-1 d-block mb-2"></i>
                             Aucune séance trouvée
@@ -152,8 +213,15 @@
 
                     <!-- seances----->
                     <tr th:each="s : ${seances}">
-                        <td th:text="${s.id}"></td>
+                        <td>
+                            <input type="checkbox"
+                                   name="selectedIds"
+                                   th:value="${s.id}"
+                                   form="deleteSelectedSeancesForm"
+                                   class="seance-checkbox">
+                        </td>
 
+                        <td th:text="${s.id}"></td>
                         <!-- movie -->
                         <td>
                             <div class="fw-semibold"
@@ -588,6 +656,28 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAll = document.getElementById('selectAllSeances');
+            const checkboxes = document.querySelectorAll('.seance-checkbox');
+
+            if (!selectAll) return;
+
+            selectAll.addEventListener('change', function () {
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAll.checked;
+                });
+            });
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    const checkedCount = document.querySelectorAll('.seance-checkbox:checked').length;
+                    selectAll.checked = checkedCount === checkboxes.length && checkboxes.length > 0;
+                });
+            });
+        });
+    </script>
 </div>
 
 </html>
