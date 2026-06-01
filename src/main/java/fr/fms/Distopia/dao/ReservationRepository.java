@@ -2,8 +2,11 @@ package fr.fms.Distopia.dao;
 
 import fr.fms.Distopia.entities.Reservation;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,4 +44,17 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      * @return a list of all Reservation for provided params
      */
     List<Reservation> findAllByUserIdAndSeanceId(Long userId, Long seanceId);
+
+    /**
+     * Counts reservations linked to the given seance identifiers
+     *
+     * @param seanceIds the seance identifiers to check
+     * @return the number of reservations linked to the given seances
+     */
+    @Query("""
+            SELECT COUNT(r)
+            FROM Reservation r
+            WHERE r.seance.id IN :seanceIds
+            """)
+    long countBySeanceIds(@Param("seanceIds") Collection<Long> seanceIds);
 }
