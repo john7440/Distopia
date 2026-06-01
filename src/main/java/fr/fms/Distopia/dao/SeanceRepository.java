@@ -100,4 +100,32 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     AND (:cinemaId IS NULL OR c.id = :cinemaId)
     """)
     Page<Seance> searchAdmin(@Param("keyword") String keyword, @Param("cinemaId") Long cinemaId, Pageable pageable);
+
+    /**
+     * Retrieves the IDs of seances matching the given admin filters
+     *
+     * <p>Filters are cumulative and optional:
+     * <ul>
+     *   <li>{@code keyword} — case-insensitive partial match on movie title or cinema name
+     *       , ignored if {@code null} or empty</li>
+     *   <li>{@code cinemaId} — exact match on the cinema ID, ignored if {@code null}</li>
+     *   <li>{@code movieId} — exact match on the movie ID,ignored if {@code null}</li>
+     * </ul>
+     *
+     * @param keyword  optional search term matched against movie title and cinema name
+     * @param cinemaId optional ID of the cinema to filter by
+     * @param movieId  optional ID of the movie to filter by
+     * @return a list of seance IDs matching all provided filters, or all IDs if no filter is set
+     */
+    @Query("""
+        SELECT s.id
+        FROM Seance s
+        WHERE (:keyword IS NULL OR :keyword = ''
+               OR LOWER(s.movie.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(s.cinema.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+          AND (:cinemaId IS NULL OR s.cinema.id = :cinemaId)
+          AND (:movieId IS NULL OR s.movie.id = :movieId)
+        """)
+    List<Long> findIdsByAdminFilters(@Param("keyword") String keyword, @Param("cinemaId") Long cinemaId,
+                                     @Param("movieId") Long movieId);
 }
