@@ -167,7 +167,7 @@ public class MovieController {
      * @param id      the unique identifier of the movie to soft-delete
      * @return a redirection URL to the admin movies page, or the default redirection if unauthorized
      */
-    @GetMapping("/admin/deleteMovie")
+    @PostMapping("/admin/deleteMovie")
     public String deleteMovie(@RequestParam Long id){
         movieService.softDelete(id);
         return REDIRECT_ADMIN_MOVIES;

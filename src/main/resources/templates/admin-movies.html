@@ -219,11 +219,14 @@
                             </button>
 
                             <!-- del -->
-                            <a th:href="@{/admin/deleteMovie(id=${m.id})}"
-                               class="btn btn-danger btn-sm"
-                               onclick="return confirm('Supprimer ce film ?')">
-                                Supprimer
-                            </a>
+                            <form th:action="@{/admin/deleteMovie}" method="post" class="d-inline">
+                                <input type="hidden" name="id" th:value="${m.id}" />
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Supprimer ce film ?')">
+                                    Supprimer
+                                </button>
+                            </form>
 
                             <!-----------------------------------------EDIT MODAL------------------------------->
                         <div class="modal fade"
