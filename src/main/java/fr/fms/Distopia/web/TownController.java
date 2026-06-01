@@ -82,7 +82,7 @@ public class TownController {
      *         /index if the user is not an admin
      */
     @Transactional
-    @GetMapping("/admin/deleteTown")
+    @PostMapping("/admin/deleteTown")
     public String deleteTown(@RequestParam Long id) {
         townService.delete(id);
         return REDIRECT_ADMIN_TOWNS;

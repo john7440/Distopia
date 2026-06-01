@@ -100,11 +100,14 @@
                         </a>
 
                         <!-- delete -->
-                        <a th:href="@{/admin/deleteTown(id=${town.id})}"
-                           class="btn btn-sm btn-danger"
-                           onclick="return confirm('Supprimer cette ville ? Les cinémas associés perdront leur ville.')">
-                            Supprimer
-                        </a>
+                        <form th:action="@{/admin/deleteTown}" method="post" class="d-inline">
+                            <input type="hidden" name="id" th:value="${town.id}" />
+                            <button type="submit"
+                                    class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Supprimer cette ville ? Les cinémas associés perdront leur ville')">
+                                Supprimer
+                            </button>
+                        </form>
 
                     </td>
 
@@ -196,9 +199,11 @@
                             <i class="bi bi-pencil-square me-2"></i> Modifier la ville
                         </h5>
 
-                        <a th:href="@{/admin/towns}"
-                           class="btn-close">
-                        </a>
+                        <button type="button"
+                                class="btn-close"
+                                aria-label="Fermer"
+                                th:onclick="|window.location.href='@{/admin/towns}'|">
+                        </button>
 
                     </div>
 
