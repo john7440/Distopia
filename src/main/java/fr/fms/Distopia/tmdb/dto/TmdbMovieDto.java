@@ -51,11 +51,11 @@ public class TmdbMovieDto {
     /**
      * Returns a readable release date for display
      *
-     * @return the formatted release date, or "Date inconnue" when unavailable
+     * @return the formatted release date, or "A venir" when unavailable
      */
     public String getFormattedReleaseDate() {
         if (releaseDate == null || releaseDate.isBlank()) {
-            return "Date inconnue";
+            return "A venir";
         }
 
         try {
@@ -66,8 +66,43 @@ public class TmdbMovieDto {
                             "dd MMMM yyyy",
                             java.util.Locale.FRENCH));
         } catch (java.time.format.DateTimeParseException e) {
-            return "Date inconnue";
+            return "A venir";
         }
+    }
+
+    /**
+     * Returns a readable runtime for display
+     *
+     * @return the formatted runtime, or "Durée inconnue" when unavailable
+     */
+    public String getFormattedRuntime() {
+        if (runtime == null || runtime <= 0) {
+            return "Durée inconnue";
+        }
+
+        int hours = runtime / 60;
+        int minutes = runtime % 60;
+
+        if (hours == 0) {
+            return minutes + "min";
+        }
+        if (minutes == 0) {
+            return hours + "h";
+        }
+        return hours + "h " + minutes + "min";
+    }
+
+    /**
+     * Returns the first available genre for compact card display
+     *
+     * @return the first genre name, or "-" when unavailable
+     */
+    public String getMainGenre() {
+        if (genres == null || genres.isEmpty() || genres.get(0).getName() == null || genres.get(0).getName().isBlank()) {
+            return "-";
+        }
+
+        return genres.get(0).getName();
     }
 
 }
