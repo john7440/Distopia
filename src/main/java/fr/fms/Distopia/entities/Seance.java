@@ -40,6 +40,8 @@ public class Seance implements Serializable {
     @DecimalMin(value = "0.0", inclusive = false, message = "Le prix doit être supérieur à 0")
     private double price;
 
+    private boolean active = true;
+
     @ManyToOne
     @JoinColumn(name = "movie_id", nullable = false)
     private Movie movie;

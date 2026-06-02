@@ -5,13 +5,11 @@ import fr.fms.Distopia.entities.Seance;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,59 +67,56 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
         AND s.dateTime >= CURRENT_TIMESTAMP
         ORDER BY s.cinema.id ASC, s.dateTime ASC
     """)
-    Page<Seance> findUpcomingSeancesByMovie(
-            @Param("movieId") Long movieId,
-            Pageable pageable
-    );
+    Page<Seance> findUpcomingSeancesByMovie(@Param("movieId") Long movieId, Pageable pageable);
 
     /**
-     * Searches seances for the administration dashboard
-     * <p>
-     * Supports:
+     * Searches seances with optional filters, returning a paginated result<p>
+     * Filters are optional and cumulative:
      * <ul>
-     *     <li>movie title keyword filtering</li>
-     *     <li>cinema filtering</li>
-     *     <li>pagination</li>
-     * </ul>
-     * <p>
-     * Results are ordered chronologically
-     *
-     * @param keyword the keyword used to search movie titles
-     * @param cinemaId the cinema identifier filter
-     * @param pageable the pagination configuration
-     * @return a paginated list of matching seances
-     */
-    @Query("""
-    SELECT s FROM Seance s
-    JOIN s.movie m
-    JOIN s.cinema c
-    WHERE (:keyword IS NULL OR :keyword = ''
-           OR LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
-    AND (:cinemaId IS NULL OR c.id = :cinemaId)
-    """)
-    Page<Seance> searchAdmin(@Param("keyword") String keyword, @Param("cinemaId") Long cinemaId, Pageable pageable);
-
-    /**
-     * Retrieves the IDs of seances matching the given admin filters
-     *
-     * <p>Filters are cumulative and optional:
-     * <ul>
-     *   <li>{@code keyword} — case-insensitive partial match on movie title,
+     *   <li>{@code keyword} - case-insensitive partial match on movie title,
      *       ignored if {@code null} or empty</li>
-     *   <li>{@code cinemaId} — exact match on the cinema ID, ignored if {@code null}</li>
+     *   <li>{@code cinemaId} -exact match on the cinema ID,ignored if {@code null}</li>
+     *   <li>{@code showArchived} - if {@code false}, only active seances are returned</li>
      * </ul>
      *
      * @param keyword optional search term matched against movie title
      * @param cinemaId optional ID of the cinema to filter by
-     * @return a list of seance IDs matching all provided filters, or all IDs if no filter is set
+     * @param showArchived {@code true} to include archived seances, {@code false} for active only
+     * @param pageable pagination and sorting parameters
+     * @return a page of {@link Seance} matching all provided filters
      */
     @Query("""
-    SELECT s.id FROM Seance s
-    JOIN s.movie m
-    JOIN s.cinema c
-    WHERE (:keyword IS NULL OR :keyword = ''
-           OR LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
-    AND (:cinemaId IS NULL OR c.id = :cinemaId)
-    """)
-    List<Long> findIdsByAdminFilters(@Param("keyword") String keyword, @Param("cinemaId") Long cinemaId);
+        SELECT s FROM Seance s
+        JOIN s.movie m
+        JOIN s.cinema c
+        WHERE (:keyword IS NULL OR :keyword = ''
+               OR LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        AND (:cinemaId IS NULL OR c.id = :cinemaId)
+        AND (:showArchived = true OR s.active = true)
+        """)
+    Page<Seance> searchAdmin(@Param("keyword") String keyword, @Param("cinemaId") Long cinemaId,
+                             @Param("showArchived") boolean showArchived, Pageable pageable);
+
+    /**
+     * Retrieves the IDs of seances matching the given admin filters
+     * <p>Applies the same filtering logic as {@link #searchAdmin} but returns
+     * only IDs, typically used before a bulk delete operation
+     *
+     * @param keyword optional search term matched against movie title
+     * @param cinemaId optional ID of the cinema to filter by
+     * @param showArchived {@code true} to include archived seances, {@code false} for active only
+     * @return a list of seance IDs matching all provided filters
+     */
+    @Query("""
+        SELECT s.id FROM Seance s
+        JOIN s.movie m
+        JOIN s.cinema c
+        WHERE (:keyword IS NULL OR :keyword = ''
+               OR LOWER(m.title) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        AND (:cinemaId IS NULL OR c.id = :cinemaId)
+        AND (:showArchived = true OR s.active = true)
+        """)
+    List<Long> findIdsByAdminFilters(@Param("keyword") String keyword, @Param("cinemaId") Long cinemaId,
+                                     @Param("showArchived") boolean showArchived);
+
 }
