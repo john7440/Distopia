@@ -2,6 +2,7 @@ package fr.fms.Distopia.service;
 
 import fr.fms.Distopia.dao.CinemaRepository;
 import fr.fms.Distopia.dao.MovieRepository;
+import fr.fms.Distopia.dao.ReservationRepository;
 import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
@@ -39,6 +40,8 @@ import static org.mockito.Mockito.*;
     private MovieRepository movieRepository;
     @Mock
     private CinemaRepository cinemaRepository;
+    @Mock
+    private ReservationRepository reservationRepository;
     @InjectMocks
     private SeanceService seanceService;
 
@@ -184,6 +187,56 @@ import static org.mockito.Mockito.*;
 
         assertEquals("Impossible de supprimer une séance avec des réservations", exception.getMessage());
         verify(seanceRepository, never()).delete(seance);
+    }
+
+    //-----------------tests for deleteSelected() -------------------
+    @Test
+    @DisplayName("deleteSelected - Should return zero when no seance is selected")
+    void deleteSelected_shouldReturnZeroWhenNoSeanceIsSelected() {
+        int deleted = seanceService.deleteSelected(null);
+
+        assertEquals(0, deleted);
+        verifyNoInteractions(reservationRepository);
+        verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
+    }
+
+    @Test
+    @DisplayName("deleteSelected - Should return zero when selected list is empty")
+    void deleteSelected_shouldReturnZeroWhenSelectedListIsEmpty() {
+        int deleted = seanceService.deleteSelected(List.of());
+
+        assertEquals(0, deleted);
+        verifyNoInteractions(reservationRepository);
+        verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
+    }
+
+    @Test
+    @DisplayName("deleteSelected - Should delete selected seances when none has reservations")
+    void deleteSelected_shouldDeleteSelectedSeancesWhenNoneHasReservations() {
+        List<Long> ids = List.of(1L, 2L, 3L);
+
+        when(reservationRepository.countBySeanceIds(ids)).thenReturn(0L);
+
+        int deleted = seanceService.deleteSelected(ids);
+
+        assertEquals(3, deleted);
+        verify(reservationRepository).countBySeanceIds(ids);
+        verify(seanceRepository).deleteAllByIdInBatch(ids);
+    }
+
+    @Test
+    @DisplayName("deleteSelected - Should refuse deletion when one selected seance has reservations")
+    void deleteSelected_shouldRefuseDeletionWhenOneSelectedSeanceHasReservations() {
+        List<Long> ids = List.of(1L, 2L, 3L);
+
+        when(reservationRepository.countBySeanceIds(ids)).thenReturn(1L);
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> seanceService.deleteSelected(ids));
+
+        assertEquals("Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations",
+                exception.getMessage());
+        verify(reservationRepository).countBySeanceIds(ids);
+        verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
     }
 
     //------------------tests for searchAdmin() ---------------------------
