@@ -5,7 +5,6 @@ import fr.fms.Distopia.entities.Role;
 import fr.fms.Distopia.entities.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Optional;
 
@@ -55,6 +54,4 @@ public class UserService {
 
         return Optional.of(userRepository.save(user));
     }
-
-
 }

@@ -126,7 +126,6 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
      * and it is still marked as active. Intended to be called by a scheduled task.
      *
      * @param now the reference timestamp - all seances before this value will be archived
-     * @return the number of seances updated
      */
     @Modifying
     @Transactional
@@ -136,13 +135,12 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
         WHERE s.dateTime < :now
         AND s.active = true
         """)
-    int archivePastSeances(@Param("now") LocalDateTime now);
+    void archivePastSeances(@Param("now") LocalDateTime now);
 
     /**
      * Reactivates future seances that were previously archived
      *
      * @param now the current date and time used as activation threshold
-     * @return the number of reactivated seances
      */
     @Modifying
     @Transactional
@@ -152,5 +150,5 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
         WHERE s.dateTime >= :now
         AND s.active = false
         """)
-    int reactivateFutureSeances(@Param("now") LocalDateTime now);
+    void reactivateFutureSeances(@Param("now") LocalDateTime now);
 }

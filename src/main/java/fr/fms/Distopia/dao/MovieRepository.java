@@ -23,15 +23,6 @@ import java.util.Optional;
 public interface MovieRepository extends JpaRepository<Movie,Long> {
 
     /**
-     * Retrieves non-deleted movies associated with a cinema
-     *
-     * @param cinemaId the cinema identifier
-     * @param sort the sorting configuration
-     * @return the list of visible movies for the given cinema
-     */
-    List<Movie> findByCinemasIdAndDeletedFalse(Long cinemaId, Sort sort);
-
-    /**
      *  Retrieves movies with upcoming seance in designed cinema with sort
      * @param cinemaId the cinema identifier
      * @param sort the sorting configuration

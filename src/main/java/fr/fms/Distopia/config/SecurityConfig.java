@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -44,8 +43,6 @@ public class SecurityConfig {
      *     <li>integration with the custom {@link DistopiaUserDetailsService}</li>
      * </ul>
      * <p>
-     * Note: CSRF protection is temporarily disabled because Thymeleaf forms
-     * do not yet include CSRF tokens !
      *
      * @param http the Spring Security HTTP configuration object
      * @param userDetailsService the custom user details service used for authentication
