@@ -79,13 +79,14 @@ public class SeanceController {
     @GetMapping("/admin/seances")
     public String adminSeances(@RequestParam(required = false) String keyword,
                                @RequestParam(required = false) Long cinemaId,
+                               @RequestParam(defaultValue = "false") boolean showArchived,
                                @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "dateTime") String sortField,
                                @RequestParam(defaultValue = "asc") String sortDir,
                                Model model) {
 
         Page<Seance> seancePage =
-                seanceService.searchAdmin(keyword, cinemaId, sortField, sortDir, page);
+                seanceService.searchAdmin(keyword, cinemaId,showArchived, sortField, sortDir, page);
 
         model.addAttribute("seancePage", seancePage);
         model.addAttribute(SEANCES, seancePage.getContent());
@@ -93,6 +94,7 @@ public class SeanceController {
         model.addAttribute("currentPage", page);
         model.addAttribute("keyword", keyword);
         model.addAttribute("cinemaId", cinemaId);
+        model.addAttribute("showArchived", showArchived);
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
@@ -171,6 +173,7 @@ public class SeanceController {
     public String deleteSelectedSeances(@RequestParam(required = false) List<Long> selectedIds,
                                         @RequestParam(required = false) String keyword,
                                         @RequestParam(required = false) Long cinemaId,
+                                        @RequestParam(defaultValue = "false") boolean showArchived,
                                         @RequestParam(required = false) String sortField,
                                         @RequestParam(required = false) String sortDir,
                                         RedirectAttributes redirectAttributes) {
@@ -186,7 +189,7 @@ public class SeanceController {
             redirectAttributes.addFlashAttribute(ERROR, e.getMessage());
         }
 
-        return buildAdminSeancesRedirect(keyword, cinemaId, sortField, sortDir);
+        return buildAdminSeancesRedirect(keyword, cinemaId,showArchived, sortField, sortDir);
     }
 
     /**
@@ -203,11 +206,12 @@ public class SeanceController {
     @PostMapping("/admin/deleteFilteredSeances")
     public String deleteFilteredSeances(@RequestParam(required = false) String keyword,
                                         @RequestParam(required = false) Long cinemaId,
+                                        @RequestParam(defaultValue = "false") boolean showArchived,
                                         @RequestParam(required = false) String sortField,
                                         @RequestParam(required = false) String sortDir,
                                         RedirectAttributes redirectAttributes) {
         try {
-            int deleted = seanceService.deleteByAdminFilters(keyword, cinemaId);
+            int deleted = seanceService.deleteByAdminFilters(keyword, cinemaId, showArchived);
 
             if (deleted == 0) {
                 redirectAttributes.addFlashAttribute("warning", "Aucune séance ne correspond aux filtres actuels");
@@ -218,7 +222,7 @@ public class SeanceController {
             redirectAttributes.addFlashAttribute(ERROR, e.getMessage());
         }
 
-        return buildAdminSeancesRedirect(keyword, cinemaId, sortField, sortDir);
+        return buildAdminSeancesRedirect(keyword, cinemaId, showArchived, sortField, sortDir);
     }
 
     /**
@@ -232,6 +236,7 @@ public class SeanceController {
      */
     private String buildAdminSeancesRedirect(String keyword,
                                              Long cinemaId,
+                                             boolean showArchived,
                                              String sortField,
                                              String sortDir) {
         StringBuilder redirect = new StringBuilder(REDIRECT_ADMIN_SEANCES);
@@ -245,6 +250,11 @@ public class SeanceController {
 
         if (cinemaId != null) {
             redirect.append(hasParam ? "&" : "?").append("cinemaId=").append(cinemaId);
+            hasParam = true;
+        }
+
+        if (showArchived) {
+            redirect.append(hasParam ? "&" : "?").append("showArchived=true");
             hasParam = true;
         }
 
