@@ -236,7 +236,7 @@ public class SeanceService {
      * Synchronizes seance activity status according to the current date and time<p>
      * Past seances are archived and future seances are reactivated if needed
      */
-    private void syncSeanceActivityStatus() {
+    public void syncSeanceActivityStatus() {
         LocalDateTime now = LocalDateTime.now();
 
         seanceRepository.archivePastSeances(now);
