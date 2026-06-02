@@ -93,16 +93,18 @@ public class TmdbMovieDto {
     }
 
     /**
-     * Returns the first available genre for compact card display
+     * Returns the first available genre names for compact card display
      *
-     * @return the first genre name, or "-" when unavailable
+     * @return a list containing up to three genre names, or an empty list when unavailable
      */
-    public String getMainGenre() {
-        if (genres == null || genres.isEmpty() || genres.get(0).getName() == null || genres.get(0).getName().isBlank()) {
-            return "-";
+    public List<String> getDisplayGenres() {
+        if (genres == null || genres.isEmpty()) {
+            return List.of();
         }
 
-        return genres.get(0).getName();
+        return genres.stream().map(TmdbGenreDto::getName)
+                .filter(name -> name != null && !name.isBlank())
+                .limit(3).toList();
     }
 
 }
