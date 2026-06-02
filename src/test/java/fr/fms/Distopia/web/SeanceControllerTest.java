@@ -240,13 +240,29 @@ class SeanceControllerTest {
 
     //---------------------------tests for deleteSeance()-----------------------------------
     @Test
-    @DisplayName("deleteSeance() - deletes seance and redirect for admin user")
-    void deleteSeance_ShouldDeleteSeanceAndRedirectsForAdminUser() {
-
-        String view = seanceController.deleteSeance(1L);
+    @DisplayName("deleteSeance() - deletes seance and redirects with success message")
+    void deleteSeance_ShouldDeleteSeanceAndRedirectWithSuccessMessage() {
+        String view = seanceController.deleteSeance(1L, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/seances");
         verify(seanceService).delete(1L);
+        verify(redirectAttributes).addFlashAttribute("message", "Séance supprimée avec succès");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
+    }
+
+    @Test
+    @DisplayName("deleteSeance() - redirects with error when seance has reservations")
+    void deleteSeance_ShouldRedirectWithErrorWhenSeanceHasReservations() {
+        doThrow(new IllegalStateException("Impossible de supprimer une séance avec des réservations"))
+                .when(seanceService).delete(1L);
+
+        String view = seanceController.deleteSeance(1L, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+        verify(seanceService).delete(1L);
+        verify(redirectAttributes).addFlashAttribute("error",
+                "Impossible de supprimer une séance avec des réservations");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
     }
 
 }
