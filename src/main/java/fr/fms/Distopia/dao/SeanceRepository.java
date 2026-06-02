@@ -137,4 +137,20 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
         AND s.active = true
         """)
     int archivePastSeances(@Param("now") LocalDateTime now);
+
+    /**
+     * Reactivates future seances that were previously archived
+     *
+     * @param now the current date and time used as activation threshold
+     * @return the number of reactivated seances
+     */
+    @Modifying
+    @Transactional
+    @Query("""
+        UPDATE Seance s
+        SET s.active = true
+        WHERE s.dateTime >= :now
+        AND s.active = false
+        """)
+    int reactivateFutureSeances(@Param("now") LocalDateTime now);
 }
