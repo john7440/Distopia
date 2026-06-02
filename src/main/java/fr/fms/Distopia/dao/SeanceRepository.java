@@ -119,4 +119,20 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     List<Long> findIdsByAdminFilters(@Param("keyword") String keyword, @Param("cinemaId") Long cinemaId,
                                      @Param("showArchived") boolean showArchived);
 
+    /**
+     * Archives all past seances by setting their {@code active} flag to {@code false}
+     * <p>A seance is considered past if its {@code dateTime} is strictly before {@code now}
+     * and it is still marked as active. Intended to be called by a scheduled task.
+     *
+     * @param now the reference timestamp - all seances before this value will be archived
+     * @return the number of seances updated
+     */
+    @Modifying
+    @Query("""
+        UPDATE Seance s
+        SET s.active = false
+        WHERE s.dateTime < :now
+        AND s.active = true
+        """)
+    int archivePastSeances(@Param("now") LocalDateTime now);
 }
