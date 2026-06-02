@@ -15,9 +15,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.util.UriUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -40,6 +38,8 @@ public class SeanceController {
     }
 
     private static final String SEANCES =  "seances";
+    private static final String ERROR =  "error";
+    private static final String MESSAGE =  "message";
     private static final String REDIRECT_ADMIN_SEANCES = "redirect:/admin/seances";
 
     //----------------seances d'un film----------------
@@ -122,7 +122,7 @@ public class SeanceController {
                     ? "Données invalides"
                     : bindingResult.getAllErrors().get(0).getDefaultMessage();
 
-            ra.addFlashAttribute("error",errorMessage);
+            ra.addFlashAttribute(ERROR,errorMessage);
 
             return REDIRECT_ADMIN_SEANCES;
         }
@@ -134,74 +134,129 @@ public class SeanceController {
 
     //-------------------------supprimer une séance----------------
     /**
-     * Deletes a seance from the database
+     * Deletes a seance from the administration page
      * <p>
-     * <strong>Security:</strong> This endpoint is restricted to administrators
-     * <p>
-     * Note: The underlying service method performs a business check and will throw
-     * an exception if the seance already has active reservations
+     * The deletion is refused if the seance already has reservations.
      *
-     * @param id      the unique identifier of the seance to delete
-     * @return a redirection URL to the admin seances page, or the default redirection if unauthorized
+     * @param id the seance identifier
+     * @param redirectAttributes the Spring redirect attributes used for feedback messages
+     * @return a redirect to the seance administration page
      */
     @PostMapping("/admin/deleteSeance")
-    public String deleteSeance(@RequestParam Long id){
-        seanceService.delete(id);
+    public String deleteSeance(@RequestParam Long id,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            seanceService.delete(id);
+            redirectAttributes.addFlashAttribute(MESSAGE, "Séance supprimée avec succès");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute(ERROR, e.getMessage());
+        }
+
         return REDIRECT_ADMIN_SEANCES;
     }
 
     /**
-     * Deletes a selection of seances by their IDs
+     * Deletes all selected seances from the administration page<p>
+     * The deletion is refused if at least one selected seance already has reservations
      *
-     * @param selectedIds list of seance IDs to delete (maybe {@code null} or empty)
-     * @param redirectAttributes flash attributes used to pass feedback to the redirected view
-     * @return redirect to the admin seances page
+     * @param selectedIds the selected seance identifiers
+     * @param keyword the current search keyword
+     * @param cinemaId the current cinema filter
+     * @param sortField the current sort field
+     * @param sortDir the current sort direction
+     * @param redirectAttributes the Spring redirect attributes used for feedback messages
+     * @return a redirect to the seance administration page
      */
     @PostMapping("/admin/deleteSelectedSeances")
     public String deleteSelectedSeances(@RequestParam(required = false) List<Long> selectedIds,
+                                        @RequestParam(required = false) String keyword,
+                                        @RequestParam(required = false) Long cinemaId,
+                                        @RequestParam(required = false) String sortField,
+                                        @RequestParam(required = false) String sortDir,
                                         RedirectAttributes redirectAttributes) {
+        try {
+            int deleted = seanceService.deleteSelected(selectedIds);
 
-        int deleted = seanceService.deleteSelected(selectedIds);
-        if (deleted == 0) {
-            redirectAttributes.addFlashAttribute("warning", "Aucune séance sélectionnée!");
-        } else {
-            redirectAttributes.addFlashAttribute("message", deleted + " séance(s) supprimée(s)");
+            if (deleted == 0) {
+                redirectAttributes.addFlashAttribute("warning", "Aucune séance sélectionnée!");
+            } else {
+                redirectAttributes.addFlashAttribute(MESSAGE, deleted + " séance(s) supprimée(s).");
+            }
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute(ERROR, e.getMessage());
         }
-        return REDIRECT_ADMIN_SEANCES;
+
+        return buildAdminSeancesRedirect(keyword, cinemaId, sortField, sortDir);
     }
 
     /**
-     * Deletes all seances matching the given admin filters
-     * <p>Filters are optional and cumulative:
-     * <ul>
-     *   <li>{@code keyword} - case-insensitive partial match on movie title or cinema name</li>
-     *   <li>{@code cinemaId} - exact match on the cinema ID</li>
-     *   <li>{@code movieId} - exact match on the movie ID</li>
-     * </ul>
+     * Deletes all seances matching the current admin filters<p>
+     * The deletion is refused if at least one matching seance already has reservations.
      *
-     * <p>After deletion, redirects back to the filtered seances list,
-     * preserving the current filter parameters in the URL
-     *
-     * @param keyword optional search term to filter seances
-     * @param cinemaId  optional cinema ID to filter seances
-     * @param movieId  optional movie ID to filter seances
-     * @param redirectAttributes flash attributes used to pass feedback to the redirected view
-     * @return redirect to the admin seances page with current filters applied
+     * @param keyword the current search keyword
+     * @param cinemaId the current cinema filter
+     * @param sortField the current sort field
+     * @param sortDir the current sort direction
+     * @param redirectAttributes the Spring redirect attributes used for feedback messages
+     * @return a redirect to the seance administration page
      */
     @PostMapping("/admin/deleteFilteredSeances")
-    public String deleteFilteredSeances(@RequestParam(required = false) String keyword, @RequestParam(required = false) Long cinemaId,
-                                        @RequestParam(required = false) Long movieId, RedirectAttributes redirectAttributes) {
+    public String deleteFilteredSeances(@RequestParam(required = false) String keyword,
+                                        @RequestParam(required = false) Long cinemaId,
+                                        @RequestParam(required = false) String sortField,
+                                        @RequestParam(required = false) String sortDir,
+                                        RedirectAttributes redirectAttributes) {
+        try {
+            int deleted = seanceService.deleteByAdminFilters(keyword, cinemaId);
 
-        int deleted = seanceService.deleteByAdminFilters(keyword, cinemaId, movieId);
-
-        if (deleted == 0) {
-            redirectAttributes.addFlashAttribute("warning", "Aucune séance ne correspond aux filtres actuels !");
-        } else {
-            redirectAttributes.addFlashAttribute("message", deleted + " séance(s) supprimée(s) selon les filtres actuels");
+            if (deleted == 0) {
+                redirectAttributes.addFlashAttribute("warning", "Aucune séance ne correspond aux filtres actuels");
+            } else {
+                redirectAttributes.addFlashAttribute(MESSAGE, deleted + " séance(s) supprimée(s) selon les filtres actuels");
+            }
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute(ERROR, e.getMessage());
         }
 
-        return "redirect:/admin/seances?keyword=" + UriUtils.encode(keyword == null ? "" : keyword, StandardCharsets.UTF_8)
-                + (cinemaId != null ? "&cinemaId=" + cinemaId : "")
-                + (movieId != null ? "&movieId=" + movieId : "");
+        return buildAdminSeancesRedirect(keyword, cinemaId, sortField, sortDir);
+    }
+
+    /**
+     * Builds the redirect URL to the seance administration page while preserving filters
+     *
+     * @param keyword the current search keyword
+     * @param cinemaId the current cinema filter
+     * @param sortField the current sort field
+     * @param sortDir the current sort direction
+     * @return the redirect URL with query parameters
+     */
+    private String buildAdminSeancesRedirect(String keyword,
+                                             Long cinemaId,
+                                             String sortField,
+                                             String sortDir) {
+        StringBuilder redirect = new StringBuilder(REDIRECT_ADMIN_SEANCES);
+
+        boolean hasParam = false;
+
+        if (keyword != null && !keyword.isBlank()) {
+            redirect.append("?keyword=").append(keyword);
+            hasParam = true;
+        }
+
+        if (cinemaId != null) {
+            redirect.append(hasParam ? "&" : "?").append("cinemaId=").append(cinemaId);
+            hasParam = true;
+        }
+
+        if (sortField != null && !sortField.isBlank()) {
+            redirect.append(hasParam ? "&" : "?").append("sortField=").append(sortField);
+            hasParam = true;
+        }
+
+        if (sortDir != null && !sortDir.isBlank()) {
+            redirect.append(hasParam ? "&" : "?").append("sortDir=").append(sortDir);
+        }
+
+        return redirect.toString();
     }
 }
