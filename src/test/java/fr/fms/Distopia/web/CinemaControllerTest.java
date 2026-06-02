@@ -209,7 +209,8 @@ class CinemaControllerTest {
     @DisplayName("/admin/deleteCinema - Should delete cinema")
     void adminDeleteCinema_shouldDeleteCinema() throws Exception {
 
-        mockMvc.perform(get("/admin/deleteCinema")
+        mockMvc.perform(post("/admin/deleteCinema")
+                        .with(csrf())
                         .with(user("admin").roles("ADMIN"))
                         .param("id", "1"))
                 .andExpect(status().is3xxRedirection())
