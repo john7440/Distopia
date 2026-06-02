@@ -130,26 +130,31 @@ public class SeanceService {
         seanceRepository.delete(seance);
     }
 
-    //--------------recherche paginé admin-----------------
+    //--------------recherche paginé admin avec tri et filtre-----------------
     /**
-     * Searches seances for the administration page with pagination and sorting
+     * Searches seances for the administration page with pagination, sorting
+     * and archive filtering
+     *
      *
      * @param keyword the optional movie title keyword
      * @param cinemaId the optional cinema identifier filter
+     * @param showArchived whether archived seances should be included
      * @param sortField the field used for sorting
      * @param sortDir the sorting direction, either "asc" or "desc"
      * @param page the requested page index
      * @return a paginated list of seances matching the filters
      */
-    public Page<Seance> searchAdmin(String keyword, Long cinemaId, String sortField,
+    public Page<Seance> searchAdmin(String keyword, Long cinemaId, boolean showArchived,String sortField,
                                     String sortDir, int page) {
+        seanceRepository.archivePastSeances(LocalDateTime.now());
+
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortField).descending()
                 : Sort.by(sortField).ascending();
 
         Pageable pageable = PageRequest.of(page, PAGE_SIZE_ADMIN, sort);
 
-        return seanceRepository.searchAdmin(keyword, cinemaId, pageable);
+        return seanceRepository.searchAdmin(keyword, cinemaId, showArchived, pageable);
     }
 
     /**
@@ -189,12 +194,13 @@ public class SeanceService {
      * Deletes all seances matching the current admin filters<p>
      * @param keyword  the search keyword used in the admin page
      * @param cinemaId the selected cinema identifier, or null
+     * @param showArchived whether archived seances are included in the deletion scope
      * @return the number of deleted seances
      * @throws IllegalStateException if one or more matching seances have existing reservations
      */
     @Transactional
-    public int deleteByAdminFilters(String keyword, Long cinemaId) {
-        List<Long> ids = seanceRepository.findIdsByAdminFilters(keyword, cinemaId);
+    public int deleteByAdminFilters(String keyword, Long cinemaId, boolean showArchived) {
+        List<Long> ids = seanceRepository.findIdsByAdminFilters(keyword, cinemaId, showArchived);
 
         if (ids.isEmpty()) {
             return 0;
