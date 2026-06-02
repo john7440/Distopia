@@ -60,7 +60,7 @@
               th:action="@{/admin/seances}"
               class="row g-3 mb-4">
 
-            <div class="col-md-5">
+            <div class="col-md-4">
 
                 <input type="text"
                        name="keyword"
@@ -70,21 +70,38 @@
             </div>
 
             <!-- cinemas -->
-            <div class="col-md-5">
-
+            <div class="col-md-4">
                 <select name="cinemaId"
                         class="form-select">
-
                     <option value="">
                         Tous les cinémas
                     </option>
-
                     <option th:each="c : ${cinemas}"
                             th:value="${c.id}"
                             th:text="${c.name}"
                             th:selected="${cinemaId == c.id}">
                     </option>
                 </select>
+            </div>
+
+            <!-- archived -->
+            <div class="col-md-2 d-flex align-items-center">
+
+                <div class="form-check">
+
+                    <input class="form-check-input"
+                           type="checkbox"
+                           name="showArchived"
+                           value="true"
+                           id="showArchived"
+                           th:checked="${showArchived}">
+
+                    <label class="form-check-label"
+                           for="showArchived">
+                        Archivées
+                    </label>
+
+                </div>
 
             </div>
 
@@ -95,7 +112,6 @@
                     Rechercher
                 </button>
             </div>
-
         </form>
 
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
@@ -124,6 +140,7 @@
 
                     <input type="hidden" name="keyword" th:value="${keyword}">
                     <input type="hidden" name="cinemaId" th:value="${cinemaId}">
+                    <input type="hidden" name="showArchived" th:value="${showArchived}">
                     <input type="hidden" name="sortField" th:value="${sortField}">
                     <input type="hidden" name="sortDir" th:value="${sortDir}">
 
@@ -144,6 +161,7 @@
 
                     <input type="hidden" name="keyword" th:value="${keyword}">
                     <input type="hidden" name="cinemaId" th:value="${cinemaId}">
+                    <input type="hidden" name="showArchived" th:value="${showArchived}">
                     <input type="hidden" name="sortField" th:value="${sortField}">
                     <input type="hidden" name="sortDir" th:value="${sortDir}">
 
@@ -177,6 +195,7 @@
                             <a th:href="@{/admin/seances(
                                 keyword=${keyword},
                                 cinemaId=${cinemaId},
+                                showArchived=${showArchived},
                                 page=0,
                                 sortField='dateTime',
                                 sortDir=${sortField == 'dateTime' ? reverseSortDir : 'asc'})}"
@@ -193,6 +212,7 @@
                         </th>
                         <th>Places</th>
                         <th>Prix</th>
+                        <th>Statut</th>
                         <th class="text-center" style="width:180px">Actions</th>
                     </tr>
 
@@ -203,7 +223,7 @@
                     <!-- if empty -->
                     <tr th:if="${#lists.isEmpty(seances)}">
 
-                        <td colspan="8"
+                        <td colspan="9"
                             class="text-center py-5 text-muted">
                             <i class="bi bi-calendar-event fs-1 d-block mb-2"></i>
                             Aucune séance trouvée
@@ -249,6 +269,16 @@
                         <!--price -->
                         <td>
                             <span th:text="${s.price + ' €'}"></span>
+                        </td>
+
+                        <!-- status -->
+                        <td>
+                            <span th:if="${s.active}" class="badge bg-success">
+                                Active
+                            </span>
+                            <span th:if="${!s.active}" class="badge bg-secondary">
+                                Archivée
+                            </span>
                         </td>
 
                         <!-- actions -->
@@ -421,6 +451,7 @@
                    page=0,
                    keyword=${keyword},
                    cinemaId=${cinemaId},
+                   showArchived=${showArchived},
                    sortField=${sortField},
                    sortDir=${sortDir})}">
                         «
@@ -436,6 +467,7 @@
                    page=${currentPage - 1},
                    keyword=${keyword},
                    cinemaId=${cinemaId},
+                   showArchived=${showArchived},
                    sortField=${sortField},
                    sortDir=${sortDir})}">
                         ‹
@@ -451,6 +483,7 @@
                                page=0,
                                keyword=${keyword},
                                cinemaId=${cinemaId},
+                               showArchived=${showArchived},
                                sortField=${sortField},
                                sortDir=${sortDir})}">1
                     </a>
@@ -477,6 +510,7 @@
                            page=${i},
                            keyword=${keyword},
                            cinemaId=${cinemaId},
+                           showArchived=${showArchived},
                            sortField=${sortField},
                            sortDir=${sortDir})}">
                     </a>
@@ -498,6 +532,7 @@
                            page=${seancePage.totalPages - 1},
                            keyword=${keyword},
                            cinemaId=${cinemaId},
+                           showArchived=${showArchived},
                            sortField=${sortField},
                            sortDir=${sortDir})}">
                     </a>
@@ -512,6 +547,7 @@
                            page=${currentPage + 1},
                            keyword=${keyword},
                            cinemaId=${cinemaId},
+                           showArchived=${showArchived},
                            sortField=${sortField},
                            sortDir=${sortDir})}">
                         ›
@@ -527,6 +563,7 @@
                            page=${seancePage.totalPages - 1},
                            keyword=${keyword},
                            cinemaId=${cinemaId},
+                           showArchived=${showArchived},
                            sortField=${sortField},
                            sortDir=${sortDir})}">
                         »
