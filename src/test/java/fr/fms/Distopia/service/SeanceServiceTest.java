@@ -244,12 +244,12 @@ import static org.mockito.Mockito.*;
     @Test
     @DisplayName("deleteByAdminFilters - Should return zero when no seance matches filters")
     void deleteByAdminFilters_shouldReturnZeroWhenNoSeanceMatchesFilters() {
-        when(seanceRepository.findIdsByAdminFilters("avatar", 5L)).thenReturn(List.of());
+        when(seanceRepository.findIdsByAdminFilters("avatar", 5L, true)).thenReturn(List.of());
 
-        int deleted = seanceService.deleteByAdminFilters("avatar", 5L);
+        int deleted = seanceService.deleteByAdminFilters("avatar", 5L, true);
 
         assertEquals(0, deleted);
-        verify(seanceRepository).findIdsByAdminFilters("avatar", 5L);
+        verify(seanceRepository).findIdsByAdminFilters("avatar", 5L, true);
         verifyNoInteractions(reservationRepository);
         verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
     }
@@ -259,13 +259,13 @@ import static org.mockito.Mockito.*;
     void deleteByAdminFilters_shouldDeleteMatchingSeancesWhenNoneHasReservations() {
         List<Long> ids = List.of(1L, 2L);
 
-        when(seanceRepository.findIdsByAdminFilters("avatar", 5L)).thenReturn(ids);
+        when(seanceRepository.findIdsByAdminFilters("avatar", 5L, true)).thenReturn(ids);
         when(reservationRepository.countBySeanceIds(ids)).thenReturn(0L);
 
-        int deleted = seanceService.deleteByAdminFilters("avatar", 5L);
+        int deleted = seanceService.deleteByAdminFilters("avatar", 5L, true);
 
         assertEquals(2, deleted);
-        verify(seanceRepository).findIdsByAdminFilters("avatar", 5L);
+        verify(seanceRepository).findIdsByAdminFilters("avatar", 5L, true);
         verify(reservationRepository).countBySeanceIds(ids);
         verify(seanceRepository).deleteAllByIdInBatch(ids);
     }
@@ -275,14 +275,14 @@ import static org.mockito.Mockito.*;
     void deleteByAdminFilters_shouldRefuseDeletionWhenOneMatchingSeanceHasReservations() {
         List<Long> ids = List.of(1L, 2L);
 
-        when(seanceRepository.findIdsByAdminFilters("avatar", 5L)).thenReturn(ids);
+        when(seanceRepository.findIdsByAdminFilters("avatar", 5L, true)).thenReturn(ids);
         when(reservationRepository.countBySeanceIds(ids)).thenReturn(1L);
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> seanceService.deleteByAdminFilters("avatar", 5L));
+                () -> seanceService.deleteByAdminFilters("avatar", 5L, true));
 
         assertEquals("Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations", exception.getMessage());
-        verify(seanceRepository).findIdsByAdminFilters("avatar", 5L);
+        verify(seanceRepository).findIdsByAdminFilters("avatar", 5L, true);
         verify(reservationRepository).countBySeanceIds(ids);
         verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
     }
@@ -293,12 +293,12 @@ import static org.mockito.Mockito.*;
     void searchAdmin_ShouldReturnPagedSeancesUsingKeywordAndCinemaFilters() {
         Page<Seance> page = new PageImpl<>(List.of(seance));
 
-        when(seanceRepository.searchAdmin(eq("Inception"), eq(1L),any(Pageable.class))).thenReturn(page);
+        when(seanceRepository.searchAdmin(eq("Inception"), eq(1L),anyBoolean(),any(Pageable.class))).thenReturn(page);
 
-        Page<Seance> result = seanceService.searchAdmin("Inception", 1L,"sortField","sortDir",0);
+        Page<Seance> result = seanceService.searchAdmin("Inception", 1L,true,"sortField","sortDir",0);
 
         assertThat(result.getContent()).containsExactly(seance);
-        verify(seanceRepository).searchAdmin(eq("Inception"), eq(1L),any(Pageable.class));
+        verify(seanceRepository).searchAdmin(eq("Inception"), eq(1L),anyBoolean(),any(Pageable.class));
 
     }
 
@@ -307,12 +307,12 @@ import static org.mockito.Mockito.*;
     void searchAdmin_ShouldReturnEmptyPageWhenNoSeancesMatch() {
         Page<Seance> emptyPage = new PageImpl<>(List.of());
 
-        when(seanceRepository.searchAdmin(eq("Inconnu"), eq(99L),any(Pageable.class))).thenReturn(emptyPage);
+        when(seanceRepository.searchAdmin(eq("Inconnu"), eq(99L),anyBoolean(),any(Pageable.class))).thenReturn(emptyPage);
 
-        Page<Seance> result = seanceService.searchAdmin("Inconnu", 99L,"sortField","sortDir",0);
+        Page<Seance> result = seanceService.searchAdmin("Inconnu", 99L,true,"sortField","sortDir",0);
 
         assertThat(result.getContent()).isEmpty();
-        verify(seanceRepository).searchAdmin(eq("Inconnu"), eq(99L),any(Pageable.class));
+        verify(seanceRepository).searchAdmin(eq("Inconnu"), eq(99L),anyBoolean(),any(Pageable.class));
     }
 
     //------------------tests for getUpcomingSeances() ---------------------------

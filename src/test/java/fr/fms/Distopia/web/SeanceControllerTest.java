@@ -128,11 +128,11 @@ class SeanceControllerTest {
     @DisplayName("adminSeances() - return 'admin-seances' view for admin user")
     void adminSeances_ShouldReturnAdminSeancesViewForAdminUser() {
         Page<Seance> seancePage = new PageImpl<>(List.of(seance));
-        when(seanceService.searchAdmin(null, null,"sortField","sortDir", 0)).thenReturn(seancePage);
+        when(seanceService.searchAdmin(null, null,true,"sortField","sortDir", 0)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        String view = seanceController.adminSeances(null, null, 0,"sortField","sortDir", model);
+        String view = seanceController.adminSeances(null, null, true,0,"sortField","sortDir", model);
 
         assertThat(view).isEqualTo("admin-seances");
     }
@@ -143,11 +143,11 @@ class SeanceControllerTest {
     void adminSeances_ShouldAddSeancesMoviesAndCinemasToModel() {
         Page<Seance> seancePage = new PageImpl<>(List.of(seance),
                 PageRequest.of(0, 12), 1);
-        when(seanceService.searchAdmin(null, null,"sortField","sortDir", 0)).thenReturn(seancePage);
+        when(seanceService.searchAdmin(null, null,true,"sortField","sortDir", 0)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        seanceController.adminSeances(null, null, 0,"sortField","sortDir", model);
+        seanceController.adminSeances(null, null, true,0,"sortField","sortDir", model);
 
         verify(model).addAttribute("seancePage", seancePage);
         verify(model).addAttribute("seances", List.of(seance));
@@ -159,13 +159,13 @@ class SeanceControllerTest {
     @DisplayName("adminSeances() - forwards keyword and cinemaId to service")
     void adminSeances_ShouldForwardKeywordAndCinemaIdToService() {
         Page<Seance> seancePage = new PageImpl<>(List.of(seance));
-        when(seanceService.searchAdmin("14h", 1L,"sortField","sortDir",0)).thenReturn(seancePage);
+        when(seanceService.searchAdmin("14h", 1L,true,"sortField","sortDir",0)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of(movie));
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
 
-        seanceController.adminSeances("14h", 1L, 0,"sortField","sortDir", model);
+        seanceController.adminSeances("14h", 1L, true,0,"sortField","sortDir", model);
 
-        verify(seanceService).searchAdmin("14h", 1L,"sortField", "sortDir", 0);
+        verify(seanceService).searchAdmin("14h", 1L,true,"sortField", "sortDir", 0);
         verify(model).addAttribute("keyword", "14h");
         verify(model).addAttribute("cinemaId", 1L);
     }
@@ -175,14 +175,14 @@ class SeanceControllerTest {
     void adminSeances_ShouldHandlePageGreaterThanZero() {
         Page<Seance> seancePage = new PageImpl<>(List.of(seance),
                 PageRequest.of(2, 12), 30);
-        when(seanceService.searchAdmin(null, null,"sortField","sortDir",2)).thenReturn(seancePage);
+        when(seanceService.searchAdmin(null, null,true,"sortField","sortDir",2)).thenReturn(seancePage);
         when(movieService.getAll()).thenReturn(List.of());
         when(cinemaService.getAll()).thenReturn(List.of());
 
 
-        seanceController.adminSeances(null, null, 2,"sortField","sortDir", model);
+        seanceController.adminSeances(null, null, true,2,"sortField","sortDir", model);
 
-        verify(seanceService).searchAdmin(null, null,"sortField","sortDir", 2);
+        verify(seanceService).searchAdmin(null, null,true,"sortField","sortDir", 2);
         verify(model).addAttribute("currentPage", 2);
     }
 
@@ -269,13 +269,13 @@ class SeanceControllerTest {
     @Test
     @DisplayName("deleteFilteredSeances() - redirects with warning when no seance matches filters")
     void deleteFilteredSeances_ShouldRedirectWithWarningWhenNoSeanceMatchesFilters() {
-        when(seanceService.deleteByAdminFilters("avatar", 5L)).thenReturn(0);
+        when(seanceService.deleteByAdminFilters("avatar", 5L,true)).thenReturn(0);
 
-        String view = seanceController.deleteFilteredSeances("avatar", 5L, null, null,
+        String view = seanceController.deleteFilteredSeances("avatar", 5L, true,null, null,
                 redirectAttributes);
 
-        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5");
-        verify(seanceService).deleteByAdminFilters("avatar", 5L);
+        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5&showArchived=true");
+        verify(seanceService).deleteByAdminFilters("avatar", 5L,true);
         verify(redirectAttributes).addFlashAttribute("warning", "Aucune séance ne correspond aux filtres actuels");
         verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
         verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
@@ -284,13 +284,13 @@ class SeanceControllerTest {
     @Test
     @DisplayName("deleteFilteredSeances() - deletes filtered seances and redirects with success message")
     void deleteFilteredSeances_ShouldDeleteFilteredSeancesAndRedirectWithSuccessMessage() {
-        when(seanceService.deleteByAdminFilters("avatar", 5L)).thenReturn(4);
+        when(seanceService.deleteByAdminFilters("avatar", 5L, true)).thenReturn(4);
 
-        String view = seanceController.deleteFilteredSeances("avatar", 5L, "dateTime", "desc",
+        String view = seanceController.deleteFilteredSeances("avatar", 5L, true,"dateTime", "desc",
                 redirectAttributes);
 
-        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5&sortField=dateTime&sortDir=desc");
-        verify(seanceService).deleteByAdminFilters("avatar", 5L);
+        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5&showArchived=true&sortField=dateTime&sortDir=desc");
+        verify(seanceService).deleteByAdminFilters("avatar", 5L, true);
         verify(redirectAttributes).addFlashAttribute("message", "4 séance(s) supprimée(s) selon les filtres actuels");
         verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
         verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
@@ -300,13 +300,13 @@ class SeanceControllerTest {
     @DisplayName("deleteFilteredSeances() - redirects with error when filtered seances have reservations")
     void deleteFilteredSeances_ShouldRedirectWithErrorWhenFilteredSeancesHaveReservations() {
         doThrow(new IllegalStateException("Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations"))
-                .when(seanceService).deleteByAdminFilters("avatar", 5L);
+                .when(seanceService).deleteByAdminFilters("avatar", 5L,true);
 
-        String view = seanceController.deleteFilteredSeances("avatar", 5L, "dateTime",
+        String view = seanceController.deleteFilteredSeances("avatar", 5L, true,"dateTime",
                 "asc", redirectAttributes);
 
-        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5&sortField=dateTime&sortDir=asc");
-        verify(seanceService).deleteByAdminFilters("avatar", 5L);
+        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5&showArchived=true&sortField=dateTime&sortDir=asc");
+        verify(seanceService).deleteByAdminFilters("avatar", 5L,true);
         verify(redirectAttributes).addFlashAttribute(
                 "error",
                 "Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations"
@@ -318,12 +318,12 @@ class SeanceControllerTest {
     @Test
     @DisplayName("deleteFilteredSeances() - redirects without empty filters")
     void deleteFilteredSeances_ShouldRedirectWithoutEmptyFilters() {
-        when(seanceService.deleteByAdminFilters("", null)).thenReturn(0);
+        when(seanceService.deleteByAdminFilters("", null, true)).thenReturn(0);
 
-        String view = seanceController.deleteFilteredSeances("", null, "", "", redirectAttributes);
+        String view = seanceController.deleteFilteredSeances("", null, true,"", "", redirectAttributes);
 
-        assertThat(view).isEqualTo("redirect:/admin/seances");
-        verify(seanceService).deleteByAdminFilters("", null);
+        assertThat(view).isEqualTo("redirect:/admin/seances?showArchived=true");
+        verify(seanceService).deleteByAdminFilters("", null, true);
         verify(redirectAttributes).addFlashAttribute("warning", "Aucune séance ne correspond aux filtres actuels");
     }
 }
