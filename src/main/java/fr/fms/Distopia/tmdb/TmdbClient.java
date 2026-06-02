@@ -104,30 +104,6 @@ public class TmdbClient {
         return response !=null ? response.getResults() : List.of();
     }
 
-    // --------- Films sortis cette semaine ----------------------------
-    /**
-     * Retrieves movies released during the last seven days
-     * <p>
-     * This method filters the movies returned by {@link #getNowPlaying()}
-     * using their release date
-     *
-     * @return a list of movies released this week, limited to 10 results
-     */
-    public List<TmdbMovieDto> getThisWeek() {
-        LocalDate today = LocalDate.now();
-        LocalDate weekAgo = today.minusDays(7);
-        return getNowPlaying().stream()
-                .filter(m -> {
-                    if (m.getReleaseDate() == null || m.getReleaseDate().isBlank()) return false;
-                    try {
-                        LocalDate d = LocalDate.parse(m.getReleaseDate());
-                        return !d.isBefore(weekAgo) && !d.isAfter(today);
-                    } catch (Exception e) { return false; }
-                })
-                .limit(10)
-                .toList();
-    }
-
     //------------- les prochaines sorties---------------------------------
     /**
      * Retrieves upcoming movies in France from TMDB
@@ -139,5 +115,38 @@ public class TmdbClient {
                 + "&language=fr-FR&region=FR&page=1";
         TmdbSearchResponse response = restTemplate.getForObject(url, TmdbSearchResponse.class);
         return response != null ? response.getResults() : List.of();
+    }
+
+    /**
+     * Enriches TMDB movie summaries with detailed movie information<p>
+     * This method fetches each movie detail to complete the
+     * displayed data
+     *
+     * @param movies the TMDB movie summaries to enrich
+     * @return the enriched movie list
+     */
+    public List<TmdbMovieDto> enrichWithDetails(List<TmdbMovieDto> movies) {
+        if (movies == null || movies.isEmpty()) {
+            return List.of();
+        }
+
+        return movies.stream()
+                .map(movie -> {
+                    try {
+                        TmdbMovieDto detail = getDetail(movie.getId());
+                        movie.setRuntime(detail.getRuntime());
+                        movie.setGenres(detail.getGenres());
+                        if (movie.getOverview() == null || movie.getOverview().isBlank()) {
+                            movie.setOverview(detail.getOverview());
+                        }
+                        if (movie.getPosterPath() == null || movie.getPosterPath().isBlank()) {
+                            movie.setPosterPath(detail.getPosterPath());
+                        }
+
+                        return movie;
+
+                    } catch (Exception e) {
+                        return movie;
+                    }}).toList();
     }
 }
