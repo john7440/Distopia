@@ -265,4 +265,65 @@ class SeanceControllerTest {
         verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
     }
 
+    //---------------------------tests for deleteFilteredSeances()-----------------------------------
+    @Test
+    @DisplayName("deleteFilteredSeances() - redirects with warning when no seance matches filters")
+    void deleteFilteredSeances_ShouldRedirectWithWarningWhenNoSeanceMatchesFilters() {
+        when(seanceService.deleteByAdminFilters("avatar", 5L)).thenReturn(0);
+
+        String view = seanceController.deleteFilteredSeances("avatar", 5L, null, null,
+                redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5");
+        verify(seanceService).deleteByAdminFilters("avatar", 5L);
+        verify(redirectAttributes).addFlashAttribute("warning", "Aucune séance ne correspond aux filtres actuels");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+        verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
+    }
+
+    @Test
+    @DisplayName("deleteFilteredSeances() - deletes filtered seances and redirects with success message")
+    void deleteFilteredSeances_ShouldDeleteFilteredSeancesAndRedirectWithSuccessMessage() {
+        when(seanceService.deleteByAdminFilters("avatar", 5L)).thenReturn(4);
+
+        String view = seanceController.deleteFilteredSeances("avatar", 5L, "dateTime", "desc",
+                redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5&sortField=dateTime&sortDir=desc");
+        verify(seanceService).deleteByAdminFilters("avatar", 5L);
+        verify(redirectAttributes).addFlashAttribute("message", "4 séance(s) supprimée(s) selon les filtres actuels");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
+        verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
+    }
+
+    @Test
+    @DisplayName("deleteFilteredSeances() - redirects with error when filtered seances have reservations")
+    void deleteFilteredSeances_ShouldRedirectWithErrorWhenFilteredSeancesHaveReservations() {
+        doThrow(new IllegalStateException("Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations"))
+                .when(seanceService).deleteByAdminFilters("avatar", 5L);
+
+        String view = seanceController.deleteFilteredSeances("avatar", 5L, "dateTime",
+                "asc", redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5&sortField=dateTime&sortDir=asc");
+        verify(seanceService).deleteByAdminFilters("avatar", 5L);
+        verify(redirectAttributes).addFlashAttribute(
+                "error",
+                "Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations"
+        );
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+        verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
+    }
+
+    @Test
+    @DisplayName("deleteFilteredSeances() - redirects without empty filters")
+    void deleteFilteredSeances_ShouldRedirectWithoutEmptyFilters() {
+        when(seanceService.deleteByAdminFilters("", null)).thenReturn(0);
+
+        String view = seanceController.deleteFilteredSeances("", null, "", "", redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+        verify(seanceService).deleteByAdminFilters("", null);
+        verify(redirectAttributes).addFlashAttribute("warning", "Aucune séance ne correspond aux filtres actuels");
+    }
 }
