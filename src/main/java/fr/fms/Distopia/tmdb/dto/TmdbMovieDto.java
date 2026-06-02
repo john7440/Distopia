@@ -47,4 +47,27 @@ public class TmdbMovieDto {
         }
         return releaseDate.substring(0, 4);
     }
+
+    /**
+     * Returns a readable release date for display
+     *
+     * @return the formatted release date, or "Date inconnue" when unavailable
+     */
+    public String getFormattedReleaseDate() {
+        if (releaseDate == null || releaseDate.isBlank()) {
+            return "Date inconnue";
+        }
+
+        try {
+            java.time.LocalDate date = java.time.LocalDate.parse(releaseDate);
+
+            return "Sortie le " + date.format(
+                    java.time.format.DateTimeFormatter.ofPattern(
+                            "dd MMMM yyyy",
+                            java.util.Locale.FRENCH));
+        } catch (java.time.format.DateTimeParseException e) {
+            return "Date inconnue";
+        }
+    }
+
 }
