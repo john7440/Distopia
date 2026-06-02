@@ -44,9 +44,10 @@ public class MovieController {
 
     //---------------films d'un cinéma--------------------
     /**
-     * Displays movies optionally filtered by cinema
+     * Displays actives movies, optionally filtered by cinema
      * <p>
-     * Movies can also be sorted dynamically
+     * When a cinema is selected, only movies with at least one upcoming active seance
+     * in that cinema are displayed. Movies can also be sorted dynamically
      * @param cinemaId the selected cinema identifier
      * @param sort the sorting field
      * @param dir the sorting direction
