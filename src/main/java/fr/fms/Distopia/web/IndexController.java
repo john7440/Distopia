@@ -1,6 +1,7 @@
 package fr.fms.Distopia.web;
 
 import fr.fms.Distopia.tmdb.TmdbClient;
+import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -41,8 +42,15 @@ public class IndexController {
         model.addAttribute("imgBase", TmdbClient.IMG_BASE);
 
         try {
-            model.addAttribute("nowPlaying", tmdbClient.getNowPlaying().stream().limit(10).toList());
-            model.addAttribute("upcoming", tmdbClient.getUpcoming().stream().limit(10).toList());
+            List<TmdbMovieDto> nowPlaying = tmdbClient.getNowPlaying().stream()
+                    .limit(8).toList();
+
+            List<TmdbMovieDto> upcoming = tmdbClient.getUpcoming()
+                    .stream().limit(8).toList();
+
+            model.addAttribute("nowPlaying", tmdbClient.enrichWithDetails(nowPlaying));
+            model.addAttribute("upcoming", tmdbClient.enrichWithDetails(upcoming));
+
         } catch (Exception e) {
             logger.error("tmdb error while loading homepage", e);
             model.addAttribute("nowPlaying", List.of());
