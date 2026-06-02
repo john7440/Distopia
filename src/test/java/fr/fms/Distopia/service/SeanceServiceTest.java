@@ -239,6 +239,54 @@ import static org.mockito.Mockito.*;
         verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
     }
 
+    //--------------test for deleteByAdminFilters----------------------------
+
+    @Test
+    @DisplayName("deleteByAdminFilters - Should return zero when no seance matches filters")
+    void deleteByAdminFilters_shouldReturnZeroWhenNoSeanceMatchesFilters() {
+        when(seanceRepository.findIdsByAdminFilters("avatar", 5L)).thenReturn(List.of());
+
+        int deleted = seanceService.deleteByAdminFilters("avatar", 5L);
+
+        assertEquals(0, deleted);
+        verify(seanceRepository).findIdsByAdminFilters("avatar", 5L);
+        verifyNoInteractions(reservationRepository);
+        verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
+    }
+
+    @Test
+    @DisplayName("deleteByAdminFilters - Should delete matching seances when none has reservations")
+    void deleteByAdminFilters_shouldDeleteMatchingSeancesWhenNoneHasReservations() {
+        List<Long> ids = List.of(1L, 2L);
+
+        when(seanceRepository.findIdsByAdminFilters("avatar", 5L)).thenReturn(ids);
+        when(reservationRepository.countBySeanceIds(ids)).thenReturn(0L);
+
+        int deleted = seanceService.deleteByAdminFilters("avatar", 5L);
+
+        assertEquals(2, deleted);
+        verify(seanceRepository).findIdsByAdminFilters("avatar", 5L);
+        verify(reservationRepository).countBySeanceIds(ids);
+        verify(seanceRepository).deleteAllByIdInBatch(ids);
+    }
+
+    @Test
+    @DisplayName("deleteByAdminFilters - Should refuse deletion when one matching seance has reservations")
+    void deleteByAdminFilters_shouldRefuseDeletionWhenOneMatchingSeanceHasReservations() {
+        List<Long> ids = List.of(1L, 2L);
+
+        when(seanceRepository.findIdsByAdminFilters("avatar", 5L)).thenReturn(ids);
+        when(reservationRepository.countBySeanceIds(ids)).thenReturn(1L);
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> seanceService.deleteByAdminFilters("avatar", 5L));
+
+        assertEquals("Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations", exception.getMessage());
+        verify(seanceRepository).findIdsByAdminFilters("avatar", 5L);
+        verify(reservationRepository).countBySeanceIds(ids);
+        verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
+    }
+
     //------------------tests for searchAdmin() ---------------------------
     @Test
     @DisplayName("searchAdmin() - returns paged seances using keyword and cinema filters")
