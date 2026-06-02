@@ -21,7 +21,8 @@
             </h2>
 
             <div class="d-flex gap-2">
-                <form th:action="@{/admin/import-cinemas}" method="get" style="display:inline">
+                <form th:action="@{/admin/import-cinemas}" method="post" style="display:inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <button type="submit" class="btn btn-outline-success"
                             onclick="return confirm('Lancer l\'import des cinémas depuis le CSV ?')">
                         <i class="bi bi-cloud-download"></i> Importer CSV
@@ -322,18 +323,21 @@
     <!------------------------------------- ADD / EDIT MODAL ------------------------------------->
     <div class="modal fade"
          id="modalAddCinema"
-         tabindex="-1">
+         tabindex="-1"
+         th:data-edit-mode="${cinemaToEdit.id != null}">
 
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow">
 
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">
-                        <i class="bi bi-pencil-square me-1" aria-hidden="true"
-                           th:if="${cinemaToEdit.id != null}"></i> Formulaire:
-                        <i class="bi bi-plus-circle me-1"
-                           th:unless="${cinemaToEdit.id != null}"></i>
-                        <span th:text="${cinemaToEdit.id != null} ? 'Modifier le cinéma' : 'Ajouter un cinéma'"></span>
+                        <i id="cinemaModalIcon"
+                           class="bi me-1"
+                           th:classappend="${cinemaToEdit.id != null} ? 'bi-pencil-square' : 'bi-plus-circle'"></i>
+                        Formulaire:
+                        <span id="cinemaModalTitle"
+                              th:text="${cinemaToEdit.id != null} ? 'Modifier le cinéma' : 'Ajouter un cinéma'">
+                        </span>
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -352,6 +356,7 @@
                             <label class="form-label fw-semibold">Nom</label>
                                 <input type="text"
                                        name="name"
+                                       placeholder="Nom du Cinéma"
                                        class="form-control"
                                        th:value="${cinemaToEdit.name}"
                                        minlength="2"
@@ -365,6 +370,7 @@
                                 <input type="text"
                                        name="address"
                                        class="form-control"
+                                       placeholder="3 rue de la Pierre en Bois"
                                        th:value="${cinemaToEdit.address}"
                                        maxlength="255"
                                        required/>
@@ -490,53 +496,14 @@
                         </button>
                         <button type="submit" class="btn btn-success">
                             <i class="bi bi-save me-1"></i>
-                            <span th:text="${cinemaToEdit.id != null} ? 'Mettre à jour' : 'Enregistrer'"></span>
+                            <span id="cinemaSubmitLabel" th:text="${cinemaToEdit.id != null} ? 'Mettre à jour' : 'Enregistrer'"></span>
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
-    <!--handles image preview, modal reset on add--->
-    <script>
-        // Handles image preview, modal reset on add
-        const preview = document.getElementById('imgPreview');
-
-        preview.addEventListener('error', function () {
-            this.classList.add('d-none');
-        });
-
-        document.querySelector('input[name="imageUrl"]').addEventListener('input', function () {
-            const val = this.value.trim();
-            if (!val) { preview.classList.add('d-none'); return; }
-            preview.src = val.startsWith('http') ? val : '/' + val;
-            preview.classList.remove('d-none');
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const modal = document.getElementById('modalAddCinema');
-
-            modal.addEventListener('show.bs.modal', function (event) {
-                const trigger = event.relatedTarget;
-                if (trigger && trigger.dataset.mode === 'add') {
-                    modal.querySelector('form').reset();
-                    preview.classList.add('d-none');
-                    preview.src = '';
-                    const hiddenId = modal.querySelector('input[name="id"]');
-                    if (hiddenId) hiddenId.value = '';
-                }
-            });
-        });
-    </script>
-
-    <!--auto-open modal only when editing an existing cinema -->
-    <script th:if="${cinemaToEdit.id != null}">
-        document.addEventListener('DOMContentLoaded', function () {
-            new bootstrap.Modal(document.getElementById('modalAddCinema')).show();
-        });
-    </script>
-
+    <script th:src="@{/js/admin-cinemas.js}"></script>
 
 </section>
 </body>
