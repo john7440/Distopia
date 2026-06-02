@@ -181,7 +181,7 @@ class TmdbControllerTest {
 
         assertThat(view).isEqualTo("redirect:/admin/seances");
         verify(redirectAttributes).addFlashAttribute("message",
-                "2 films importés et 42 séances générées sur 21 jours");
+                "2 films importés et 42 séances générées sur 7 jours");
         verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
     }
 
@@ -197,7 +197,7 @@ class TmdbControllerTest {
 
         assertThat(view).isEqualTo("redirect:/admin/seances");
         verify(redirectAttributes).addFlashAttribute("message",
-                "1 films importés et 21 séances générées sur 21 jours");
+                "1 films importés et 21 séances générées sur 7 jours");
         verify(redirectAttributes).addFlashAttribute("warning",
                         "Avertissements: Erreur cinéma | Erreur séance");
     }
