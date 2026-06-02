@@ -98,6 +98,7 @@ public class SeanceService {
         Seance seance = (id!=null) ? seanceRepository.findById(id).orElse(new Seance()) : new Seance();
 
         seance.setDateTime(dateTime);
+        seance.setActive(!dateTime.isBefore(LocalDateTime.now()));
         seance.setAvailableSeats(availableSeats);
         seance.setPrice(price);
         if(movieId !=null){
@@ -133,8 +134,8 @@ public class SeanceService {
     //--------------recherche paginé admin avec tri et filtre-----------------
     /**
      * Searches seances for the administration page with pagination, sorting
-     * and archive filtering
-     *
+     * and archive filtering<p>
+     * Before searching, seance activity status are synchronized
      *
      * @param keyword the optional movie title keyword
      * @param cinemaId the optional cinema identifier filter
@@ -147,7 +148,7 @@ public class SeanceService {
     @Transactional
     public Page<Seance> searchAdmin(String keyword, Long cinemaId, boolean showArchived,String sortField,
                                     String sortDir, int page) {
-        seanceRepository.archivePastSeances(LocalDateTime.now());
+        syncSeanceActivityStatus();
 
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortField).descending()
@@ -201,6 +202,7 @@ public class SeanceService {
      */
     @Transactional
     public int deleteByAdminFilters(String keyword, Long cinemaId, boolean showArchived) {
+        syncSeanceActivityStatus();
         List<Long> ids = seanceRepository.findIdsByAdminFilters(keyword, cinemaId, showArchived);
 
         if (ids.isEmpty()) {
@@ -228,5 +230,16 @@ public class SeanceService {
                     "Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations"
             );
         }
+    }
+
+    /**
+     * Synchronizes seance activity status according to the current date and time<p>
+     * Past seances are archived and future seances are reactivated if needed
+     */
+    private void syncSeanceActivityStatus() {
+        LocalDateTime now = LocalDateTime.now();
+
+        seanceRepository.archivePastSeances(now);
+        seanceRepository.reactivateFutureSeances(now);
     }
 }
