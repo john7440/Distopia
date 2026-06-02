@@ -144,6 +144,7 @@ public class SeanceService {
      * @param page the requested page index
      * @return a paginated list of seances matching the filters
      */
+    @Transactional
     public Page<Seance> searchAdmin(String keyword, Long cinemaId, boolean showArchived,String sortField,
                                     String sortDir, int page) {
         seanceRepository.archivePastSeances(LocalDateTime.now());

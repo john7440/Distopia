@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -128,6 +129,7 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
      * @return the number of seances updated
      */
     @Modifying
+    @Transactional
     @Query("""
         UPDATE Seance s
         SET s.active = false
