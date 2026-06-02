@@ -29,11 +29,14 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final CinemaRepository cinemaRepository;
     private final SeanceRepository seanceRepository;
+    private final SeanceService seanceService;
 
-    public MovieService(MovieRepository movieRepository, CinemaRepository cinemaRepository, SeanceRepository seanceRepository) {
+    public MovieService(MovieRepository movieRepository, CinemaRepository cinemaRepository, SeanceRepository seanceRepository,
+                        SeanceService seanceService) {
         this.movieRepository = movieRepository;
         this.cinemaRepository = cinemaRepository;
         this.seanceRepository = seanceRepository;
+        this.seanceService = seanceService;
     }
     private static final int PAGE_SIZE_ADMIN = 12;
 
@@ -198,12 +201,15 @@ public class MovieService {
 
     /**
      * Returns active movies shown in a given cinema with at least one upcoming seance
-     *
+     * <p>
+     * Before searching, seance activity statuses are synchronized to avoid hiding
+     * future seances that may have been archived incorrectly
      * @param cinemaId the cinema identifier
      * @param sort the sorting configuration
      * @return the list of active movies with upcoming seances for the selected cinema
      */
     public List<Movie> getByCinemaWithUpcomingSeances(Long cinemaId, Sort sort) {
+        seanceService.syncSeanceActivityStatus();
         return movieRepository.findMoviesWithUpcomingSeancesByCinemaId(cinemaId, sort);
     }
 }
