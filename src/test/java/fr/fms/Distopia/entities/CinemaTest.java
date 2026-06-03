@@ -6,6 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,8 +39,9 @@ class CinemaTest {
 
         String result = cinema.buildMapsUrl();
 
-        assertThat(result).contains("https://www.google.com/maps/search/?api=1&query=");
-        assertThat(result).contains("10+rue+de+la+paix+Dax");
+        for (String s : Arrays.asList("https://www.google.com/maps/search/?api=1&query=", "10+rue+de+la+paix+Dax")) {
+            assertThat(result).contains(s);
+        }
     }
 
     @Test
