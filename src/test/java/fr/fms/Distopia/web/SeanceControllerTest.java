@@ -320,10 +320,28 @@ class SeanceControllerTest {
     void deleteFilteredSeances_ShouldRedirectWithoutEmptyFilters() {
         when(seanceService.deleteByAdminFilters("", null, true)).thenReturn(0);
 
-        String view = seanceController.deleteFilteredSeances("", null, true,"", "", redirectAttributes);
+        String view = seanceController.deleteFilteredSeances("", null, true,"",
+                "", redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/seances?showArchived=true");
         verify(seanceService).deleteByAdminFilters("", null, true);
         verify(redirectAttributes).addFlashAttribute("warning", "Aucune séance ne correspond aux filtres actuels");
+    }
+
+    //---------------------------tests for deleteSelectedSeances()-----------------------------------
+    @Test
+    @DisplayName("deleteSelectedSeances() - redirects with warning when no seance is selected")
+    void deleteSelectedSeances_ShouldRedirectWithWarning_WhenNoSeanceIsSelected() {
+        when(seanceService.deleteSelected(null)).thenReturn(0);
+
+        String view = seanceController.deleteSelectedSeances(null, null, null, false,
+                null, null, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+
+        verify(seanceService).deleteSelected(null);
+        verify(redirectAttributes).addFlashAttribute("warning", "Aucune séance sélectionnée!");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+        verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
     }
 }
