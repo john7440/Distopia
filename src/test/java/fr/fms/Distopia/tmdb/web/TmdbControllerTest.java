@@ -110,14 +110,14 @@ class TmdbControllerTest {
     }
 
     @Test
-    @DisplayName("importMovie() - adds flash error when tmdb returns null")
+    @DisplayName("importMovie() - adds flash error and message when tmdb returns null")
     void importMovie_ShouldAddFlashErrorWhenTmdbReturnsNull() {
         when(tmdbClient.getDetail(99L)).thenReturn(null);
 
-        String view = tmdbController.importMovie(99L, null, redirectAttributes);
+        String view = tmdbController.importMovie(99L, "avatar", redirectAttributes);
 
-        assertThat(view).isEqualTo("redirect:/admin/import-movies");
-        verify(redirectAttributes).addFlashAttribute(eq("error"), anyString());
+        assertThat(view).isEqualTo("redirect:/admin/import-movies?query=avatar");
+        verify(redirectAttributes).addFlashAttribute("error", "Film introuvable sur TMDB (id=99)!");
         verify(movieService, never()).save(any(), any(), any(), any(), anyInt(), any(), any(), any(), any(), any());
     }
 
@@ -166,6 +166,7 @@ class TmdbControllerTest {
 
         assertThat(view).isEqualTo("redirect:/admin/import-movies?query=Inception");
     }
+
 
     //------------------   tests for generateNowPlaying() ---------------------------
 
