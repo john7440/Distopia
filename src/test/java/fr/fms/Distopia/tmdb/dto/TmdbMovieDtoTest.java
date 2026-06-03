@@ -127,5 +127,45 @@ class TmdbMovieDtoTest {
 
         assertThat(movie.getDisplayGenres()).isEmpty();
     }
+
+    @Test
+    @DisplayName("getDisplayGenres() - should ignore blank genre names")
+    void getDisplayGenres_ShouldIgnoreBlankGenreNames() {
+        TmdbGenreDto genre1 = new TmdbGenreDto();
+        genre1.setName("Action");
+
+        TmdbGenreDto genre2 = new TmdbGenreDto();
+        genre2.setName("");
+
+        TmdbGenreDto genre3 = new TmdbGenreDto();
+        genre3.setName("Adventure");
+
+        TmdbMovieDto movie = new TmdbMovieDto();
+        movie.setGenres(List.of(genre1, genre2, genre3));
+
+        List<String> result = movie.getDisplayGenres();
+
+        assertThat(result).containsExactly("Action", "Adventure");
+    }
+
+    @Test
+    @DisplayName("getDisplayGenres() - should ignore null genre names")
+    void getDisplayGenres_ShouldIgnoreNullGenreNames() {
+        TmdbGenreDto genre1 = new TmdbGenreDto();
+        genre1.setName("Action");
+
+        TmdbGenreDto genre2 = new TmdbGenreDto();
+        genre2.setName(null);
+
+        TmdbGenreDto genre3 = new TmdbGenreDto();
+        genre3.setName("Adventure");
+
+        TmdbMovieDto movie = new TmdbMovieDto();
+        movie.setGenres(List.of(genre1, genre2, genre3));
+
+        List<String> result = movie.getDisplayGenres();
+
+        assertThat(result).containsExactly("Action", "Adventure");
+    }
 }
 
