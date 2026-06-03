@@ -91,13 +91,15 @@
                              th:src="@{${cinema.imageUrl}}"
                              th:alt="${cinema.name}"
                              class="cinema-cover"
-                             loading="lazy"/>
+                             loading="lazy"
+                             alt="Couverture non disponible"/>
 
                         <img th:unless="${cinema.imageUrl != null and !cinema.imageUrl.isBlank()}"
                              src="https://picsum.photos/seed/cinema-default/800/500"
                              th:alt="${cinema.name}"
                              class="cinema-cover"
-                             loading="lazy"/>
+                             loading="lazy"
+                             alt="Couverture non disponible"/>
 
                         <!-- overlay -->
                         <div class="cinema-overlay"></div>
@@ -116,11 +118,8 @@
 
                             <div th:if="${cinema.town != null}"
                                  class="text-white-50 small d-flex align-items-center gap-2">
-
                                 <i class="bi bi-geo-alt-fill"></i>
-
                                 <span th:text="${cinema.town.name}"></span>
-
                             </div>
 
                         </div>
@@ -133,21 +132,17 @@
                              class="cinema-info-box mb-4">
 
                             <div class="d-flex gap-3 align-items-start">
-
                                 <div class="cinema-info-icon">
                                     <i class="bi bi-pin-map-fill"></i>
                                 </div>
-
                                 <div>
                                     <div class="small text-uppercase fw-bold text-muted mb-1">
                                         Adresse
                                     </div>
-
                                     <div class="small text-dark"
                                          th:text="${cinema.address}">
                                     </div>
                                 </div>
-
                             </div>
                         </div>
 
@@ -155,13 +150,11 @@
                         <div class="mt-auto">
 
                             <div class="d-flex flex-wrap gap-2">
-
                                 <a th:if="${cinema.latitude != null and cinema.longitude != null}"
                                    th:href="'https://www.google.com/maps?q=' + ${cinema.latitude} + ',' + ${cinema.longitude}"
                                    target="_blank"
                                    rel="noopener noreferrer"
                                    class="btn btn-light border px-3">
-
                                     <i class="bi bi-map-fill me-1"></i>
                                     Maps
                                 </a>
@@ -171,14 +164,12 @@
                                    target="_blank"
                                    rel="noopener noreferrer"
                                    class="btn btn-light border px-3">
-
                                     <i class="bi bi-globe2 me-1"></i>
                                     Site
                                 </a>
 
                                 <a th:href="@{/movies(cinemaId=${cinema.id})}"
                                    class="btn btn-dark px-4 ms-auto">
-
                                     <i class="bi bi-film me-2"></i>
                                     Voir les films
                                 </a>
@@ -191,7 +182,6 @@
             <!-- pagination---->
             <nav th:if="${cinemaPage.totalPages > 1}" class="mt-4">
                 <ul class="pagination justify-content-center">
-
                     <li class="page-item"
                         th:classappend="${currentPage == 0} ? 'disabled'">
                         <a class="page-link"
