@@ -344,4 +344,22 @@ class SeanceControllerTest {
         verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
         verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
     }
+
+    @Test
+    @DisplayName("deleteSelectedSeances() - deletes selected seances and redirects with success message")
+    void deleteSelectedSeances_ShouldDeleteSelectedSeancesAndRedirectWithSuccessMessage() {
+        List<Long> selectedIds = List.of(1L, 2L, 3L);
+
+        when(seanceService.deleteSelected(selectedIds)).thenReturn(3);
+
+        String view = seanceController.deleteSelectedSeances(selectedIds, null, null,
+                false, null, null, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+
+        verify(seanceService).deleteSelected(selectedIds);
+        verify(redirectAttributes).addFlashAttribute("message", "3 séance(s) supprimée(s).");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
+        verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
+    }
 }
