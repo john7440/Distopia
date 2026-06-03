@@ -59,7 +59,6 @@ class ReservationFlowSeleniumTest {
     @BeforeEach
     void setUp() {
         when(tmdbClient.getNowPlaying()).thenReturn(List.of());
-        when(tmdbClient.getThisWeek()).thenReturn(List.of());
         when(tmdbClient.getUpcoming()).thenReturn(List.of());
 
         clearDatabase();
@@ -68,6 +67,7 @@ class ReservationFlowSeleniumTest {
         WebDriverManager.chromedriver().setup();
 
         ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless=new");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--window-size=1920,1080");

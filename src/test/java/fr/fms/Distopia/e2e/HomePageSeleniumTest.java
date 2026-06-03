@@ -49,7 +49,6 @@ class HomePageSeleniumTest {
     @BeforeEach
     void setUp() {
         when(tmdbClient.getNowPlaying()).thenReturn(List.of());
-        when(tmdbClient.getThisWeek()).thenReturn(List.of());
         when(tmdbClient.getUpcoming()).thenReturn(List.of());
 
         clearDatabase();
