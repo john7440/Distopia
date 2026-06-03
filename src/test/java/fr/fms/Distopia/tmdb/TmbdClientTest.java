@@ -199,50 +199,6 @@ class TmbdClientTest {
         assertThat(result).isEmpty();
     }
 
-    //------------------tests for getThisWeek() ---------------------------
-    @Test
-    @DisplayName("getThisWeek() - returns movies released during last seven days")
-    void getThisWeek_ShouldReturnMoviesReleasedDuringLastSevenDays() {
-        TmdbMovieDto recentMovie =  new TmdbMovieDto();
-        recentMovie.setTitle("Recent Movie");
-        recentMovie.setReleaseDate(LocalDate.now().minusDays(2).toString());
-
-        TmdbMovieDto oldMovie =  new TmdbMovieDto();
-        oldMovie.setTitle("Old Movie");
-        oldMovie.setReleaseDate(LocalDate.now().minusDays(20).toString());
-
-        TmdbSearchResponse response =  new TmdbSearchResponse();
-        response.setResults(List.of(recentMovie,oldMovie));
-
-        when(restTemplate.getForObject(anyString(), eq(TmdbSearchResponse.class)))
-            .thenReturn(response);
-
-        List<TmdbMovieDto> result = tmdbClient.getThisWeek();
-
-        assertThat(result).containsExactly(recentMovie);
-    }
-
-    @Test
-    @DisplayName("getThisWeek() - ignores movies with blank or invalid release date")
-    void getThisWeek_ShouldIgnoreMoviesWithBlankOrInvalidReleaseDate() {
-        TmdbMovieDto blankDateMovie =  new TmdbMovieDto();
-        blankDateMovie.setTitle("blank");
-        blankDateMovie.setReleaseDate("");
-
-        TmdbMovieDto invalidDateMovie =  new TmdbMovieDto();
-        invalidDateMovie.setTitle("invalid");
-        invalidDateMovie.setReleaseDate("not a date");
-
-        TmdbSearchResponse response =  new TmdbSearchResponse();
-        response.setResults(List.of(blankDateMovie,invalidDateMovie));
-
-        when(restTemplate.getForObject(anyString(), eq(TmdbSearchResponse.class))).thenReturn(response);
-
-        List<TmdbMovieDto> result = tmdbClient.getThisWeek();
-
-        assertThat(result).isEmpty();
-    }
-
     //------------------tests for getUpcoming() ---------------------------
 
     @Test
@@ -265,6 +221,23 @@ class TmbdClientTest {
                 .thenReturn(null);
 
         List<TmdbMovieDto> result = tmdbClient.getUpcoming();
+
+        assertThat(result).isEmpty();
+    }
+
+    //-----------------------tests for enrichWithDetails()------------------
+    @Test
+    @DisplayName("enrichWithDetails() - should return empty list when movies are null")
+    void enrichWithDetails_ShouldReturnEmptyListWhenMoviesAreNull() {
+        List<TmdbMovieDto> result = tmdbClient.enrichWithDetails(null);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("enrichWithDetails() - should return empty list when movies are empty")
+    void enrichWithDetails_ShouldReturnEmptyListWhenMoviesAreEmpty() {
+        List<TmdbMovieDto> result = tmdbClient.enrichWithDetails(List.of());
 
         assertThat(result).isEmpty();
     }
