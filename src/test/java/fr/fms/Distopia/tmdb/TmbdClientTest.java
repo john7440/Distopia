@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class TmbdClientTest {
+class TmdbClientTest {
     @Mock
     private RestTemplate restTemplate;
     @InjectMocks
@@ -257,7 +257,7 @@ class TmbdClientTest {
         detail.setGenres(List.of(genre));
 
         TmdbClient spyClient = Mockito.spy(tmdbClient);
-        doReturn(detail).when(spyClient).getDetail(1L);
+        when(spyClient.getDetail(1L)).thenReturn(detail);
 
         List<TmdbMovieDto> result = spyClient.enrichWithDetails(List.of(movie));
 
@@ -271,4 +271,39 @@ class TmbdClientTest {
                 .containsExactly("Science-Fiction");
     }
 
+    @Test
+    @DisplayName("enrichWithDetails() - should enrich overview when missing")
+    void enrichWithDetails_ShouldEnrichOverviewWhenMissing() {
+        movie.setId(1L);
+        movie.setOverview(null);
+
+        TmdbMovieDto detail = new TmdbMovieDto();
+        detail.setOverview("test overview");
+
+        TmdbClient spyClient = Mockito.spy(tmdbClient);
+
+        when(spyClient.getDetail(1L)).thenReturn(detail);
+
+        List<TmdbMovieDto> result = spyClient.enrichWithDetails(List.of(movie));
+
+        assertThat(result.get(0).getOverview()).isEqualTo("test overview");
+    }
+
+    @Test
+    @DisplayName("enrichWithDetails() - should not overwrite existing overview")
+    void enrichWithDetails_ShouldNotOverwriteExistingOverview() {
+        movie.setId(1L);
+        movie.setOverview("Existing overview");
+
+        TmdbMovieDto detail = new TmdbMovieDto();
+        detail.setOverview("Detailed overview");
+
+        TmdbClient spyClient = Mockito.spy(tmdbClient);
+
+        when(spyClient.getDetail(1L)).thenReturn(detail);
+
+        List<TmdbMovieDto> result = spyClient.enrichWithDetails(List.of(movie));
+
+        assertThat(result.get(0).getOverview()).isEqualTo("Existing overview");
+    }
 }
