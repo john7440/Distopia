@@ -118,5 +118,14 @@ class TmdbMovieDtoTest {
         assertThat(result).containsExactly("Action", "Science-Fiction", "Adventure");
     }
 
+    @ParameterizedTest
+    @NullSource
+    @EmptySource
+    @DisplayName("getDisplayGenres() - should return empty list when genres a null or empty")
+    void getDisplayGenres_ShouldReturnEmptyListWhenGenresANullOrEmpty(String ignoredInput) {
+        TmdbMovieDto movie = new TmdbMovieDto();
+
+        assertThat(movie.getDisplayGenres()).isEmpty();
+    }
 }
 
