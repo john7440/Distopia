@@ -3,8 +3,10 @@ package fr.fms.Distopia.tmdb.dto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.*;
+
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -59,4 +61,37 @@ class TmdbMovieDtoTest {
 
         assertThat(result).isEqualTo("A venir");
     }
+
+    //--------------------tests getFormattedRuntime()----------------------------
+
+    @ParameterizedTest(name = "Test runtime= {0} -> {1}")
+    @MethodSource("formattedRuntimeCases")
+    void getFormattedRuntime_ShouldReturnFormattedRuntime(int runtime, String expected) {
+        TmdbMovieDto movie = new TmdbMovieDto();
+        movie.setRuntime(runtime);
+
+        assertThat(movie.getFormattedRuntime()).isEqualTo(expected);
+    }
+
+    static Stream<Arguments> formattedRuntimeCases() {
+        return Stream.of(
+                Arguments.of(148, "2h 28min"),
+                Arguments.of(120, "2h"),
+                Arguments.of(45, "45min"),
+                Arguments.of(0, "Durée inconnue")
+        );
+    }
+
+    @Test
+    @DisplayName("getFormattedRuntime() - should return unknown runtime when runtime is null")
+    void getFormattedRuntime_ShouldReturnUnknownRuntimeWhenRuntimeIsNull() {
+        TmdbMovieDto movie = new TmdbMovieDto();
+        movie.setRuntime(null);
+
+        String result = movie.getFormattedRuntime();
+
+        assertThat(result).isEqualTo("Durée inconnue");
+    }
+
 }
+
