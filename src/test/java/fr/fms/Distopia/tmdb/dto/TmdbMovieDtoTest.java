@@ -6,6 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
 
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,6 +92,30 @@ class TmdbMovieDtoTest {
         String result = movie.getFormattedRuntime();
 
         assertThat(result).isEqualTo("Durée inconnue");
+    }
+
+    //--------------------tests for  getDisplayGenres()----------------------------
+    @Test
+    @DisplayName("getDisplayGenres() - should return up to three genre names")
+    void getDisplayGenres_ShouldReturnUpToThreeGenreNames() {
+        TmdbGenreDto genre1 = new TmdbGenreDto();
+        genre1.setName("Action");
+
+        TmdbGenreDto genre2 = new TmdbGenreDto();
+        genre2.setName("Science-Fiction");
+
+        TmdbGenreDto genre3 = new TmdbGenreDto();
+        genre3.setName("Adventure");
+
+        TmdbGenreDto genre4 = new TmdbGenreDto();
+        genre4.setName("Fantasy");
+
+        TmdbMovieDto movie = new TmdbMovieDto();
+        movie.setGenres(List.of(genre1, genre2, genre3, genre4));
+
+        List<String> result = movie.getDisplayGenres();
+
+        assertThat(result).containsExactly("Action", "Science-Fiction", "Adventure");
     }
 
 }
