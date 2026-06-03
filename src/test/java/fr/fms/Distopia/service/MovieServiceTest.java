@@ -36,6 +36,8 @@ class MovieServiceTest {
     private CinemaRepository cinemaRepository;
     @Mock
     private SeanceRepository seanceRepository;
+    @Mock
+    private SeanceService seanceService;
     @InjectMocks
     private MovieService movieService;
 
@@ -332,6 +334,7 @@ class MovieServiceTest {
         when(movieRepository.findMoviesWithUpcomingSeancesByCinemaId(1L, sort))
                 .thenReturn(List.of(movie));
 
+        //Note: we use a helper from seanceService here (the sync)
         List<Movie> result = movieService.getByCinemaWithUpcomingSeances(1L, sort);
 
         assertThat(result).containsExactly(movie);
