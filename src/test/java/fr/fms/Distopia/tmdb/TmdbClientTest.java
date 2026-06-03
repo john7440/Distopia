@@ -334,4 +334,51 @@ class TmdbClientTest {
 
         assertThat(result.get(0).getPosterPath()).isEqualTo("/existing.jpg");
     }
+
+    @Test
+    @DisplayName("enrichWithDetails() - should return original movie when getDetail throws exception")
+    void enrichWithDetails_ShouldReturnOriginalMovieWhenGetDetailThrowsException() {
+        movie.setId(1L);
+        movie.setTitle("Inception");
+
+        when(tmdbClient.getDetail(1L)).thenThrow(new RuntimeException("tmdb error"));
+
+        List<TmdbMovieDto> result = tmdbClient.enrichWithDetails(List.of(movie));
+
+        assertThat(result).hasSize(1);
+
+        TmdbMovieDto returnedMovie = result.get(0);
+
+        assertThat(returnedMovie.getTitle()).isEqualTo("Inception");
+        assertThat(returnedMovie.getRuntime()).isNull();
+        assertThat(returnedMovie.getGenres()).isNull();
+    }
+
+    @Test
+    @DisplayName("enrichWithDetails() - should enrich multiple movies")
+    void enrichWithDetails_ShouldEnrichMultipleMovies() {
+        TmdbMovieDto movie1 = new TmdbMovieDto();
+        movie1.setId(1L);
+        movie1.setTitle("Movie 1");
+
+        TmdbMovieDto movie2 = new TmdbMovieDto();
+        movie2.setId(2L);
+        movie2.setTitle("Movie 2");
+
+        TmdbMovieDto detail1 = new TmdbMovieDto();
+        detail1.setRuntime(120);
+
+        TmdbMovieDto detail2 = new TmdbMovieDto();
+        detail2.setRuntime(95);
+
+        when(tmdbClient.getDetail(1L)).thenReturn(detail1);
+        when(tmdbClient.getDetail(2L)).thenReturn(detail2);
+
+        List<TmdbMovieDto> result = tmdbClient.enrichWithDetails(List.of(movie1, movie2));
+
+        assertThat(result).hasSize(2);
+
+        assertThat(result.get(0).getRuntime()).isEqualTo(120);
+        assertThat(result.get(1).getRuntime()).isEqualTo(95);
+    }
 }
