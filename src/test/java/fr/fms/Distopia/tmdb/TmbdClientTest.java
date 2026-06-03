@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
@@ -241,4 +242,33 @@ class TmbdClientTest {
 
         assertThat(result).isEmpty();
     }
+
+    @Test
+    @DisplayName("enrichWithDetails() - should enrich movie with runtime and genres")
+    void enrichWithDetails_ShouldEnrichMovieWithRuntimeAndGenres() {
+        movie.setId(1L);
+        movie.setTitle("Inception");
+
+        TmdbGenreDto genre = new TmdbGenreDto();
+        genre.setName("Science-Fiction");
+
+        TmdbMovieDto detail = new TmdbMovieDto();
+        detail.setRuntime(148);
+        detail.setGenres(List.of(genre));
+
+        TmdbClient spyClient = Mockito.spy(tmdbClient);
+        doReturn(detail).when(spyClient).getDetail(1L);
+
+        List<TmdbMovieDto> result = spyClient.enrichWithDetails(List.of(movie));
+
+        assertThat(result).hasSize(1);
+
+        TmdbMovieDto enrichedMovie = result.get(0);
+
+        assertThat(enrichedMovie.getRuntime()).isEqualTo(148);
+        assertThat(enrichedMovie.getGenres())
+                .extracting(TmdbGenreDto::getName)
+                .containsExactly("Science-Fiction");
+    }
+
 }
