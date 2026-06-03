@@ -1,5 +1,6 @@
 package fr.fms.Distopia.web;
 
+import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
@@ -45,5 +46,36 @@ class GlobalExceptionHandlerTest {
         assertThat(view).isEqualTo("redirect:/index");
 
         verify(ra).addFlashAttribute("error", "Données invalides");
+    }
+
+    //--------------------test handleNoSeatsAvailable()---------------------
+
+    @Test
+    @DisplayName("handleNoSeatsAvailable() - should add error message and redirect to reservations")
+    void handleNoSeatsAvailable_ShouldAddErrorMessageAndRedirectToReservations() {
+        RedirectAttributes ra = mock(RedirectAttributes.class);
+
+        NoSeatsAvailableException exception = new NoSeatsAvailableException("Plus de places disponibles");
+
+        String view = handler.handleNoSeatsAvailable(exception, ra);
+
+        assertThat(view).isEqualTo("redirect:/my-reservations");
+
+        verify(ra).addFlashAttribute("error", "Plus de places disponibles");
+    }
+
+    //--------------------test for  handleGenericException()-----------------
+    @Test
+    @DisplayName("handleGenericException() - should add generic error message and redirect to index")
+    void handleGenericException_ShouldAddGenericErrorMessageAndRedirectToIndex() {
+        RedirectAttributes ra = mock(RedirectAttributes.class);
+
+        Exception exception = new RuntimeException("unexpected error");
+
+        String view = handler.handleGenericException(exception, ra);
+
+        assertThat(view).isEqualTo("redirect:/index");
+
+        verify(ra).addFlashAttribute("error", "Une erreur inattendue est survenue");
     }
 }
