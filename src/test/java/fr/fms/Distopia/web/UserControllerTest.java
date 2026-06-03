@@ -41,6 +41,25 @@ class UserControllerTest {
         form.setPassword("password123");
     }
 
+    //------------------------test for login()-------------------------
+    @Test
+    @DisplayName("login() - should redirect to login modal")
+    void login_ShouldRedirectToLoginModal() {
+        String view = userController.login();
+
+        assertThat(view).isEqualTo("redirect:/?openLogin");
+    }
+
+    //------------------------test for registerPage()-------------------------
+
+    @Test
+    @DisplayName("registerPage() - should redirect to register modal")
+    void registerPage_ShouldRedirectToRegisterModal() {
+        String view = userController.registerPage();
+
+        assertThat(view).isEqualTo("redirect:/?openRegister");
+    }
+
     //------------------------tests for register() (POST) --------------------------
     @Test
     @DisplayName("register() - redirects with registered flag when registration succeeds")
