@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
     modal.addEventListener('show.bs.modal', function (event) {
         const trigger = event.relatedTarget;
 
-        if (trigger && trigger.dataset.mode === 'add') {
+        if (trigger?.dataset.mode === 'add') {
             resetToAddMode();
         }
     });

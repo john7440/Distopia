@@ -64,7 +64,8 @@
               class="row g-3 mb-4">
 
             <div class="col-md-9">
-                    <input type="text"
+                <label for="cinemaSearch" class="visually-hidden">Rechercher un cinéma</label>
+                    <input id="cinemaSearch" type="text"
                            name="keyword"
                            class="form-control"
                            placeholder="Rechercher par nom ou ville..."
@@ -353,8 +354,8 @@
 
                         <!-- Nom -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Nom</label>
-                                <input type="text"
+                            <label for="cinemaName" class="form-label fw-semibold">Nom</label>
+                                <input id="cinemaName" type="text"
                                        name="name"
                                        placeholder="Nom du Cinéma"
                                        class="form-control"
@@ -366,8 +367,8 @@
 
                         <!-- Adresse -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Adresse</label>
-                                <input type="text"
+                            <label for="cinemaAddress" class="form-label fw-semibold">Adresse</label>
+                                <input id="cinemaAddress" type="text"
                                        name="address"
                                        class="form-control"
                                        placeholder="3 rue de la Pierre en Bois"
@@ -380,8 +381,8 @@
 
                             <!-- Ville -->
                             <div class="col-md-8">
-                                <label class="form-label fw-semibold">Ville</label>
-                                    <select name="townId" class="form-select">
+                                <label for="cinemaTown" class="form-label fw-semibold">Ville</label>
+                                    <select id="cinemaTown" name="townId" class="form-select">
                                         <option value="">-- Aucune ville --</option>
                                         <option th:each="town : ${towns}"
                                                 th:value="${town.id}"
@@ -410,10 +411,11 @@
 
                         <!-- Site web -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">
+                            <label for="cinemaWebsite" class="form-label fw-semibold">
                                 <i class="bi bi-globe me-1"></i>Site web
                             </label>
-                                <input type="url"
+                                <input id="cinemaWebsite"
+                                       type="url"
                                        name="website"
                                        class="form-control"
                                        placeholder="https://..."
@@ -423,10 +425,11 @@
 
                         <!-- Image URL -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">
+                            <label for="cinemaImage" class="form-label fw-semibold">
                                 <i class="bi bi-image me-1"></i>Image
                             </label>
-                            <input type="text"
+                            <input id="cinemaImage"
+                                   type="text"
                                    name="imageUrl"
                                    class="form-control"
                                    placeholder="images/cinemas/monimage.jpg  ou  https://..."
@@ -454,10 +457,11 @@
                         <!-- Coordonnées -->
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">
+                                <label for="cinemaLatitude" class="form-label fw-semibold">
                                     <i class="bi bi-geo-alt me-1"></i>Latitude
                                 </label>
-                                    <input type="number"
+                                    <input id="cinemaLatitude"
+                                           type="number"
                                            name="latitude"
                                            class="form-control"
                                            step="0.0000001"
@@ -467,10 +471,11 @@
                                            th:value="${cinemaToEdit.latitude}"/>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">
+                                <label for="cinemaLongitude" class="form-label fw-semibold">
                                     <i class="bi bi-geo-alt me-1"></i>Longitude
                                 </label>
-                                    <input type="number"
+                                    <input id="cinemaLongitude"
+                                           type="number"
                                            name="longitude"
                                            class="form-control"
                                            step="0.0000001"
