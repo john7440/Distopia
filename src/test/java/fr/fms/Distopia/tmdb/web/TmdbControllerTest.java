@@ -167,6 +167,25 @@ class TmdbControllerTest {
         assertThat(view).isEqualTo("redirect:/admin/import-movies?query=Inception");
     }
 
+    @Test
+    @DisplayName("importMovie() - should ignore invalid release date")
+    void importMovie_ShouldIgnoreInvalidReleaseDate() {
+        TmdbMovieDto detail = new TmdbMovieDto();
+        detail.setId(1L);
+        detail.setTitle("Inception");
+        detail.setReleaseDate("invalid-date");
+
+        when(tmdbClient.getDetail(1L)).thenReturn(detail);
+        when(tmdbClient.getTrailerUrl(1L)).thenReturn(null);
+        when(seanceGeneratorService.generateForMovie(any()))
+                .thenReturn(new SeanceGeneratorService.GeneratorResult(1, 3, List.of()));
+
+        String view = tmdbController.importMovie(1L, null, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/import-movies");
+        verify(movieService).save(any(), any(), any(),any(), anyInt(), any(), any(), any(), isNull(), any());
+    }
+
 
     //------------------   tests for generateNowPlaying() ---------------------------
 
