@@ -1,7 +1,5 @@
 package fr.fms.Distopia.web;
 
-
-import fr.fms.Distopia.service.TownService;
 import fr.fms.Distopia.tmdb.TmdbClient;
 import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import org.junit.jupiter.api.DisplayName;
@@ -16,15 +14,11 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class IndexControllerTest {
-    @Mock
-    private TownService townService;
     @Mock
     private Model model;
     @Mock
@@ -35,27 +29,40 @@ class IndexControllerTest {
 
     //------------------tests for index()---------------------------------
     @Test
-    @DisplayName("index() - adds tmdb movies to model and returns index view")
-    void index_ShouldAddTmdbMoviesToModelAndReturnIndexView() {
+    @DisplayName("index() - adds enriched tmdb movies to model and returns index view")
+    void index_ShouldAddEnrichedTmdbMoviesToModelAndReturnIndexView() {
         TmdbMovieDto movie = new TmdbMovieDto();
         movie.setId(1L);
         movie.setTitle("Inception");
 
-        when(tmdbClient.getNowPlaying()).thenReturn(List.of(movie));
-        when(tmdbClient.getUpcoming()).thenReturn(List.of(movie));
+        TmdbMovieDto enrichedMovie = new TmdbMovieDto();
+        enrichedMovie.setId(1L);
+        enrichedMovie.setTitle("Inception");
+        enrichedMovie.setRuntime(148);
+
+        List<TmdbMovieDto> rawMovies = List.of(movie);
+        List<TmdbMovieDto> enrichedMovies = List.of(enrichedMovie);
+
+        when(tmdbClient.getNowPlaying()).thenReturn(rawMovies);
+        when(tmdbClient.getUpcoming()).thenReturn(rawMovies);
+        when(tmdbClient.enrichWithDetails(rawMovies)).thenReturn(enrichedMovies);
 
         String view = indexController.index(model);
 
         assertThat(view).isEqualTo("index");
 
         verify(model).addAttribute("imgBase", TmdbClient.IMG_BASE);
-        verify(model).addAttribute("nowPlaying", List.of(movie));
-        verify(model).addAttribute("upcoming", List.of(movie));
+        verify(model).addAttribute("nowPlaying", enrichedMovies);
+        verify(model).addAttribute("upcoming", enrichedMovies);
+
+        verify(tmdbClient).getNowPlaying();
+        verify(tmdbClient).getUpcoming();
+        verify(tmdbClient,times(2)).enrichWithDetails(rawMovies);
     }
 
     @Test
-    @DisplayName("index() - limits now playing and upcoming movies to 10")
-    void index_ShouldLimitNowPlayingAndUpcomingMoviesToTen() {
+    @DisplayName("index() - limits now playing and upcoming movies to 8 before enrichment")
+    void index_ShouldLimitNowPlayingAndUpcomingMoviesToTenBeforeEnrichment() {
         List<TmdbMovieDto> movies = IntStream.rangeClosed(1, 15)
                 .mapToObj(i -> {
                     TmdbMovieDto movie = new TmdbMovieDto();
@@ -67,15 +74,23 @@ class IndexControllerTest {
         when(tmdbClient.getNowPlaying()).thenReturn(movies);
         when(tmdbClient.getUpcoming()).thenReturn(movies);
 
-        indexController.index(model);
+        when(tmdbClient.enrichWithDetails(anyList()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        verify(model).addAttribute(eq("nowPlaying"), argThat(list ->
-                list instanceof List<?> l && l.size() == 10
+        String view = indexController.index(model);
+
+        assertThat(view).isEqualTo("index");
+
+        verify(tmdbClient, times(2)).enrichWithDetails(argThat(list ->
+                list != null && list.size() == 8
         ));
 
+        verify(model).addAttribute(eq("nowPlaying"), argThat(value ->
+                value instanceof List<?> list && list.size() == 8
+        ));
 
-        verify(model).addAttribute(eq("upcoming"), argThat(list ->
-                list instanceof List<?> l && l.size() == 10
+        verify(model).addAttribute(eq("upcoming"), argThat(value ->
+                value instanceof List<?> list && list.size() == 8
         ));
     }
 
@@ -91,5 +106,9 @@ class IndexControllerTest {
         verify(model).addAttribute("imgBase", TmdbClient.IMG_BASE);
         verify(model).addAttribute("nowPlaying", List.of());
         verify(model).addAttribute("upcoming", List.of());
+
+        verify(tmdbClient).getNowPlaying();
+        verify(tmdbClient, never()).getUpcoming();
+        verify(tmdbClient, never()).enrichWithDetails(anyList());
     }
 }
