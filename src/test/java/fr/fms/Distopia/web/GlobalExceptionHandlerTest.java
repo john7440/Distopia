@@ -32,4 +32,18 @@ class GlobalExceptionHandlerTest {
         assertThat(view).isEqualTo("redirect:/index");
         verify(ra).addFlashAttribute("error", "Nom obligatoire");
     }
+
+    @Test
+    @DisplayName("handleConstraintViolationException() - should use default message when no violation exists")
+    void handleConstraintViolationException_ShouldUseDefaultMessageWhenNoViolationExists() {
+        RedirectAttributes ra = mock(RedirectAttributes.class);
+
+        ConstraintViolationException exception = new ConstraintViolationException(Set.of());
+
+        String view = handler.handleConstraintViolationException(exception, ra);
+
+        assertThat(view).isEqualTo("redirect:/index");
+
+        verify(ra).addFlashAttribute("error", "Données invalides");
+    }
 }
