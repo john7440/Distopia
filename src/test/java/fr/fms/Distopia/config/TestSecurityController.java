@@ -1,5 +1,6 @@
 package fr.fms.Distopia.config;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
  * It provides simple endpoints to verify security rules without depending on
  * application controllers or templates
  */
+@Profile("security-test")
 @RestController
 public class TestSecurityController {
 
