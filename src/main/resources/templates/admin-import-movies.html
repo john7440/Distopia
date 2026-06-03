@@ -64,7 +64,8 @@
             <div class="card-body">
                 <form th:action="@{/admin/import-movies}" method="get"
                       class="d-flex gap-2">
-                    <input type="text" name="query" th:value="${query}"
+                    <label for="movieSearch" class="visually-hidden">Rechercher un Film</label>
+                    <input id="movieSearch" type="text" name="query" th:value="${query}"
                            class="form-control form-control-lg"
                            placeholder="Titre du film (ex: Inception, Dune...)"
                            autofocus required>
@@ -102,7 +103,8 @@
                              th:alt="${film.title}"
                              class="card-img-top"
                              style="object-fit:cover; height:280px;"
-                             loading="lazy">
+                             loading="lazy"
+                             alt="">
                         <div th:if="${film.posterPath == null}"
                              class="bg-secondary d-flex align-items-center
                                 justify-content-center text-white"

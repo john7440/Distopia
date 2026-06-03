@@ -44,7 +44,8 @@
 
             <!--keyword -->
             <div class="col-md-8">
-                <input type="text"
+                <label for="adminMovieSearch" class="visually-hidden">Rechercher un film</label>
+                <input id="adminMovieSearch" type="text"
                        name="keyword"
                        class="form-control"
                        placeholder="Rechercher un film..."
@@ -158,7 +159,7 @@
                             <img th:if="${m.imageUrl != null}"
                                  th:src="${m.imageUrl}"
                                  th:alt="${m.title}"
-                                 style="width:50px; height:70px; object-fit:cover; border-radius:6px;">
+                                 style="width:50px; height:70px; object-fit:cover; border-radius:6px;" alt="">
                             <div th:if="${m.imageUrl == null}"
                                  class="bg-secondary text-white d-flex align-items-center justify-content-center"
                                  style="width:50px; height:70px; border-radius:6px;">
@@ -250,56 +251,56 @@
 
                                                     <!-- title-->
                                                     <div class="col-md-6">
-                                                        <label class="form-label">Titre</label>
-                                                        <input type="text" name="title" class="form-control"
+                                                        <label for="movieTitle" class="form-label">Titre</label>
+                                                        <input id="movieTitle" type="text" name="title" class="form-control"
                                                                th:value="${m.title}" maxlength="150" required>
                                                     </div>
 
                                                     <!-- genre -->
                                                     <div class="col-md-6">
-                                                        <label class="form-label">Genre</label>
-                                                        <input type="text" name="genre" class="form-control"
+                                                        <label for="movieGenre" class="form-label">Genre</label>
+                                                        <input id="movieGenre" type="text" name="genre" class="form-control"
                                                                th:value="${m.genre}" maxlength="80">
                                                     </div>
 
                                                     <!-- duration -->
                                                     <div class="col-md-4">
-                                                        <label class="form-label">Durée (min)</label>
-                                                        <input type="number" name="duration" class="form-control"
+                                                        <label for="movieRuntime" class="form-label">Durée (min)</label>
+                                                        <input id="movieRuntime" type="number" name="duration" class="form-control"
                                                                th:value="${m.duration}" min="0" max="600">
                                                     </div>
 
                                                     <!-- release date-->
                                                     <div class="col-md-4">
-                                                        <label class="form-label">Date de sortie</label>
-                                                        <input type="date" name="releaseDate" class="form-control"
+                                                        <label for="movieReleaseDate" class="form-label">Date de sortie</label>
+                                                        <input id="movieReleaseDate" type="date" name="releaseDate" class="form-control"
                                                                th:value="${m.releaseDate != null ?
                                                                #temporals.format(m.releaseDate, 'yyyy-MM-dd') : ''}">
                                                     </div>
 
                                                     <!-- image -->
                                                     <div class="col-md-4">
-                                                        <label class="form-label">Image URL</label>
-                                                        <input type="text" name="imageUrl" class="form-control"
+                                                        <label for="movieImage" class="form-label">Image URL</label>
+                                                        <input id="movieImage" type="text" name="imageUrl" class="form-control"
                                                                th:value="${m.imageUrl}" maxlength="500">
                                                     </div>
 
                                                     <!-- Trailer -->
                                                     <div class="col-md-6">
-                                                        <label class="form-label">Trailer URL</label>
-                                                        <input type="text" name="trailerUrl" class="form-control"
+                                                        <label for="movieTrailer" class="form-label">Trailer URL</label>
+                                                        <input id="movieTrailer" type="text" name="trailerUrl" class="form-control"
                                                                th:value="${m.trailerUrl}" maxlength="500">
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <label class="form-label">Description</label>
-                                                        <textarea name="description" class="form-control" rows="3"
-                                                               maxlength="5000" th:text="${m.description}">
+                                                        <label for="movieDescription" class="form-label">Description</label>
+                                                        <textarea id="movieDescription" name="description" class="form-control"
+                                                                  rows="3" maxlength="5000" th:text="${m.description}">
                                                         </textarea>
                                                     </div>
                                                     <!-- cinemas -->
                                                     <div class="col-md-12">
-                                                        <label class="form-label">Cinémas</label>
-                                                        <select name="cinemaIds"
+                                                        <label for="movieCinemas" class="form-label">Cinémas</label>
+                                                        <select id="movieCinemas" name="cinemaIds"
                                                                 class="form-select"
                                                                 multiple>
                                                             <option th:each="c : ${cinemas}"
