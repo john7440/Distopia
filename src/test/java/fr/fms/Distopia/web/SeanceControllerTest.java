@@ -362,4 +362,42 @@ class SeanceControllerTest {
         verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
         verify(redirectAttributes, never()).addFlashAttribute(eq("error"), any());
     }
+
+    @Test
+    @DisplayName("deleteSelectedSeances() - preserves filters after deleting selected seances")
+    void deleteSelectedSeances_ShouldPreserveFiltersAfterDeletingSelectedSeances() {
+        List<Long> selectedIds = List.of(1L, 2L);
+
+        when(seanceService.deleteSelected(selectedIds)).thenReturn(2);
+
+        String view = seanceController.deleteSelectedSeances(selectedIds, "avatar", 5L,
+                true, "dateTime", "asc", redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5&showArchived=" +
+                "true&sortField=dateTime&sortDir=asc");
+
+        verify(seanceService).deleteSelected(selectedIds);
+        verify(redirectAttributes).addFlashAttribute("message", "2 séance(s) supprimée(s).");
+    }
+
+    @Test
+    @DisplayName("deleteSelectedSeances() - redirects with error when selected seances have reservations")
+    void deleteSelectedSeances_ShouldRedirectWithError_WhenSelectedSeancesHaveReservations() {
+        List<Long> selectedIds = List.of(1L, 2L);
+
+        doThrow(new IllegalStateException("Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations"))
+                .when(seanceService).deleteSelected(selectedIds);
+
+        String view = seanceController.deleteSelectedSeances(selectedIds, "avatar", 5L,
+                true, "dateTime", "asc", redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5&showArchived=" +
+                "true&sortField=dateTime&sortDir=asc");
+
+        verify(seanceService).deleteSelected(selectedIds);
+        verify(redirectAttributes).addFlashAttribute("error",
+                "Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+        verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
+    }
 }
