@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
@@ -256,10 +255,9 @@ class TmdbClientTest {
         detail.setRuntime(148);
         detail.setGenres(List.of(genre));
 
-        TmdbClient spyClient = Mockito.spy(tmdbClient);
-        when(spyClient.getDetail(1L)).thenReturn(detail);
+        when(tmdbClient.getDetail(1L)).thenReturn(detail);
 
-        List<TmdbMovieDto> result = spyClient.enrichWithDetails(List.of(movie));
+        List<TmdbMovieDto> result = tmdbClient.enrichWithDetails(List.of(movie));
 
         assertThat(result).hasSize(1);
 
@@ -280,11 +278,9 @@ class TmdbClientTest {
         TmdbMovieDto detail = new TmdbMovieDto();
         detail.setOverview("test overview");
 
-        TmdbClient spyClient = Mockito.spy(tmdbClient);
+        when(tmdbClient.getDetail(1L)).thenReturn(detail);
 
-        when(spyClient.getDetail(1L)).thenReturn(detail);
-
-        List<TmdbMovieDto> result = spyClient.enrichWithDetails(List.of(movie));
+        List<TmdbMovieDto> result = tmdbClient.enrichWithDetails(List.of(movie));
 
         assertThat(result.get(0).getOverview()).isEqualTo("test overview");
     }
@@ -298,12 +294,44 @@ class TmdbClientTest {
         TmdbMovieDto detail = new TmdbMovieDto();
         detail.setOverview("Detailed overview");
 
-        TmdbClient spyClient = Mockito.spy(tmdbClient);
+        when(tmdbClient.getDetail(1L)).thenReturn(detail);
 
-        when(spyClient.getDetail(1L)).thenReturn(detail);
-
-        List<TmdbMovieDto> result = spyClient.enrichWithDetails(List.of(movie));
+        List<TmdbMovieDto> result = tmdbClient.enrichWithDetails(List.of(movie));
 
         assertThat(result.get(0).getOverview()).isEqualTo("Existing overview");
+    }
+
+    @Test
+    @DisplayName("enrichWithDetails() - should enrich poster path when missing")
+    void enrichWithDetails_ShouldEnrichPosterPathWhenMissing() {
+        TmdbMovieDto movie = new TmdbMovieDto();
+        movie.setId(1L);
+        movie.setPosterPath(null);
+
+        TmdbMovieDto detail = new TmdbMovieDto();
+        detail.setPosterPath("/poster.jpg");
+
+        when(tmdbClient.getDetail(1L)).thenReturn(detail);
+
+        List<TmdbMovieDto> result = tmdbClient.enrichWithDetails(List.of(movie));
+
+        assertThat(result.get(0).getPosterPath()).isEqualTo("/poster.jpg");
+    }
+
+    @Test
+    @DisplayName("enrichWithDetails() - should not overwrite existing poster path")
+    void enrichWithDetails_ShouldNotOverwriteExistingPosterPath() {
+        TmdbMovieDto movie = new TmdbMovieDto();
+        movie.setId(1L);
+        movie.setPosterPath("/existing.jpg");
+
+        TmdbMovieDto detail = new TmdbMovieDto();
+        detail.setPosterPath("/detail.jpg");
+
+        when(tmdbClient.getDetail(1L)).thenReturn(detail);
+
+        List<TmdbMovieDto> result = tmdbClient.enrichWithDetails(List.of(movie));
+
+        assertThat(result.get(0).getPosterPath()).isEqualTo("/existing.jpg");
     }
 }
