@@ -143,7 +143,8 @@
                                        th:value="${_csrf.token}">
                                 <input type="hidden" name="seanceId"
                                        th:value="${seance.id}">
-                                <input type="number" name="quantity"
+                                <label for="seatsQuantity" class="visually-hidden">Nombre de places</label>
+                                <input id="seatsQuantity" type="number" name="quantity"
                                        class="form-control form-control-sm"
                                        value="1" min="1"
                                        th:max="${seance.availableSeats}"

@@ -63,7 +63,8 @@
                                 <input type="hidden" name="seanceId" th:value="${seance.id}">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Places</span>
-                                        <input type="number" name="quantity" class="form-control"
+                                    <label for="number" class="visually-hidden">Places disponibles</label>
+                                        <input id="number" name="quantity" class="form-control"
                                                value="1" min="1"
                                                th:max="${seance.availableSeats}">
                                 </div>
