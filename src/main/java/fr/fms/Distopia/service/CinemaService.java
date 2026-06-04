@@ -2,6 +2,7 @@ package fr.fms.Distopia.service;
 
 import fr.fms.Distopia.dao.CinemaRepository;
 import fr.fms.Distopia.dao.MovieRepository;
+import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.entities.Cinema;
 import jakarta.transaction.Transactional;
@@ -27,11 +28,14 @@ public class CinemaService {
     private final CinemaRepository cinemaRepository;
     private final TownRepository townRepository;
     private final MovieRepository movieRepository;
+    private final SeanceRepository seanceRepository;
 
-    public CinemaService(CinemaRepository cinemaRepository, TownRepository townRepository, MovieRepository movieRepository) {
+    public CinemaService(CinemaRepository cinemaRepository, TownRepository townRepository, MovieRepository movieRepository,
+                         SeanceRepository seanceRepository) {
         this.cinemaRepository = cinemaRepository;
         this.townRepository = townRepository;
         this.movieRepository = movieRepository;
+        this.seanceRepository = seanceRepository;
     }
 
     //-------find by id--------------
@@ -165,18 +169,24 @@ public class CinemaService {
 
     //--------------supprimer un cinéma + vérification film orphelins----------------
     /**
-     * Deletes a cinema by its unique identifier and handles orphaned movies
+     * Deletes a cinema only when it is not linked to any seance<p>
+     * A cinema cannot be physically removed if at least one seance references it,
+     * because seances are part of the reservation history and hold a non-null
+     * relationship to their cinema
      * <p>
-     * <strong>Note on Orphan Removal:</strong> Before deleting the cinema, this method iterates
-     * through all associated movies and removes the cinema from their lists. If a movie
-     * is no longer associated with any cinemas after this operation, it is marked as
-     * deleted (soft delete) to avoid orphaned records
+     * If the cinema can be deleted, it is removed from the associated movies. Movies
+     * that no longer belong to any cinema after this operation are soft-deleted.
      *
      * @param id the unique identifier of the cinema to delete
+     * @throws IllegalStateException if the cinema has one or more linked seances
      */
     @Transactional
     public void delete(Long id) {
         cinemaRepository.findById(id).ifPresent(cinema -> {
+            if (seanceRepository.existsByCinemaId(id)) {
+                throw new IllegalStateException(
+                        "Impossible de supprimer ce cinéma car des séances y sont encore associées");
+            }
             cinema.getMovies().forEach(movie -> {
                 movie.getCinemas().remove(cinema);
                 if (movie.getCinemas().isEmpty()) {
