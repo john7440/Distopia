@@ -76,7 +76,7 @@ import static org.mockito.Mockito.*;
     void getByMovieAndCinema_ShouldCallsTheCorrectRepo() {
         seanceService.getByMovieAndCinema(1L,1L);
 
-        verify(seanceRepository).findByMovieIdAndCinemaIdOrderByDateTimeAsc(1L,1L);
+        verify(seanceRepository).findUpcomingActiveByMovieAndCinema(eq(1L),eq(1L), any(LocalDateTime.class));
     }
 
     //-------------test findById()-------------------
