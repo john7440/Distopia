@@ -204,7 +204,7 @@ class CinemaControllerTest {
         verify(cinemaService, never()).save(any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
-    //----------test for delete()----------------------------------
+    //----------tests for delete()----------------------------------
     @Test
     @DisplayName("/admin/deleteCinema - Should delete cinema")
     void adminDeleteCinema_shouldDeleteCinema() throws Exception {
@@ -214,7 +214,25 @@ class CinemaControllerTest {
                         .with(user("admin").roles("ADMIN"))
                         .param("id", "1"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/admin/cinemas"));
+                .andExpect(redirectedUrl("/admin/cinemas"))
+                .andExpect(flash().attribute("message", "Cinéma supprimé avec succès"));
+
+        verify(cinemaService).delete(1L);
+    }
+
+    @Test
+    @DisplayName("/admin/deleteCinema - Should redirect with error when cinema has seances")
+    void adminDeleteCinema_ShouldRedirectWithError_WhenCinemaHasSeances() throws Exception {
+        doThrow(new IllegalStateException("Impossible de supprimer ce cinéma : des séances y sont encore associées"))
+                .when(cinemaService).delete(1L);
+
+        mockMvc.perform(post("/admin/deleteCinema")
+                        .with(csrf())
+                        .with(user("admin").roles("ADMIN"))
+                        .param("id", "1"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"))
+                .andExpect(flash().attributeExists("error"));
 
         verify(cinemaService).delete(1L);
     }
