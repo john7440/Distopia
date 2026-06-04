@@ -39,6 +39,7 @@ public class CinemaController {
 
     private static final String CINEMAS = "cinemas";
     private static final String ADMIN_REDIRECT = "redirect:/admin/cinemas";
+    private static final String ERROR = "error";
 
     //---------pour visiteur — cinémas d'une ville-----------------
     /**
@@ -93,7 +94,7 @@ public class CinemaController {
             redirectAttributes.addFlashAttribute("message",
                     result.imported() + " cinémas importés, " + result.skipped() + " ignorés");
         }catch (Exception e){
-            redirectAttributes.addFlashAttribute("error", "Erreur import : " + e.getMessage());
+            redirectAttributes.addFlashAttribute(ERROR, "Erreur import : " + e.getMessage());
         }
         return ADMIN_REDIRECT;
     }
@@ -168,7 +169,7 @@ public class CinemaController {
                     ? "Données invalides"
                     : bindingResult.getAllErrors().get(0).getDefaultMessage();
 
-            ra.addFlashAttribute("error", errorMessage);
+            ra.addFlashAttribute(ERROR, errorMessage);
 
             return ADMIN_REDIRECT;
         }
@@ -187,18 +188,22 @@ public class CinemaController {
     }
 
     /**
-     * Deletes a cinema from the database
-     * <p>
-     * <strong>Security:</strong> This endpoint is restricted to administrators
-     * <p>
-     * After attempting to delete the cinema by its ID, the user is redirected
-     * back to the cinema management dashboard.
-     * @param id      the unique identifier of the cinema to delete
+     * Deletes a cinema from the database when it is not linked to any seance<p>
+     * If the cinema still has associated seances, the deletion is refused and an
+     * error message is displayed on the administration page.
+     *
+     * @param id the unique identifier of the cinema to delete
+     * @param ra the Spring {@link RedirectAttributes} used to pass flash messages
      * @return a redirection URL to the admin cinemas page
      */
     @PostMapping("/admin/deleteCinema")
-    public String deleteCinema(@RequestParam Long id){
-        cinemaService.delete(id);
+    public String deleteCinema(@RequestParam Long id, RedirectAttributes ra){
+        try {
+            cinemaService.delete(id);
+            ra.addFlashAttribute("message", "Cinéma supprimé avec succès");
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute(ERROR, e.getMessage());
+        }
         return ADMIN_REDIRECT;
     }
 }
