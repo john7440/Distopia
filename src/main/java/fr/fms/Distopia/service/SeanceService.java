@@ -44,17 +44,18 @@ public class SeanceService {
 
     //---------------les séances d'un film---------------------
     /**
-     * Retrieves all scheduled seances for a specific movie in a specific cinema
-     * <p>
-     * The results are ordered chronologically by their date and time in ascending order
-     * (the earliest screenings are returned first)
+     * Retrieves upcoming active seances for a specific movie in a specific cinema<p>
+     * This method is used by the public seance page. It only returns seances that
+     * can still be booked: the seance must be active, scheduled in the future and
+     * linked to a non-deleted movie
      *
-     * @param movieId the unique identifier of the movie
-     * @param cinemaId the identifier of the cinema
-     * @return a list of {@link Seance} objects scheduled for the specified movie
+     * @param movieId  the unique identifier of the movie
+     * @param cinemaId the unique identifier of the cinema
+     * @return a chronological list of available upcoming seances
      */
     public List<Seance> getByMovieAndCinema(Long movieId, Long cinemaId) {
-        return seanceRepository.findByMovieIdAndCinemaIdOrderByDateTimeAsc(movieId, cinemaId);
+        return seanceRepository.findUpcomingActiveByMovieAndCinema(
+                movieId, cinemaId, LocalDateTime.now());
     }
 
     //--------------find by id------------
@@ -162,8 +163,8 @@ public class SeanceService {
     /**
      * Retrieves upcoming seances for a movie
      * <p>
-     * Only future seances associated with the given movie
-     * are returned
+     * This method is used on the public movie detail page. It excludes past seances,
+     * inactive seances and seances linked to a soft-deleted movie
      *
      * @param movieId the movie identifier
      * @param page the requested page number
