@@ -20,7 +20,7 @@ Spring Boot / JPA / Thymeleaf
 ## Présentation
 
 Distopia est une application web permettant de consulter et gérer un parc de cinémas répartis en France.  
-Les visiteurs peuvent consulter les films, les cinémas, les séances dipsonibles et accéder aux informations issues
+Les visiteurs peuvent consulter les films, les cinémas, les séances disponibles et accéder aux informations issues
 de l'API TMDB.  
 Les utilisateurs connectés peuvent réserver une ou plusieurs places pour une séance donnée et voir leurs réservations.  
 L'administrateur dispose d'une interface complète pour gérer les villes, les cinémas, les films, les séances, ainsi que les
@@ -32,9 +32,8 @@ imports depuis TMDB (API) et CSV.
 ## Fonctionnalités
 
 ### Visiteur (non connecté) 
-- Consulter la page d'acceuil avec les films TMDB:
+- Consulter la page d'accueil avec les films TMDB:
   - films à l'affiche
-  - sorties de la semaine
   - films prochainement disponibles
 - Consulter les Cinémas
 - Consulter la liste des films
@@ -49,7 +48,7 @@ imports depuis TMDB (API) et CSV.
 ### Administrateur
 - Gérer les **Villes** : ajouter, modifier, supprimer (les cinémas associés conservent leur existence, leur ville passe à `null`)
 - Gérer les **Cinémas** : ajouter, modifier, supprimer, associer à une ville, importer depuis un fichier CSV
-- Gérer les **Films** : ajouter, modifier, suppression logique (*soft delete* -le film reste en bdd), importer depuis TMDB
+- Gérer les **Films** :importer depuis TMDB, modifier, suppression logique (*soft delete* -le film reste en bdd)
 - Gérer les **Séances** : ajouter, modifier, supprimer (bloqué si des réservations existent)
 - Générer automatiquement des séances fictives pour les films importés
 - Importer automatiquement des films actuellement à l'affiche depuis TMDB
@@ -98,7 +97,7 @@ Les formulaires utilisent aussi `BindingResult` pour rediriger l'utilisateur ave
 | Composant           | Technologie                                |
 |---------------------|--------------------------------------------|
 | **Langage**         | Java 17                                    |
-| **Framework**       | Spring Boot 3.5.6                          |
+| **Framework**       | Spring Boot 3.5.14                         |
 | **Web**             | Spring MVC                                 |
 | **Vue**             | Thymeleaf + Thymeleaf Layout               |
 | **ORM**             | Spring Data JPA / Hibernate                |
@@ -177,8 +176,6 @@ Le projet utilise des variables d'environnement pour éviter de stocker les mots
 1. un fichier CSV local pour importer les cinémas 
 2. l'API TMDB pour rechercher/importer des films
 
-> Sans clé API TMDB, il reste possible d'ajouter des films manuellement depuis l'interface d'administration, mais l'import automatique depuis TMDB ne fonctionnera pas
-
 ### Import des cinémas depuis CSV
 
 Les cinémas peuvent être importés depuis un fichier CSV déjà présent dans le projet :
@@ -192,16 +189,6 @@ L'import est lancé depuis l'interface administrateur: `/admin/cinemas`
 Le bouton Importer CSV appelle le service CinemaCsvImporter, qui lit le fichier CSV, crée les villes si nécessaire, ignore les doublons et ajoute les cinémas en base.
 
 ### Ajout des films
-
-Les films peuvent être ajoutés de deux manières :
-
-1. Ajout manuel
-
-L'administrateur peut créer ou modifier des films depuis: `/admin/movies`
-
-> Cette méthode ne nécessite pas de clé API TMDB !
-
-2. Import depuis TMDB
 
 L'administrateur peut rechercher et importer des films depuis TMDB via: `/admin/import-movies`
 
@@ -303,7 +290,7 @@ src
 ---
 
 ## Documentation
-La documentation du projet contiens les diagrammes suivants:
+La documentation du projet contient les diagrammes suivants:
 - Diagramme de Use Case
 - Diagramme de Classe avec les entitées principales
 - Diagramme de Séquence:
