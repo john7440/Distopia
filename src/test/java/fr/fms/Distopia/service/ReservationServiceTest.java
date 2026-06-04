@@ -42,11 +42,17 @@ class ReservationServiceTest {
 
     //--------------------helpers avec données réutilisables----------------
     private Seance buildSeance(int availableSeats) {
+        Movie movie = new Movie();
+        movie.setId(10L);
+        movie.setDeleted(false);
+
         Seance seance = new Seance();
         seance.setId(1L);
+        seance.setMovie(movie);
         seance.setAvailableSeats(availableSeats);
         seance.setPrice(9.50);
         seance.setDateTime(LocalDateTime.now().plusDays(1));
+        seance.setActive(true);
         return seance;
     }
 
@@ -163,26 +169,105 @@ class ReservationServiceTest {
     @Test
     @DisplayName("createReservation() - merges and delete duplicate booking")
     void createReservation_ShouldMergeAndDeleteDuplicatedBooking() {
-        Seance seance = new Seance();
-        seance.setAvailableSeats(10);
+        Seance seance = buildSeance(10);
+        User user = buildUser();
+        user.setId(1L);
 
         Reservation r1 = new Reservation();
+        r1.setId(100L);
         r1.setQuantity(2);
+        r1.setUser(user);
+        r1.setSeance(seance);
 
         Reservation r2 = new Reservation();
+        r2.setId(101L);
         r2.setQuantity(3);
+        r2.setUser(user);
+        r2.setSeance(seance);
 
-        List<Reservation> existingList =  new ArrayList<>(List.of(r1,r2));
+        List<Reservation> existingList = new ArrayList<>(List.of(r1, r2));
 
         when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(buildUser()));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(reservationRepository.findAllByUserIdAndSeanceId(1L, 1L)).thenReturn(existingList);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
 
-        reservationService.createReservation(1L,1L,2);
+        Reservation result = reservationService.createReservation(1L, 1L, 2);
 
         verify(reservationRepository).deleteAll(existingList.subList(1, existingList.size()));
-        assertThat(r1.getQuantity()).isEqualTo(4);
         verify(reservationRepository).save(r1);
+
+        assertThat(result).isSameAs(r1);
+        assertThat(r1.getQuantity()).isEqualTo(4);
+        assertThat(seance.getAvailableSeats()).isEqualTo(8);
+    }
+
+
+    @Test
+    @DisplayName("createReservation() - throws IllegalArgumentException when quantity is less than one")
+    void createReservation_ShouldThrowException_WhenQuantityIsLessThanOne() {
+        Seance seance = buildSeance(10);
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(buildUser()));
+
+        assertThatThrownBy(() -> reservationService.createReservation(1L, 2L, 0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("quantité");
+
+        verify(reservationRepository, never()).save(any());
+        verify(seanceRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("createReservation() - throws IllegalStateException when seance is inactive")
+    void createReservation_ShouldThrowException_WhenSeanceIsInactive() {
+        Seance seance = buildSeance(10);
+        seance.setActive(false);
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(buildUser()));
+
+        assertThatThrownBy(() -> reservationService.createReservation(1L, 2L, 1))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("séance");
+
+        verify(reservationRepository, never()).save(any());
+        verify(seanceRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("createReservation() - throws IllegalStateException when seance is in the past")
+    void createReservation_ShouldThrowException_WhenSeanceIsInThePast() {
+        Seance seance = buildSeance(10);
+        seance.setDateTime(LocalDateTime.now().minusDays(1));
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(buildUser()));
+
+        assertThatThrownBy(() -> reservationService.createReservation(1L, 2L, 1))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("séance");
+
+        verify(reservationRepository, never()).save(any());
+        verify(seanceRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("createReservation() - throws IllegalStateException when movie is deleted")
+    void createReservation_ShouldThrowException_WhenMovieIsDeleted() {
+        Seance seance = buildSeance(10);
+        seance.getMovie().setDeleted(true);
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(buildUser()));
+
+        assertThatThrownBy(() -> reservationService.createReservation(1L, 2L, 1))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("film");
+
+        verify(reservationRepository, never()).save(any());
+        verify(seanceRepository, never()).save(any());
     }
 
     //---------------------tests existsByUserAndSeance()--------------------
