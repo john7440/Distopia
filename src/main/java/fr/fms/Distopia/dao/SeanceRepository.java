@@ -171,4 +171,11 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     AND s.movie.deleted = false
     """)
     void reactivateFutureSeances(@Param("now") LocalDateTime now);
+
+    /**
+    * Checks if at least one seance is linked to the given cinema<p>
+    * @param cinemaId the unique identifier of the cinema to check
+    * @return {@code true} if at least one seance exists for the cinema, otherwise {@code false}
+    */
+    boolean existsByCinemaId(Long cinemaId);
 }
