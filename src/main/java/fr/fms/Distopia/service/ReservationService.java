@@ -53,20 +53,24 @@ public class ReservationService {
 
     //------------------créer une réservation---------------
     /**
-     * Creates a new reservation for a specific seance and user
+     * Creates or updates a reservation for a specific seance and user<p>
+     * <strong>Concurrency handling:</strong> the seance is retrieved with a pessimistic
+     * write lock to prevent two concurrent reservations from overselling the same seats
      * <p>
-     * <strong>Concurrency Handling:</strong> This method is transactional. It retrieves the
-     * {@link Seance} using a pessimistic lock ({@code findByIdForUpdate}) to ensure that
-     * multiple concurrent booking requests do not result in overselling seats
+     * <strong>Business rules:</strong> a reservation is refused if the requested quantity
+     * is invalid, if the seance is inactive, if the seance is already past, if the movie
+     * is soft-deleted or if there are not enough seats available.
      * <p>
-     * If the requested quantity exceeds the currently available seats, the transaction
-     * is aborted and a {@link NoSeatsAvailableException} is thrown
+     * If the user already has a reservation for the same seance, the existing reservation
+     * quantity is increased instead of creating a duplicate reservation.
      *
      * @param seanceId the unique identifier of the seance to book
      * @param userId   the unique identifier of the user making the reservation
      * @param quantity the number of seats being reserved
-     * @return the newly created and saved {@link Reservation} entity
-     * @throws java.util.NoSuchElementException if either the seance or the user is not found in the database
+     * @return the created or updated {@link Reservation} entity
+     * @throws java.util.NoSuchElementException if either the seance or the user is not found
+     * @throws IllegalStateException if the seance is no longer available for reservation
+     * @throws IllegalArgumentException if the requested quantity is less than one
      * @throws NoSeatsAvailableException if the requested quantity is greater than the available seats
      */
     @Transactional
@@ -74,21 +78,20 @@ public class ReservationService {
         Seance seance = seanceRepository.findByIdForUpdate(seanceId).orElseThrow();
         User user = userRepository.findById(userId).orElseThrow();
 
-        if (seance.getAvailableSeats() < quantity){
-            throw new NoSeatsAvailableException("Seulement " + seance.getAvailableSeats() + " places disponibles");
-        }
+        validateReservationRequest(seance, quantity);
 
         List<Reservation> existingList = reservationRepository.findAllByUserIdAndSeanceId(userId, seanceId);
-
 
         seance.setAvailableSeats(seance.getAvailableSeats() - quantity);
         seanceRepository.save(seance);
 
         if (!existingList.isEmpty()){
-            Reservation resa =  existingList.get(0);
+            Reservation resa = existingList.get(0);
+
             if (existingList.size() > 1){
                 reservationRepository.deleteAll(existingList.subList(1, existingList.size()));
             }
+
             resa.setQuantity(resa.getQuantity() + quantity);
             return reservationRepository.save(resa);
         }
@@ -101,7 +104,34 @@ public class ReservationService {
 
         logger.info("Reservation created: userId={}, seanceId={}, quantity={}", userId, seanceId, quantity);
 
-        return  reservationRepository.save(reservation);
+        return reservationRepository.save(reservation);
+    }
+
+    /**
+     * Validates that a reservation request can be accepted for the selected seance<p>
+     * A reservation is considered valid only when the requested quantity is positive,
+     * the seance is active, the seance is scheduled in the future, the related movie
+     * is not soft-deleted and enough seats are still available.
+     *
+     * @param seance the seance selected for reservation
+     * @param quantity the requested number of seats
+     * @throws IllegalArgumentException if the requested quantity is less than one
+     * @throws IllegalStateException if the seance or movie is no longer available
+     * @throws NoSeatsAvailableException if the requested quantity exceeds available seats
+     */
+    private void validateReservationRequest(Seance seance, int quantity) {
+        if (quantity < 1) {
+            throw new IllegalArgumentException("La quantité doit être supérieure à 0");
+        }
+        if (!seance.isActive() || seance.getDateTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalStateException("Cette séance n'est plus disponible à la réservation");
+        }
+        if (seance.getMovie() == null || seance.getMovie().isDeleted()) {
+            throw new IllegalStateException("Ce film n'est plus disponible à la réservation");
+        }
+        if (seance.getAvailableSeats() < quantity){
+            throw new NoSeatsAvailableException("Seulement " + seance.getAvailableSeats() + " places disponibles");
+        }
     }
 
     /**
