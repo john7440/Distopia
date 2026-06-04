@@ -2,6 +2,7 @@ package fr.fms.Distopia.service;
 
 import fr.fms.Distopia.dao.CinemaRepository;
 import fr.fms.Distopia.dao.MovieRepository;
+import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.*;
@@ -32,12 +34,12 @@ class CinemaServiceTest {
 
     @Mock
     private CinemaRepository cinemaRepository;
-
     @Mock
     private MovieRepository movieRepository;
-
     @Mock
     private TownRepository townRepository;
+    @Mock
+    private SeanceRepository seanceRepository;
 
     @InjectMocks
     private CinemaService cinemaService;
@@ -157,6 +159,7 @@ class CinemaServiceTest {
     @DisplayName("delete() - deletes cinema and soft-deletes orphaned movies")
     void delete_ShouldDeleteCinemaAndSoftDeletesOrphanedMovies() {
         when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(seanceRepository.existsByCinemaId(1L)).thenReturn(false);
 
         cinemaService.delete(1L);
 
@@ -173,6 +176,7 @@ class CinemaServiceTest {
         movie.getCinemas().add(anotherCinema);
 
         when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(seanceRepository.existsByCinemaId(1L)).thenReturn(false);
 
         cinemaService.delete(1L);
 
@@ -189,6 +193,19 @@ class CinemaServiceTest {
 
         verify(cinemaRepository, never()).delete(any());
         verify(movieRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("delete() - throws exception when cinema has linked seances")
+    void delete_ShouldThrowException_WhenCinemaHasLinkedSeances() {
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(seanceRepository.existsByCinemaId(1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> cinemaService.delete(1L))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("séances");
+
+        verify(movieRepository, never()).save(any());
+        verify(cinemaRepository, never()).delete(any());
     }
 
     //---------------------tests for getAllDepartments() --------------------------
