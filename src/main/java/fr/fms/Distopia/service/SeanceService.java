@@ -69,16 +69,6 @@ public class SeanceService {
         return seanceRepository.findById(id);
     }
 
-    //------------toutes les séances-------------
-    /**
-     * Retrieves all seances available in the database.
-     *
-     * @return a list of all {@link Seance} objects
-     */
-    public List<Seance> getAll(){
-        return seanceRepository.findAll();
-    }
-
     //-------------------créer ou modifier une séance-----------------------
     /**
      * Creates a new seance or updates an existing one

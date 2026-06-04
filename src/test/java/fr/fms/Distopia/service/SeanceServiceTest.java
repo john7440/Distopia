@@ -88,15 +88,6 @@ import static org.mockito.Mockito.*;
         verify(seanceRepository).findById(1L);
     }
 
-    //-------------test getAll()-------------------
-    @Test
-    @DisplayName("getAll() - should call findAll() Repository")
-    void getByMovieAndCinema_ShouldCallsFindAllRepository() {
-        seanceService.getAll();
-
-        verify(seanceRepository).findAll();
-    }
-
     //------------------tests du save()-----------------------
     @Test
     @DisplayName("save() - creates a new seance when id is null")

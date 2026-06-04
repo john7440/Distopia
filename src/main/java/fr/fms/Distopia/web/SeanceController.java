@@ -51,7 +51,7 @@ public class SeanceController {
      *
      * @param movieId  the unique identifier of the movie whose schedule is being requested
      * @param model    the Spring {@link Model} used to pass data to the view
-     * @param cinemaId the identifier of the current cinema context (optional)
+     * @param cinemaId the identifier of the current cinema context
      * @return the view name "seances"
      */
     @GetMapping("/seances")
