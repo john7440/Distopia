@@ -190,6 +190,10 @@ public class MovieController {
 
         Movie movie = movieService.getById(id);
 
+        if (movie == null || movie.isDeleted()) {
+            return "redirect:/movies";
+        }
+
         Page<Seance> seancePage = seanceService.getUpcomingSeances(id, page, size);
 
         model.addAttribute("movie", movie);
