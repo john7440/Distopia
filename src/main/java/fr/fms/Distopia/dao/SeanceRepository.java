@@ -38,35 +38,51 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     Optional<Seance> findByIdForUpdate(@Param("id") Long id);
 
     /**
-     * Retrieves all seances of a movie in a cinema
-     * ordered by date and time
+     * Retrieves upcoming active seances for a specific movie in a specific cinema<p>
+     * Only seances that are still active, scheduled after the provided date and linked
+     * to a non-deleted movie are returned. Results are ordered chronologically so the
+     * closest available screenings appear first
      *
-     * @param movieId the movie identifier
+     * @param movieId  the movie identifier
      * @param cinemaId the cinema identifier
-     * @return the list of matching seances sorted chronologically
-     */
-    List<Seance> findByMovieIdAndCinemaIdOrderByDateTimeAsc(Long movieId, Long cinemaId);
-
-    /**
-     * Retrieves upcoming seances for a movie
-     * <p>
-     * Only seances scheduled after the current timestamp
-     * are returned
-     * <p>
-     * Cinema and movie entities are eagerly loaded using
-     * {@link EntityGraph} to reduce lazy loading queries
-     *
-     * @param movieId the movie identifier
-     * @param pageable the pagination configuration
-     * @return a paginated list of upcoming seances
+     * @param now      the reference date and time used to exclude past seances
+     * @return the list of available upcoming seances sorted chronologically
      */
     @EntityGraph(attributePaths = {"cinema", "movie"})
     @Query("""
-        SELECT s
-        FROM Seance s
-        WHERE s.movie.id = :movieId
-        AND s.dateTime >= CURRENT_TIMESTAMP
-        ORDER BY s.cinema.id ASC, s.dateTime ASC
+    SELECT s
+    FROM Seance s
+    WHERE s.movie.id = :movieId
+    AND s.cinema.id = :cinemaId
+    AND s.active = true
+    AND s.dateTime >= :now
+    AND s.movie.deleted = false
+    ORDER BY s.dateTime ASC
+    """)
+    List<Seance> findUpcomingActiveByMovieAndCinema(@Param("movieId") Long movieId, @Param("cinemaId") Long cinemaId,
+            @Param("now") LocalDateTime now
+    );
+
+    /**
+     * Retrieves upcoming active seances for a movie
+     * <p>
+     * Only future seances that are still active and linked to a non-deleted movie
+     * are returned. Cinema and movie entities are eagerly loaded using
+     * {@link EntityGraph} to reduce lazy loading queries in the view layer
+     *
+     * @param movieId  the movie identifier
+     * @param pageable the pagination configuration
+     * @return a paginated list of available upcoming seances
+     */
+    @EntityGraph(attributePaths = {"cinema", "movie"})
+    @Query("""
+    SELECT s
+    FROM Seance s
+    WHERE s.movie.id = :movieId
+    AND s.dateTime >= CURRENT_TIMESTAMP
+    AND s.active = true
+    AND s.movie.deleted = false
+    ORDER BY s.cinema.id ASC, s.dateTime ASC
     """)
     Page<Seance> findUpcomingSeancesByMovie(@Param("movieId") Long movieId, Pageable pageable);
 
@@ -138,17 +154,21 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     void archivePastSeances(@Param("now") LocalDateTime now);
 
     /**
-     * Reactivates future seances that were previously archived
+     * Reactivates future seances that were previously archived<p>
+     * Only seances linked to non-deleted movies are reactivated. This prevents
+     * screenings of soft-deleted movies from becoming available again during the
+     * automatic synchronization process.
      *
      * @param now the current date and time used as activation threshold
      */
     @Modifying
     @Transactional
     @Query("""
-        UPDATE Seance s
-        SET s.active = true
-        WHERE s.dateTime >= :now
-        AND s.active = false
-        """)
+    UPDATE Seance s
+    SET s.active = true
+    WHERE s.dateTime >= :now
+    AND s.active = false
+    AND s.movie.deleted = false
+    """)
     void reactivateFutureSeances(@Param("now") LocalDateTime now);
 }
