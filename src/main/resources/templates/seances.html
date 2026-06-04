@@ -57,16 +57,14 @@
 
                         <!-- réserver-->
                         <div sec:authorize="isAuthenticated()">
-                            <form th:action="@{/reserve}" method="post"
-                                  th:if="${seance.availableSeats gt 0}" and sec:authorize="isAuthenticated()">
+                            <form th:action="@{/reserve}" method="post" th:if="${seance.availableSeats gt 0}">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <input type="hidden" name="seanceId" th:value="${seance.id}">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Places</span>
                                     <label for="number" class="visually-hidden">Places disponibles</label>
-                                        <input id="number" name="quantity" class="form-control"
-                                               value="1" min="1"
-                                               th:max="${seance.availableSeats}">
+                                        <input id="number" type="number" name="quantity" class="form-control"
+                                               value="1" min="1" th:max="${seance.availableSeats}">
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100">
                                     <i class="bi bi-ticket-perforated"></i> Réserver
