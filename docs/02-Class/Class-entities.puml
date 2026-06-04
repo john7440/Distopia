@@ -52,6 +52,7 @@ class Seance {
     - LocalDateTime dateTime
     - int availableSeats
     - double price
+    - boolean active
 }
 
 class Reservation {
