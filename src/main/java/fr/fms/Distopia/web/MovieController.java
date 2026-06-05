@@ -120,8 +120,9 @@ public class MovieController {
      * Creates or updates a movie<p>
      * The submitted movie form is validated before saving.
      * If validation fails, the user is redirected back to the movie administration page
-     * with an error message stored in flash attributes
-     *
+     * with an error message stored in flash attributes<p>
+     * This endpoint is used both by the manual movie creation modal and by the movie
+     * edition modal
      * @param form the validated movie form containing movie data
      * @param bindingResult the validation result for the submitted form
      * @param redirectAttributes the Spring {@link RedirectAttributes} used to pass flash messages
@@ -152,6 +153,9 @@ public class MovieController {
                 form.getCinemaIds(),
                 form.getReleaseDate()
         );
+        redirectAttributes.addFlashAttribute("message",
+                form.getId() == null ? "Film ajouté avec succès" : "Film modifié avec succès");
+
         return REDIRECT_ADMIN_MOVIES;
     }
 
