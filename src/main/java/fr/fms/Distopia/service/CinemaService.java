@@ -82,7 +82,7 @@ public class CinemaService {
         if (hasDept)
             return cinemaRepository.findByDepartmentAndDeletedFalse(department, pageable);
 
-        return cinemaRepository.findAll(pageable);
+        return cinemaRepository.findByDeletedFalse(pageable);
     }
 
     //------------------recherche admin--------------------------
