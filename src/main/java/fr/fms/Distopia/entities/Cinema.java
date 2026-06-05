@@ -60,6 +60,8 @@ public class Cinema implements Serializable {
     @Column(length = 3)
     private String department;
 
+    private boolean deleted = false;
+
     @ManyToOne
     @JoinColumn(name = "town_id")
     private Town town;
@@ -70,6 +72,8 @@ public class Cinema implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "movie_id"))
     private List<Movie> movies = new ArrayList<>();
 
+    @OneToMany(mappedBy = "cinema")
+    private List<Seance> seances = new ArrayList<>();
 
     /**
      * Builds a Google Maps URL for the cinema location

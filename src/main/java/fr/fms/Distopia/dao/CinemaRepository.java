@@ -20,17 +20,32 @@ import java.util.List;
 public interface CinemaRepository extends JpaRepository<Cinema,Long> {
 
     /**
-     * Checks whether a cinema already exists
+     * Checks whether a non-deleted cinema already exists
      * using its name and town name
      *
      * @param name the cinema name
      * @param townName the town name
-     * @return true if the cinema already exists, otherwise false
+     * @return true if the cinema already exists and is not deleted, otherwise false
      */
-    boolean existsByNameAndTown_Name(String name, String townName);
+    boolean existsByNameAndTown_NameAndDeletedFalse(String name, String townName);
 
     /**
-     * Searches cinemas for the administration dashboard
+     * Retrieves all non-deleted cinemas
+     *
+     * @return the list of available cinemas
+     */
+    List<Cinema> findByDeletedFalse();
+
+    /**
+     * Retrieves non-deleted cinemas with pagination
+     *
+     * @param pageable the pagination configuration
+     * @return a paginated list of available cinemas
+     */
+    Page<Cinema> findByDeletedFalse(Pageable pageable);
+
+    /**
+     * Searches non-deleted cinemas for the administration dashboard
      * <p>
      * Matches cinemas using cinema name or town name
      *
@@ -38,9 +53,14 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
      * @param pageable the pagination configuration
      * @return a paginated list of matching cinemas
      */
-    @Query("SELECT c FROM Cinema c LEFT JOIN c.town t " +
-            "WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-            "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    @Query("""
+        SELECT c
+        FROM Cinema c
+        LEFT JOIN c.town t
+        WHERE c.deleted = false
+        AND (LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        """)
     Page<Cinema> searchAdmin(@Param("keyword") String keyword, Pageable pageable);
 
     /**
@@ -50,7 +70,7 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
      * @param pageable the pagination configuration
      * @return a paginated list of cinemas in the given town
      */
-    @Query("SELECT c FROM Cinema c WHERE c.town.id = :townId")
+    @Query("SELECT c FROM Cinema c WHERE c.deleted = false AND c.town.id = :townId")
     Page<Cinema> findByTownId(@Param("townId") Long townId, Pageable pageable);
 
     /**
@@ -67,14 +87,19 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
      * @param pageable the pagination configuration
      * @return a paginated list of matching cinemas
      */
-    @Query("SELECT c FROM Cinema c LEFT JOIN c.town t " +
-            "WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :k, '%')) " +
-            "OR LOWER(c.address) LIKE LOWER(CONCAT('%', :k, '%')) " +
-            "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :k, '%'))")
+    @Query("""
+        SELECT c
+        FROM Cinema c
+        LEFT JOIN c.town t
+        WHERE c.deleted = false
+        AND (LOWER(c.name) LIKE LOWER(CONCAT('%', :k, '%'))
+            OR LOWER(c.address) LIKE LOWER(CONCAT('%', :k, '%'))
+            OR LOWER(t.name) LIKE LOWER(CONCAT('%', :k, '%')))
+        """)
     Page<Cinema> searchPublic(@Param("k") String k, Pageable pageable);
 
     /**
-     * Searches cinemas using both town and keyword filters
+     * Searches non-deleted cinemas using both town and keyword filters
      *
      * @param townId the town identifier
      * @param k the keyword used for the search
@@ -82,7 +107,7 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
      * @return a paginated list of matching cinemas
      */
     @Query("SELECT c FROM Cinema c LEFT JOIN c.town t " +
-            "WHERE c.town.id = :townId " +
+            "WHERE c.deleted = false AND c.town.id = :townId " +
             "AND (LOWER(c.name) LIKE LOWER(CONCAT('%', :k, '%')) " +
             "OR LOWER(c.address) LIKE LOWER(CONCAT('%', :k, '%')))")
     Page<Cinema> searchByTownAndKeyword(@Param("townId") Long townId,
@@ -96,10 +121,10 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
      * @param pageable the pagination configuration
      * @return a paginated list of cinemas in the department
      */
-    Page<Cinema> findByDepartment(String department, Pageable pageable);
+    Page<Cinema> findByDepartmentAndDeletedFalse(String department, Pageable pageable);
 
     /**
-     * Searches cinemas using both department and keyword filters
+     * Searches non-deleted cinemas using both department and keyword filters
      *
      * @param dept the department code
      * @param k the keyword used for the search
@@ -107,7 +132,7 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
      * @return a paginated list of matching cinemas
      */
     @Query("SELECT c FROM Cinema c LEFT JOIN c.town t " +
-            "WHERE c.department = :dept " +
+            "WHERE c.deleted = false AND c.department = :dept " +
             "AND (LOWER(c.name) LIKE LOWER(CONCAT('%', :k, '%')) " +
             "OR LOWER(c.address) LIKE LOWER(CONCAT('%', :k, '%')) " +
             "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :k, '%')))")
@@ -116,7 +141,7 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
                                               Pageable pageable);
 
     /**
-     * Retrieves cinemas matching both town and department filters
+     * Retrieves non-deleted cinemas matching both town and department filters
      *
      * @param townId the town identifier
      * @param dept the department code
@@ -124,22 +149,22 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
      * @return a paginated list of matching cinemas
      */
     @Query("SELECT c FROM Cinema c " +
-            "WHERE c.town.id = :townId AND c.department = :dept")
+            "WHERE c.deleted = false AND c.town.id = :townId AND c.department = :dept")
     Page<Cinema> findByTownIdAndDepartment(@Param("townId") Long townId,
                                            @Param("dept") String dept,
                                            Pageable pageable);
 
     /**
-     * Retrieves all distinct cinema departments
+     * Retrieves all distinct (non-deleted) cinema departments
      *
      * @return the list of unique department codes
      */
     @Query("SELECT DISTINCT c.department FROM Cinema c " +
-            "WHERE c.department IS NOT NULL ORDER BY c.department")
+            "WHERE c.deleted = false AND c.department IS NOT NULL ORDER BY c.department")
     List<String> findDistinctDepartments();
 
     /**
-     * Searches cinemas using town, department
+     * Searches non-deleted cinemas using town, department
      * and keyword filters simultaneously
      *
      * @param townId the town identifier
@@ -149,7 +174,8 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
      * @return a paginated list of matching cinemas
      */
     @Query("SELECT c FROM Cinema c LEFT JOIN c.town t " +
-            "WHERE c.town.id = :townId " +
+            "WHERE c.deleted = false " +
+            "AND c.town.id = :townId "+
             "AND c.department = :dept " +
             "AND (LOWER(c.name) LIKE LOWER(CONCAT('%', :k, '%')) " +
             "OR LOWER(c.address) LIKE LOWER(CONCAT('%', :k, '%')))")
