@@ -47,7 +47,7 @@ imports depuis TMDB (API) et CSV.
 
 ### Administrateur
 - Gérer les **Villes** : ajouter, modifier, supprimer (les cinémas associés conservent leur existence, leur ville passe à `null`)
-- Gérer les **Cinémas** : ajouter, modifier, supprimer, associer à une ville, importer depuis un fichier CSV
+- Gérer les **Cinémas** : ajouter, modifier, suppression logique (soft delete), associer à une ville, importer depuis un fichier CSV
 - Gérer les **Films** : ajouter, importer depuis TMDB, modifier, suppression logique (*soft delete* -le film reste en bdd)
 - Gérer les **Séances** : ajouter, modifier, supprimer (bloqué si des réservations existent)
 - Générer automatiquement des séances fictives pour les films importés
