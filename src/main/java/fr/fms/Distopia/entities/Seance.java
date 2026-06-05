@@ -2,9 +2,7 @@ package fr.fms.Distopia.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -19,11 +17,12 @@ import java.util.List;
  * price, the real-time count of available seats, and the cinema concerned
  * <p>
  * <strong>Note on Lombok:</strong> This class uses Lombok annotations
- * ({@code @Data}, {@code @AllArgsConstructor}, {@code @NoArgsConstructor})
+ * ({@code @Getter},{@code @Setter}, {@code @AllArgsConstructor}, {@code @NoArgsConstructor})
  * to automatically generate getters, setters, and constructors
  */
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor @NoArgsConstructor
 public class Seance implements Serializable {
     @Id

@@ -2,9 +2,7 @@ package fr.fms.Distopia.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,11 +22,12 @@ import java.util.List;
  * Mapping it to "users" prevents SQL syntax errors
  * <p>
  * <strong>Note on Lombok:</strong> This class uses Lombok annotations
- * ({@code @Data}, {@code @AllArgsConstructor}, {@code @NoArgsConstructor})
+ * ({@code @Getter},{@code @Setter}, {@code @AllArgsConstructor}, {@code @NoArgsConstructor})
  */
 @Entity
 @Table(name="users")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor @NoArgsConstructor
 public class User implements UserDetails {
     @Id
