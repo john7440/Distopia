@@ -102,6 +102,7 @@ public class MovieService {
         movie.setTrailerUrl(trailerUrl);
         movie.setReleaseDate(releaseDate);
         movie.setTmdbId(tmdbId);
+        movie.setDeleted(false);
 
         if (cinemaIds != null) {
             movie.getCinemas().forEach(c -> c.getMovies().remove(movie));
