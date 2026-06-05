@@ -244,6 +244,32 @@ class MovieServiceTest {
         assertThat(oldCinema.getMovies()).doesNotContain(existingMovie);
     }
 
+    @Test
+    @DisplayName("save() - creates manual movie without TMDB id")
+    void save_ShouldCreateManualMovieWithoutTmdbId() {
+        when(movieRepository.save(any(Movie.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Movie result = movieService.save(
+                null,
+                null,
+                "Film manuel",
+                "Description manuelle",
+                120,
+                "Drame",
+                "https://example.com/poster.jpg",
+                "https://example.com/trailer",
+                null,
+                LocalDate.of(2026, 6, 5)
+        );
+
+        assertThat(result.getTitle()).isEqualTo("Film manuel");
+        assertThat(result.getTmdbId()).isNull();
+        assertThat(result.isDeleted()).isFalse();
+        assertThat(result.getDuration()).isEqualTo(120);
+        assertThat(result.getGenre()).isEqualTo("Drame");
+        assertThat(result.getReleaseDate()).isEqualTo(LocalDate.of(2026, 6, 5));
+        verify(movieRepository).save(any(Movie.class));
+    }
     //------------------tests for searchAdmin() ---------------------------
 
     @Test
