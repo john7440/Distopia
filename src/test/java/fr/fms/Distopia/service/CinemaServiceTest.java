@@ -1,11 +1,9 @@
 package fr.fms.Distopia.service;
 
 import fr.fms.Distopia.dao.CinemaRepository;
-import fr.fms.Distopia.dao.MovieRepository;
-import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.entities.Cinema;
-import fr.fms.Distopia.entities.Movie;
+import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.entities.Town;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +21,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.*;
@@ -35,17 +32,12 @@ class CinemaServiceTest {
     @Mock
     private CinemaRepository cinemaRepository;
     @Mock
-    private MovieRepository movieRepository;
-    @Mock
     private TownRepository townRepository;
-    @Mock
-    private SeanceRepository seanceRepository;
 
     @InjectMocks
     private CinemaService cinemaService;
 
     private Cinema cinema;
-    private Movie movie;
     private Town town;
 
     @BeforeEach
@@ -64,17 +56,9 @@ class CinemaServiceTest {
         cinema.setLongitude(1D);
         cinema.setImageUrl("testImage");
         cinema.setDepartment("74");
+        cinema.setDeleted(false);
         cinema.setMovies(new ArrayList<>());
-
-        movie = new Movie();
-        movie.setId(1L);
-        movie.setTitle("Inception");
-        movie.setDeleted(false);
-        List<Cinema> cinemas = new ArrayList<>();
-        cinemas.add(cinema);
-        movie.setCinemas(cinemas);
-        cinema.getMovies().add(movie);
-
+        cinema.setSeances(new ArrayList<>());
     }
 
     //------------------------test du findById()-------------------
@@ -88,11 +72,12 @@ class CinemaServiceTest {
 
     //------------------------test du getAll()-------------------
     @Test
-    @DisplayName("getAll() - calls findAll() Repository")
+    @DisplayName("getAll() - calls findByDeletedFalse() Repository")
     void getAll_ShouldCallFindAllRepository() {
         cinemaService.getAll();
 
-        verify(cinemaRepository).findAll();
+        verify(cinemaRepository).findByDeletedFalse();
+        verify(cinemaRepository, never()).findAll();
     }
 
 
@@ -156,32 +141,39 @@ class CinemaServiceTest {
     //---------------------------tests du delete()---------------------------
 
     @Test
-    @DisplayName("delete() - deletes cinema and soft-deletes orphaned movies")
-    void delete_ShouldDeleteCinemaAndSoftDeletesOrphanedMovies() {
+    @DisplayName("delete() - soft-deletes cinema")
+    void delete_ShouldSoftDeleteCinema() {
         when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
-        when(seanceRepository.existsByCinemaId(1L)).thenReturn(false);
 
         cinemaService.delete(1L);
 
-        assertThat(movie.isDeleted()).isTrue();
-        verify(movieRepository).save(movie);
-        verify(cinemaRepository).delete(cinema);
+        assertThat(cinema.isDeleted()).isTrue();
+
+        verify(cinemaRepository).save(cinema);
+        verify(cinemaRepository, never()).delete(any());
+
     }
 
     @Test
-    @DisplayName("delete() - does not soft-delete movie when it still has other cinemas")
-    void delete_ShouldNotSoftDeleteMoviesWhenMovieHasOtherCinemas() {
-        Cinema anotherCinema = new Cinema();
-        anotherCinema.setId(2L);
-        movie.getCinemas().add(anotherCinema);
+    @DisplayName("delete() - ignores seances without date")
+    void delete_ShouldIgnoreSeancesWithoutDate() {
+        Seance seanceWithoutDate = new Seance();
+        seanceWithoutDate.setDateTime(null);
+        seanceWithoutDate.setActive(true);
+        seanceWithoutDate.setAvailableSeats(20);
+
+        cinema.setSeances(List.of(seanceWithoutDate));
 
         when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
-        when(seanceRepository.existsByCinemaId(1L)).thenReturn(false);
 
         cinemaService.delete(1L);
 
-        assertThat(movie.isDeleted()).isFalse();
-        verify(cinemaRepository).delete(cinema);
+        assertThat(cinema.isDeleted()).isTrue();
+        assertThat(seanceWithoutDate.isActive()).isTrue();
+        assertThat(seanceWithoutDate.getAvailableSeats()).isEqualTo(20);
+
+        verify(cinemaRepository).save(cinema);
+        verify(cinemaRepository, never()).delete(any());
     }
 
     @Test
@@ -191,20 +183,7 @@ class CinemaServiceTest {
 
         cinemaService.delete(99L);
 
-        verify(cinemaRepository, never()).delete(any());
-        verify(movieRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("delete() - throws exception when cinema has linked seances")
-    void delete_ShouldThrowException_WhenCinemaHasLinkedSeances() {
-        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
-        when(seanceRepository.existsByCinemaId(1L)).thenReturn(true);
-
-        assertThatThrownBy(() -> cinemaService.delete(1L))
-                .isInstanceOf(IllegalStateException.class).hasMessageContaining("séances");
-
-        verify(movieRepository, never()).save(any());
+        verify(cinemaRepository, never()).save(any());
         verify(cinemaRepository, never()).delete(any());
     }
 
@@ -313,25 +292,28 @@ class CinemaServiceTest {
     @DisplayName("searchPublic() - uses department filter only")
     void searchPublic_ShouldUseDepartmentFilterOnly() {
         Page<Cinema> page = new PageImpl<>(List.of(cinema));
-        when(cinemaRepository.findByDepartment(eq("40"), any(Pageable.class)))
+        when(cinemaRepository.findByDepartmentAndDeletedFalse(eq("40"), any(Pageable.class)))
                 .thenReturn(page);
 
         cinemaService.searchPublic(null, null,"40",0);
 
-        verify(cinemaRepository).findByDepartment(eq("40"), any(Pageable.class));
+        verify(cinemaRepository).findByDepartmentAndDeletedFalse(eq("40"), any(Pageable.class));
     }
 
     @Test
-    @DisplayName("searchPublic() - returns all cinemas when no filters are provided")
-    void searchPublic_ShouldReturnAllCinemasWhenNoFiltersProvided() {
+    @DisplayName("searchPublic() - returns available cinemas when no filters are provided")
+    void searchPublic_ShouldReturnAvailableCinemasWhenNoFiltersProvided() {
         Page<Cinema> page = new PageImpl<>(List.of(cinema));
 
-        when(cinemaRepository.findAll(any(Pageable.class))).thenReturn(page);
+        when(cinemaRepository.findByDeletedFalse(any(Pageable.class))).thenReturn(page);
 
-        Page<Cinema> result = cinemaService.searchPublic(null, null, null,0);
+        Page<Cinema> result = cinemaService.searchPublic(null, null, null, 0);
 
+        assertThat(result).isNotNull();
         assertThat(result.getContent()).containsExactly(cinema);
-        verify(cinemaRepository).findAll(any(Pageable.class));
+
+        verify(cinemaRepository).findByDeletedFalse(any(Pageable.class));
+        verify(cinemaRepository, never()).findAll(any(Pageable.class));
     }
 
     //-------------------------tests for searchAdmin()  --------------------------
@@ -350,15 +332,17 @@ class CinemaServiceTest {
     }
 
     @Test
-    @DisplayName("searchAdmin() - returns all cinemas when keyword is blank")
-    void searchAdmin_ShouldReturnAllCinemasWhenKeywordBlank() {
+    @DisplayName("searchAdmin() - returns available cinemas when keyword is blank")
+    void searchAdmin_ShouldReturnAvailableCinemasWhenKeywordBlank() {
         Page<Cinema> page = new PageImpl<>(List.of(cinema));
 
-        when(cinemaRepository.findAll(any(Pageable.class))).thenReturn(page);
+        when(cinemaRepository.findByDeletedFalse(any(Pageable.class))).thenReturn(page);
 
         Page<Cinema> result = cinemaService.searchAdmin("", "name", "asc", 0);
 
         assertThat(result.getContent()).containsExactly(cinema);
-        verify(cinemaRepository).findAll(any(Pageable.class));
+
+        verify(cinemaRepository).findByDeletedFalse(any(Pageable.class));
+        verify(cinemaRepository, never()).findAll(any(Pageable.class));
     }
 }
