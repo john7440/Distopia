@@ -32,7 +32,7 @@ imports depuis TMDB (API) et CSV.
 ## Fonctionnalités
 
 ### Visiteur (non connecté) 
-- Consulter la page d'accueil avec les films TMDB:
+- Consulter la page d'accueil avec les films TMDB :
   - films à l'affiche
   - films prochainement disponibles
 - Consulter les Cinémas
@@ -48,7 +48,7 @@ imports depuis TMDB (API) et CSV.
 ### Administrateur
 - Gérer les **Villes** : ajouter, modifier, supprimer (les cinémas associés conservent leur existence, leur ville passe à `null`)
 - Gérer les **Cinémas** : ajouter, modifier, supprimer, associer à une ville, importer depuis un fichier CSV
-- Gérer les **Films** :importer depuis TMDB, modifier, suppression logique (*soft delete* -le film reste en bdd)
+- Gérer les **Films** : ajouter, importer depuis TMDB, modifier, suppression logique (*soft delete* -le film reste en bdd)
 - Gérer les **Séances** : ajouter, modifier, supprimer (bloqué si des réservations existent)
 - Générer automatiquement des séances fictives pour les films importés
 - Importer automatiquement des films actuellement à l'affiche depuis TMDB
@@ -166,7 +166,7 @@ tmdb.api.key=${TMDB_API_KEY}
 ```
 
 ### Variables d'environnement nécessaires
-Le projet utilise des variables d'environnement pour éviter de stocker les mots de passe et clés API dans le code:
+Le projet utilise des variables d'environnement pour éviter de stocker les mots de passe et clés API dans le code :
 - DB_PASS = Mot de passe MariaDB
 - TMDB_API_KEY = clé API TMDB
 
@@ -190,9 +190,11 @@ Le bouton Importer CSV appelle le service CinemaCsvImporter, qui lit le fichier 
 
 ### Ajout des films
 
+Possibilité d'ajout de film manuellement.
+
 L'administrateur peut rechercher et importer des films depuis TMDB via: `/admin/import-movies`
 
-> Pour cette méthode il faut une clé API TMDB à renseigner dans la variable d'environnement TMDB_API_KEY
+> Pour cette méthode, il faut une clé API TMDB à renseigner dans la variable d'environnement TMDB_API_KEY
 
 Lors de l'import TMDB, l'application récupère automatiquement :
 - le titre 
@@ -210,7 +212,7 @@ Note : L'identifiant TMDB est stocké en base afin d'éviter les confusions entr
 
 Lorsqu'un film est importé depuis TMDB, l'application peut générer automatiquement des séances fictives pour les cinémas disponibles
 
-> L'administrateur peut aussi lancer un import automatique des films actuellement à l'affiche, accompagné de la génération automatique des séances, depuis l'interface d'administration
+> L'administrateur peut aussi lancer un import automatique des films actuellement à l'affiche, accompagné de la génération automatique des séances, depuis l'interface d'administration.
 
 --- 
 ## Utilisation
@@ -272,10 +274,10 @@ src
     └── java
         └── fr.fms.Distopia
 ```
-### Pacakages principaux
+### Packages principaux
 
 | Package      | Rôle                          |
-| ------------ | ----------------------------- |
+|--------------|-------------------------------|
 | `config`     | Configuration Spring Security |
 | `dao`        | Repositories JPA              |
 | `entities`   | Entités JPA                   |
@@ -290,10 +292,10 @@ src
 ---
 
 ## Documentation
-La documentation du projet contient les diagrammes suivants:
+La documentation du projet contient les diagrammes suivants :
 - Diagramme de Use Case
-- Diagramme de Classe avec les entitées principales
-- Diagramme de Séquence:
+- Diagramme de Classe avec les entities principales
+- Diagramme de Séquence :
   - Inscription Utilisateur
   - Reservation Séance pour un film
   - Import de film Tmdb
@@ -321,8 +323,8 @@ Le rapport est généré dans:
 
 ### Tests end-to-end
 
-Le projet inclus également des tests Selenium pour:
-- la navigation de la page d'acceuil
+Le projet inclus également des tests Selenium pour :
+- la navigation de la page d'accueil
 - l'inscription d'un nouvel utilisateur
 - la réservation d'une séance pour un utilisateur connecté
 - la navigation admin
@@ -338,7 +340,7 @@ Le projet inclus également des tests Selenium pour:
 
 ## Screenshots
 
-### Page d'acceuil
+### Page d'accueil
 
 ![Home page](docs/Screenshots/home.png)
 
