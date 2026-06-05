@@ -17,11 +17,21 @@
                 Gestion des films
             </h2>
 
-            <a th:href="@{/admin/import-movies}"
-               class="btn btn-success">
-                <i class="bi bi-cloud-download"></i>
-                Importer depuis TMDB
-            </a>
+            <div class="d-flex gap-2">
+                <button type="button"
+                        class="btn btn-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addMovieModal">
+                    <i class="bi bi-plus-circle"></i>
+                    Ajouter un film
+                </button>
+
+                <a th:href="@{/admin/import-movies}"
+                   class="btn btn-success">
+                    <i class="bi bi-cloud-download"></i>
+                    Importer depuis TMDB
+                </a>
+            </div>
         </div>
 
         <!-- flash msg-->
@@ -35,6 +45,157 @@
              class="alert alert-danger alert-dismissible fade show">
             <span th:text="${error}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- ADD MOVIE MODAL -->
+        <div class="modal fade"
+             id="addMovieModal"
+             tabindex="-1"
+             aria-labelledby="addMovieModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+
+                    <form method="post" th:action="@{/admin/saveMovie}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addMovieModalLabel">
+                                <i class="bi bi-plus-circle"></i>
+                                Ajouter un film manuellement
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="alert alert-info small">
+                                Les champs <strong>Titre</strong> et <strong>Durée</strong> sont les plus importants pour créer un film exploitable.
+                                L'identifiant TMDB peut rester vide pour un film ajouté manuellement
+                            </div>
+
+                            <div class="row g-3">
+
+                                <!-- title -->
+                                <div class="col-md-6">
+                                    <label for="addMovieTitle" class="form-label">Titre *</label>
+                                    <input id="addMovieTitle"
+                                           type="text"
+                                           name="title"
+                                           class="form-control"
+                                           maxlength="150"
+                                           required>
+                                </div>
+
+                                <!-- genre -->
+                                <div class="col-md-6">
+                                    <label for="addMovieGenre" class="form-label">Genre</label>
+                                    <input id="addMovieGenre"
+                                           type="text"
+                                           name="genre"
+                                           class="form-control"
+                                           maxlength="80"
+                                           placeholder="Science-fiction, Action, Drame...">
+                                </div>
+
+                                <!-- duration -->
+                                <div class="col-md-4">
+                                    <label for="addMovieDuration" class="form-label">Durée (min)</label>
+                                    <input id="addMovieDuration"
+                                           type="number"
+                                           name="duration"
+                                           class="form-control"
+                                           min="0"
+                                           max="600"
+                                           value="0">
+                                </div>
+
+                                <!-- release date -->
+                                <div class="col-md-4">
+                                    <label for="addMovieReleaseDate" class="form-label">Date de sortie</label>
+                                    <input id="addMovieReleaseDate"
+                                           type="date"
+                                           name="releaseDate"
+                                           class="form-control">
+                                </div>
+
+                                <!-- tmdb id -->
+                                <div class="col-md-4">
+                                    <label for="addMovieTmdbId" class="form-label">ID TMDB</label>
+                                    <input id="addMovieTmdbId"
+                                           type="number"
+                                           name="tmdbId"
+                                           class="form-control"
+                                           min="1"
+                                           placeholder="Optionnel">
+                                </div>
+
+                                <!-- image -->
+                                <div class="col-md-6">
+                                    <label for="addMovieImage" class="form-label">Image URL</label>
+                                    <input id="addMovieImage"
+                                           type="text"
+                                           name="imageUrl"
+                                           class="form-control"
+                                           maxlength="500"
+                                           placeholder="https://...">
+                                </div>
+
+                                <!-- trailer -->
+                                <div class="col-md-6">
+                                    <label for="addMovieTrailer" class="form-label">Trailer URL</label>
+                                    <input id="addMovieTrailer"
+                                           type="text"
+                                           name="trailerUrl"
+                                           class="form-control"
+                                           maxlength="500"
+                                           placeholder="https://youtube.com/...">
+                                </div>
+
+                                <!-- description -->
+                                <div class="col-md-12">
+                                    <label for="addMovieDescription" class="form-label">Description</label>
+                                    <textarea id="addMovieDescription"
+                                              name="description"
+                                              class="form-control"
+                                              rows="4"
+                                              maxlength="5000"
+                                              placeholder="Synopsis du film..."></textarea>
+                                </div>
+
+                                <!-- cinemas -->
+                                <div class="col-md-12">
+                                    <label for="addMovieCinemas" class="form-label">Cinémas</label>
+                                    <select id="addMovieCinemas"
+                                            name="cinemaIds"
+                                            class="form-select"
+                                            multiple>
+                                        <option th:each="c : ${cinemas}"
+                                                th:value="${c.id}"
+                                                th:text="${c.name}">
+                                        </option>
+                                    </select>
+                                    <small class="text-muted">
+                                        Maintenez Ctrl pour sélectionner plusieurs cinémas.
+                                        Si aucun cinéma n'est sélectionné, le film sera créé sans association.
+                                    </small>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button"
+                                    class="btn btn-danger"
+                                    data-bs-dismiss="modal">
+                                Annuler
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                Ajouter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- Search  -->
@@ -251,56 +412,56 @@
 
                                                     <!-- title-->
                                                     <div class="col-md-6">
-                                                        <label for="movieTitle" class="form-label">Titre</label>
-                                                        <input id="movieTitle" type="text" name="title" class="form-control"
+                                                        <label for="movieTitle + ${m.id}" class="form-label">Titre</label>
+                                                        <input id="movieTitle + ${m.id}" type="text" name="title" class="form-control"
                                                                th:value="${m.title}" maxlength="150" required>
                                                     </div>
 
                                                     <!-- genre -->
                                                     <div class="col-md-6">
-                                                        <label for="movieGenre" class="form-label">Genre</label>
-                                                        <input id="movieGenre" type="text" name="genre" class="form-control"
+                                                        <label for="movieGenre + ${m.id}" class="form-label">Genre</label>
+                                                        <input id="movieGenre + ${m.id}" type="text" name="genre" class="form-control"
                                                                th:value="${m.genre}" maxlength="80">
                                                     </div>
 
                                                     <!-- duration -->
                                                     <div class="col-md-4">
-                                                        <label for="movieRuntime" class="form-label">Durée (min)</label>
-                                                        <input id="movieRuntime" type="number" name="duration" class="form-control"
+                                                        <label for="movieRuntime + ${m.id}" class="form-label">Durée (min)</label>
+                                                        <input id="movieRuntime + ${m.id}" type="number" name="duration" class="form-control"
                                                                th:value="${m.duration}" min="0" max="600">
                                                     </div>
 
                                                     <!-- release date-->
                                                     <div class="col-md-4">
-                                                        <label for="movieReleaseDate" class="form-label">Date de sortie</label>
-                                                        <input id="movieReleaseDate" type="date" name="releaseDate" class="form-control"
+                                                        <label for="movieReleaseDate + ${m.id}" class="form-label">Date de sortie</label>
+                                                        <input id="movieReleaseDate + ${m.id}" type="date" name="releaseDate" class="form-control"
                                                                th:value="${m.releaseDate != null ?
                                                                #temporals.format(m.releaseDate, 'yyyy-MM-dd') : ''}">
                                                     </div>
 
                                                     <!-- image -->
                                                     <div class="col-md-4">
-                                                        <label for="movieImage" class="form-label">Image URL</label>
-                                                        <input id="movieImage" type="text" name="imageUrl" class="form-control"
+                                                        <label for="movieImage + ${m.id}" class="form-label">Image URL</label>
+                                                        <input id="movieImage + ${m.id}" type="text" name="imageUrl" class="form-control"
                                                                th:value="${m.imageUrl}" maxlength="500">
                                                     </div>
 
                                                     <!-- Trailer -->
                                                     <div class="col-md-6">
-                                                        <label for="movieTrailer" class="form-label">Trailer URL</label>
-                                                        <input id="movieTrailer" type="text" name="trailerUrl" class="form-control"
+                                                        <label for="movieTrailer + ${m.id}" class="form-label">Trailer URL</label>
+                                                        <input id="movieTrailer + ${m.id}" type="text" name="trailerUrl" class="form-control"
                                                                th:value="${m.trailerUrl}" maxlength="500">
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <label for="movieDescription" class="form-label">Description</label>
-                                                        <textarea id="movieDescription" name="description" class="form-control"
+                                                        <label for="movieDescription + ${m.id}" class="form-label">Description</label>
+                                                        <textarea id="movieDescription + ${m.id}" name="description" class="form-control"
                                                                   rows="3" maxlength="5000" th:text="${m.description}">
                                                         </textarea>
                                                     </div>
                                                     <!-- cinemas -->
                                                     <div class="col-md-12">
-                                                        <label for="movieCinemas" class="form-label">Cinémas</label>
-                                                        <select id="movieCinemas" name="cinemaIds"
+                                                        <label for="movieCinemas + ${m.id}" class="form-label">Cinémas</label>
+                                                        <select id="movieCinemas + ${m.id}" name="cinemaIds"
                                                                 class="form-select"
                                                                 multiple>
                                                             <option th:each="c : ${cinemas}"
