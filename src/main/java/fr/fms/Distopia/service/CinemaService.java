@@ -1,8 +1,6 @@
 package fr.fms.Distopia.service;
 
 import fr.fms.Distopia.dao.CinemaRepository;
-import fr.fms.Distopia.dao.MovieRepository;
-import fr.fms.Distopia.dao.SeanceRepository;
 import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.entities.Cinema;
 import jakarta.transaction.Transactional;
@@ -12,8 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -27,15 +25,10 @@ public class CinemaService {
 
     private final CinemaRepository cinemaRepository;
     private final TownRepository townRepository;
-    private final MovieRepository movieRepository;
-    private final SeanceRepository seanceRepository;
 
-    public CinemaService(CinemaRepository cinemaRepository, TownRepository townRepository, MovieRepository movieRepository,
-                         SeanceRepository seanceRepository) {
+    public CinemaService(CinemaRepository cinemaRepository, TownRepository townRepository) {
         this.cinemaRepository = cinemaRepository;
         this.townRepository = townRepository;
-        this.movieRepository = movieRepository;
-        this.seanceRepository = seanceRepository;
     }
 
     //-------find by id--------------
@@ -87,7 +80,7 @@ public class CinemaService {
         if (hasTown)
             return cinemaRepository.findByTownId(townId, pageable);
         if (hasDept)
-            return cinemaRepository.findByDepartment(department, pageable);
+            return cinemaRepository.findByDepartmentAndDeletedFalse(department, pageable);
 
         return cinemaRepository.findAll(pageable);
     }
@@ -111,17 +104,17 @@ public class CinemaService {
         if (keyword != null && !keyword.isBlank()) {
             return cinemaRepository.searchAdmin(keyword, pageable);
         }
-        return cinemaRepository.findAll(pageable);
+        return cinemaRepository.findByDeletedFalse(pageable);
     }
 
     //-----------afficher tous les cinémas-------------
     /**
-     * Retrieves all available cinemas
+     * Retrieves all non-deleted cinemas
      *
      * @return a list of all {@link Cinema} objects in the database
      */
-    public List<Cinema> getAll(){
-        return cinemaRepository.findAll().stream().filter(Objects::nonNull).toList();
+    public List<Cinema> getAll() {
+        return cinemaRepository.findByDeletedFalse();
     }
 
     //-----------------------créer ou modifier un cinéma----------------
@@ -152,6 +145,8 @@ public class CinemaService {
         cinema.setLongitude(longitude);
         cinema.setImageUrl(imageUrl);
         cinema.setDepartment(department);
+        cinema.setDeleted(false);
+
         if (townId != null){
             townRepository.findById(townId).ifPresent(cinema::setTown);
         }
@@ -167,34 +162,34 @@ public class CinemaService {
         return cinemaRepository.findDistinctDepartments();
     }
 
-    //--------------supprimer un cinéma + vérification film orphelins----------------
+    //--------------soft delete cinéma ----------------
     /**
-     * Deletes a cinema only when it is not linked to any seance<p>
-     * A cinema cannot be physically removed if at least one seance references it,
-     * because seances are part of the reservation history and hold a non-null
-     * relationship to their cinema
+     * Soft-deletes a cinema and disables its future seances
      * <p>
-     * If the cinema can be deleted, it is removed from the associated movies. Movies
-     * that no longer belong to any cinema after this operation are soft-deleted.
+     * The cinema is not physically removed from the database. Its {@code deleted}
+     * flag is set to {@code true}, which keeps reservation history consistent while
+     * removing the cinema from public and administration listings.
+     * <p>
+     * Future seances linked to this cinema are marked as inactive and their
+     * available seats are set to {@code 0}, preventing new reservations. Past
+     * seances are kept unchanged to preserve historical data.
      *
-     * @param id the unique identifier of the cinema to delete
-     * @throws IllegalStateException if the cinema has one or more linked seances
+     * @param id the unique identifier of the cinema to soft-delete
      */
     @Transactional
     public void delete(Long id) {
         cinemaRepository.findById(id).ifPresent(cinema -> {
-            if (seanceRepository.existsByCinemaId(id)) {
-                throw new IllegalStateException(
-                        "Impossible de supprimer ce cinéma car des séances y sont encore associées");
+            cinema.setDeleted(true);
+
+            if (cinema.getSeances() != null) {
+                cinema.getSeances().forEach(seance -> {
+                    if (seance.getDateTime() != null && seance.getDateTime().isAfter(LocalDateTime.now())) {
+                        seance.setActive(false);
+                        seance.setAvailableSeats(0);
+                    }
+                });
             }
-            cinema.getMovies().forEach(movie -> {
-                movie.getCinemas().remove(cinema);
-                if (movie.getCinemas().isEmpty()) {
-                    movie.setDeleted(true);
-                }
-                movieRepository.save(movie);
-            });
-            cinemaRepository.delete(cinema);
+            cinemaRepository.save(cinema);
         });
     }
 }

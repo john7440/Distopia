@@ -85,7 +85,7 @@ public class CinemaCsvImporter {
 
                 String comNom  = parseTownFromAddress(address);
 
-                if (name == null || name.isBlank() || cinemaRepository.existsByNameAndTown_Name(name, comNom)) {
+                if (name == null || name.isBlank() || cinemaRepository.existsByNameAndTown_NameAndDeletedFalse(name, comNom)) {
                     skipped++;
                     continue; }
 
