@@ -55,7 +55,7 @@ class CinemaCsvImporterTest {
         Town town = new Town();
         town.setName("Dax");
 
-        when(cinemaRepository.existsByNameAndTown_Name("Cinema Test", "Dax")).thenReturn(false);
+        when(cinemaRepository.existsByNameAndTown_NameAndDeletedFalse("Cinema Test", "Dax")).thenReturn(false);
         when(townRepository.findByName("Dax")).thenReturn(Optional.of(town));
 
         CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
@@ -75,7 +75,7 @@ class CinemaCsvImporterTest {
                 """;
 
         setCsvFile(csv);
-        when(cinemaRepository.existsByNameAndTown_Name("Cinema Dax", "Dax")).thenReturn(false);
+        when(cinemaRepository.existsByNameAndTown_NameAndDeletedFalse("Cinema Dax", "Dax")).thenReturn(false);
         when(townRepository.findByName("Dax")).thenReturn(Optional.empty());
         when(townRepository.save(any(Town.class))).thenAnswer(i-> i.getArgument(0));
 
@@ -113,7 +113,7 @@ class CinemaCsvImporterTest {
                 """;
         setCsvFile(csv);
 
-        when(cinemaRepository.existsByNameAndTown_Name("Cinema Test", "Dax")).thenReturn(true);
+        when(cinemaRepository.existsByNameAndTown_NameAndDeletedFalse("Cinema Test", "Dax")).thenReturn(true);
 
         CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
 
@@ -134,7 +134,7 @@ class CinemaCsvImporterTest {
         Town town = new Town();
         town.setName("Dax");
 
-        when(cinemaRepository.existsByNameAndTown_Name("Cinema Test", "Dax")).thenReturn(false);
+        when(cinemaRepository.existsByNameAndTown_NameAndDeletedFalse("Cinema Test", "Dax")).thenReturn(false);
         when(townRepository.findByName("Dax")).thenReturn(Optional.of(town));
 
         cinemaCsvImporter.importFromCsv();
@@ -158,7 +158,7 @@ class CinemaCsvImporterTest {
         Town town = new Town();
         town.setName("Dax");
 
-        when(cinemaRepository.existsByNameAndTown_Name("Cinema Test", "Dax")).thenReturn(false);
+        when(cinemaRepository.existsByNameAndTown_NameAndDeletedFalse("Cinema Test", "Dax")).thenReturn(false);
         when(townRepository.findByName("Dax")).thenReturn(Optional.of(town));
 
         cinemaCsvImporter.importFromCsv();
@@ -180,7 +180,7 @@ class CinemaCsvImporterTest {
                 """;
         setCsvFile(csv);
 
-        when(cinemaRepository.existsByNameAndTown_Name("Cinema Test", "Inconnue")).thenReturn(false);
+        when(cinemaRepository .existsByNameAndTown_NameAndDeletedFalse("Cinema Test", "Inconnue")).thenReturn(false);
         when(townRepository.findByName("Inconnue")).thenReturn(Optional.empty());
         when(townRepository.save(any(Town.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
