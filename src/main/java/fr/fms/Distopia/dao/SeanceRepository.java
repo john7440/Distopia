@@ -63,6 +63,34 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
             @Param("now") LocalDateTime now
     );
 
+
+    /**
+     * Retrieves existing screenings within the generation window
+     *
+     * <p>Includes both active and inactive screenings to prevent
+     * automatic generation from recreating archived or cancelled
+     * screening slots</p>
+     *
+     * @param movieId the movie identifier
+     * @param cinemaId the cinema identifier
+     * @param start the inclusive start of the generation window
+     * @param endExclusive the exclusive end of the generation window
+     * @return existing screenings regardless of activity status
+     */
+    @Query("""
+    SELECT s FROM Seance s
+    WHERE s.movie.id = :movieId
+      AND s.cinema.id = :cinemaId
+      AND s.dateTime >= :start
+      AND s.dateTime < :endExclusive
+    """)
+    List<Seance> findExistingForGeneration(
+            @Param("movieId") Long movieId,
+            @Param("cinemaId") Long cinemaId,
+            @Param("start") LocalDateTime start,
+            @Param("endExclusive") LocalDateTime endExclusive);
+
+
     /**
      * Retrieves upcoming active seances for a movie
      * <p>
