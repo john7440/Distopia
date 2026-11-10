@@ -71,40 +71,79 @@ public class SeanceService {
 
     //-------------------créer ou modifier une séance-----------------------
     /**
-     * Creates a new seance or updates an existing one
-     * <p>
-     * If an ID is provided, the method attempts to fetch and update the existing seance.
-     * If the ID is null or the seance is not found, a new {@link Seance} instance is created
+     * Creates or updates a screening while enforcing reservation
+     * integrity and screening lifecycle rules.
      *
-     * @param id             the unique identifier of the seance to update, or null to create a new one
-     * @param dateTime       the scheduled date and time of the screening
-     * @param availableSeats the total number of seats available for this screening
-     * @param price          the ticket price for this screening
-     * @param movieId        the identifier of the movie being screened
-     * @param cinemaId       the identifier of the cinema
-     * @return the saved or updated {@link Seance} entity
-     * @throws java.util.NoSuchElementException if a {@code movieId} is provided but the movie cannot be found
+     * <p>When updating an existing screening, a pessimistic write lock
+     * prevents concurrent modifications during the transaction.</p>
+     *
+     * <p>Available seats cannot be modified when reservations exist.
+     * Screenings cannot be programmed for deleted movies or cinemas</p>
+     *
+     * <p>Lifecycle rules:</p>
+     * <ul>
+     *     <li>New future screenings are active.</li>
+     *     <li>Past screenings are inactive.</li>
+     *     <li>Inactive future screenings remain inactive.</li>
+     *     <li>Rescheduling a past screening to the future
+     *         explicitly reactivates it</li>
+     * </ul>
+     *
+     * @param id the screening ID, or null when creating a screening
+     * @param dateTime the scheduled date and time
+     * @param availableSeats the number of available seats
+     * @param price the ticket price
+     * @param movieId the movie ID
+     * @param cinemaId the cinema ID
+     * @return the saved screening
+     * @throws java.util.NoSuchElementException if an existing screening or requested movie cannot be found
+     * @throws IllegalStateException if reservation integrity or screening lifecycle rules are violated
      */
     @Transactional
     public Seance save(Long id, LocalDateTime dateTime, int availableSeats, double price, Long movieId, Long cinemaId) {
-        Seance seance = (id!=null) ? seanceRepository.findByIdForUpdate(id).orElseThrow() : new Seance();
+
+        Seance seance = (id != null) ? seanceRepository.findByIdForUpdate(id).orElseThrow() : new Seance();
 
         if (id != null && availableSeats != seance.getAvailableSeats() && reservationRepository.countBySeanceIds(List.of(id)) > 0) {
             throw new IllegalStateException(
                     "Impossible de modifier les places d'une séance ayant déjà des réservations");
         }
 
+        Movie movie = (movieId != null) ? movieRepository.findById(movieId).orElseThrow() : seance.getMovie();
+
+        if (movie != null && movie.isDeleted()) {
+            throw new IllegalStateException("Impossible de programmer une séance pour un film supprimé");
+        }
+
+        Cinema cinema = cinemaRepository.findById(cinemaId)
+                .orElseThrow(() -> new RuntimeException("Cinéma introuvable"));
+
+        if (cinema.isDeleted()) {
+            throw new IllegalStateException("Impossible de programmer une séance dans un cinéma supprimé");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        boolean future = !dateTime.isBefore(now);
+
+        boolean rescheduledFromPast = id != null
+                && seance.getDateTime() != null
+                && seance.getDateTime().isBefore(now)
+                && future;
+
+
+        boolean active = future && (id == null || seance.isActive() || rescheduledFromPast);
 
         seance.setDateTime(dateTime);
-        seance.setActive(!dateTime.isBefore(LocalDateTime.now()));
+        seance.setActive(active);
         seance.setAvailableSeats(availableSeats);
         seance.setPrice(price);
-        if(movieId !=null){
-            Movie movie = movieRepository.findById(movieId).orElseThrow();
+
+        if (movieId != null) {
             seance.setMovie(movie);
         }
-        Cinema cinema = cinemaRepository.findById(cinemaId).orElseThrow(() -> new RuntimeException("Cinéma introuvable"));
+
         seance.setCinema(cinema);
+
         return seanceRepository.save(seance);
     }
 
@@ -231,13 +270,19 @@ public class SeanceService {
     }
 
     /**
-     * Synchronizes seance activity status according to the current date and time<p>
-     * Past seances are archived and future seances are reactivated if needed
+     * Synchronizes screening activity based on the current date
+     *
+     * <p>Past active screenings are automatically archived</p>
+     *
+     * <p>Future inactive screenings are never reactivated
+     * automatically. Reactivation requires an explicit
+     * rescheduling operation through the service</p>
+     *
+     * <p>This preserves intentional deactivation and prevents
+     * previously archived screenings from becoming available
+     * unexpectedly</p>
      */
     public void syncSeanceActivityStatus() {
-        LocalDateTime now = LocalDateTime.now();
-
-        seanceRepository.archivePastSeances(now);
-        seanceRepository.reactivateFutureSeances(now);
+        seanceRepository.archivePastSeances(LocalDateTime.now());
     }
 }

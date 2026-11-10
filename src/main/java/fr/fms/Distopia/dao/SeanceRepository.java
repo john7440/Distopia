@@ -137,11 +137,13 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
                                      @Param("showArchived") boolean showArchived);
 
     /**
-     * Archives all past seances by setting their {@code active} flag to {@code false}
-     * <p>A seance is considered past if its {@code dateTime} is strictly before {@code now}
-     * and it is still marked as active. Intended to be called by a scheduled task.
+     * Archives active screenings scheduled before the given date.
      *
-     * @param now the reference timestamp - all seances before this value will be archived
+     * <p>The operation is idempotent: already inactive screenings remain unchanged</p>
+     *
+     * <p>Future screenings are not modified, regardless of their current activity status</p>
+     *
+     * @param now the reference date and time
      */
     @Modifying
     @Transactional
@@ -152,25 +154,6 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
         AND s.active = true
         """)
     void archivePastSeances(@Param("now") LocalDateTime now);
-
-    /**
-     * Reactivates future seances that were previously archived<p>
-     * Only seances linked to non-deleted movies are reactivated. This prevents
-     * screenings of soft-deleted movies from becoming available again during the
-     * automatic synchronization process.
-     *
-     * @param now the current date and time used as activation threshold
-     */
-    @Modifying
-    @Transactional
-    @Query("""
-    UPDATE Seance s
-    SET s.active = true
-    WHERE s.dateTime >= :now
-    AND s.active = false
-    AND s.movie.deleted = false
-    """)
-    void reactivateFutureSeances(@Param("now") LocalDateTime now);
 
     /**
     * Checks if at least one seance is linked to the given cinema<p>

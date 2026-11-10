@@ -365,4 +365,91 @@ import static org.mockito.Mockito.*;
         assertThat(result.getContent()).isEmpty();
         verify(seanceRepository).findUpcomingSeancesByMovie(eq(1L),any(Pageable.class));
     }
+
+
+    @Test
+    @DisplayName("sync - archives past seances without automatic reactivation")
+    void sync_shouldArchivePastWithoutReactivatingFuture() {
+        seanceService.syncSeanceActivityStatus();
+
+        verify(seanceRepository).archivePastSeances(any(LocalDateTime.class));
+
+        verifyNoMoreInteractions(seanceRepository);
+    }
+
+
+    @Test
+    @DisplayName("save - refuses reactivation in deleted cinema ")
+    void save_shouldRejectReactivationInDeletedCinema() {
+        seance.setActive(false);
+        cinema.setDeleted(true);
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+
+        assertThatThrownBy(() ->
+                seanceService.save(1L, futureDate, 100, 12.0, 1L, 1L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("cinéma");
+
+        verify(seanceRepository, never()).save(any(Seance.class));
+    }
+
+
+    @Test
+    @DisplayName("save - explicitly reschedules archived seance")
+    void save_shouldReactivateWhenRescheduledToFuture() {
+        seance.setDateTime(LocalDateTime.now().minusDays(1));
+        seance.setActive(false);
+
+        when(seanceRepository.findByIdForUpdate(1L))
+                .thenReturn(Optional.of(seance));
+        when(movieRepository.findById(1L))
+                .thenReturn(Optional.of(movie));
+        when(cinemaRepository.findById(1L))
+                .thenReturn(Optional.of(cinema));
+        when(seanceRepository.save(any(Seance.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        Seance result = seanceService.save(
+                1L, futureDate, 100, 12.0, 1L, 1L);
+
+        assertThat(result.isActive()).isTrue();
+        assertThat(result.getDateTime()).isEqualTo(futureDate);
+    }
+
+
+    @Test
+    @DisplayName("save - preserves inactive future seance")
+    void save_shouldKeepFutureInactiveSeanceInactive() {
+        seance.setActive(false);
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(seanceRepository.save(any(Seance.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Seance result = seanceService.save(1L, futureDate, 100, 15.0, 1L, 1L);
+
+        assertThat(result.isActive()).isFalse();
+        assertThat(result.getPrice()).isEqualTo(15.0);
+    }
+
+
+    @Test
+    @DisplayName("save - refuses seance for deleted movie")
+    void save_shouldRejectDeletedMovie() {
+        movie.setDeleted(true);
+
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+
+        assertThatThrownBy(() ->
+                seanceService.save(null, futureDate, 100, 12.0, 1L, 1L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("film supprimé");
+
+        verify(seanceRepository, never()).save(any(Seance.class));
+    }
+
 }

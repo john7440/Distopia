@@ -204,13 +204,16 @@ public class MovieService {
     }
 
     /**
-     * Returns active movies shown in a given cinema with at least one upcoming seance
-     * <p>
-     * Before searching, seance activity statuses are synchronized to avoid hiding
-     * future seances that may have been archived incorrectly
+     * Retrieves active movies with upcoming screenings for a specific cinema
+     *
+     * <p>Before searching, past screenings are archived
+     * through the screening activity synchronization</p>
+     *
+     * <p>Inactive future screenings remain inactive and are excluded from the results</p>
+     *
      * @param cinemaId the cinema identifier
      * @param sort the sorting configuration
-     * @return the list of active movies with upcoming seances for the selected cinema
+     * @return movies with upcoming active screenings
      */
     public List<Movie> getByCinemaWithUpcomingSeances(Long cinemaId, Sort sort) {
         seanceService.syncSeanceActivityStatus();
