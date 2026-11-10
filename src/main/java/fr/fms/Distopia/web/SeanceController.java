@@ -128,8 +128,13 @@ public class SeanceController {
 
             return REDIRECT_ADMIN_SEANCES;
         }
-        seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(),
-                form.getMovieId(), form.getCinemaId());
+
+        try {
+            seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(),
+                    form.getMovieId(), form.getCinemaId());
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute(ERROR, e.getMessage());
+        }
 
         return REDIRECT_ADMIN_SEANCES;
     }

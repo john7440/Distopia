@@ -85,8 +85,15 @@ public class SeanceService {
      * @return the saved or updated {@link Seance} entity
      * @throws java.util.NoSuchElementException if a {@code movieId} is provided but the movie cannot be found
      */
+    @Transactional
     public Seance save(Long id, LocalDateTime dateTime, int availableSeats, double price, Long movieId, Long cinemaId) {
-        Seance seance = (id!=null) ? seanceRepository.findById(id).orElse(new Seance()) : new Seance();
+        Seance seance = (id!=null) ? seanceRepository.findByIdForUpdate(id).orElseThrow() : new Seance();
+
+        if (id != null && availableSeats != seance.getAvailableSeats() && reservationRepository.countBySeanceIds(List.of(id)) > 0) {
+            throw new IllegalStateException(
+                    "Impossible de modifier les places d'une séance ayant déjà des réservations");
+        }
+
 
         seance.setDateTime(dateTime);
         seance.setActive(!dateTime.isBefore(LocalDateTime.now()));

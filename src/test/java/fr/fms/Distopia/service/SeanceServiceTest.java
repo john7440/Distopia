@@ -108,7 +108,7 @@ import static org.mockito.Mockito.*;
     @Test
     @DisplayName("save() - updates existing seance when id is found")
     void save_shouldUpdateExistingSeanceWhenIdIsFound() {
-        when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
         when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
         when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
         when(seanceRepository.save(any(Seance.class))).thenAnswer(i -> i.getArgument(0));
@@ -150,6 +150,38 @@ import static org.mockito.Mockito.*;
         assertThat(result.getMovie()).isNull();
         verify(movieRepository, never()).findById(any());
     }
+
+
+    @Test
+    @DisplayName("save() - refuses seat changes when reservations exist")
+    void save_shouldRejectSeatChangeWhenReservationsExist() {
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(reservationRepository.countBySeanceIds(List.of(1L))).thenReturn(1L);
+
+        assertThatThrownBy(() ->
+                seanceService.save(1L, futureDate, 200, 12.0, 1L, 1L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("places");
+
+        assertThat(seance.getAvailableSeats()).isEqualTo(100);
+        verify(seanceRepository, never()).save(any(Seance.class));
+    }
+
+    @Test
+    @DisplayName("save() - allows price change without changing reserved seats")
+    void save_shouldAllowPriceChangeWhenSeatsStayUnchanged() {
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(seanceRepository.save(any(Seance.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Seance result = seanceService.save(
+                1L, futureDate, 100, 15.0, 1L, 1L);
+
+        assertThat(result.getAvailableSeats()).isEqualTo(100);
+        assertThat(result.getPrice()).isEqualTo(15.0);
+    }
+
 
     //---------------------test de la méthode delete()--------------------
     @Test

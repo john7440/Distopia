@@ -238,6 +238,25 @@ class SeanceControllerTest {
         verify(seanceService, never()).save(any(),any(),anyInt(),anyDouble(),any(),any());
     }
 
+
+    @Test
+    @DisplayName("saveSeance() - displays business error when seats cannot change")
+    void saveSeance_shouldShowErrorWhenSeatsCannotChange() {
+        SeanceForm form = validSeanceForm();
+        form.setId(1L);
+
+        String error = "Impossible de modifier les places";
+
+        when(seanceService.save(1L, form.getDateTime(), form.getAvailableSeats(), form.getPrice(), form.getMovieId(), form.getCinemaId()
+        )).thenThrow(new IllegalStateException(error));
+
+        String view = seanceController.saveSeance(form, bindingResult, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+        verify(redirectAttributes).addFlashAttribute("error", error);
+    }
+
+
     //---------------------------tests for deleteSeance()-----------------------------------
     @Test
     @DisplayName("deleteSeance() - deletes seance and redirects with success message")
