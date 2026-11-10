@@ -58,6 +58,27 @@ public class SeanceService {
                 movieId, cinemaId, LocalDateTime.now());
     }
 
+
+    /**
+     * Retrieves existing screenings for automatic generation
+     *
+     * <p>Unlike the public screening search, this method
+     * includes inactive screenings. It prevents generated
+     * screenings from replacing intentionally disabled ones</p>
+     *
+     * @param movieId the movie identifier
+     * @param cinemaId the cinema identifier
+     * @param start the inclusive start of the generation window
+     * @param endExclusive the exclusive end of the generation window
+     * @return screenings in the specified date range
+     */
+    @Transactional(readOnly = true)
+    public List<Seance> getExistingForGeneration(Long movieId, Long cinemaId, LocalDateTime start, LocalDateTime endExclusive) {
+        return seanceRepository.findExistingForGeneration(
+                movieId, cinemaId, start, endExclusive);
+    }
+
+
     //--------------find by id------------
     /**
      * Retrieves a seance by its unique identifier

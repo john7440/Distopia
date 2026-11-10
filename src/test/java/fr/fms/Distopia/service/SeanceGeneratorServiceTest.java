@@ -107,19 +107,19 @@ class SeanceGeneratorServiceTest {
     @Test
     @DisplayName("importAndGenerate() - imports new movies from TMDB")
     void importAndGenerate_ShouldImportNewMoviesFromTmdb() {
-    when(cinemaService.getAll()).thenReturn(List.of(cinema));
-    when(tmdbClient.getNowPlaying()).thenReturn(List.of(tmdbMovieDto));
-    when(tmdbClient.getDetail(1L)).thenReturn(tmdbDetail);
-    when(tmdbClient.getTrailerUrl(1L)).thenReturn("https://youtube.com/emded/test");
-    when(movieService.getAllActive()).thenReturn(List.of());
-    when(movieService.save(any(), any(),any(), any(), anyInt(), any(), any(), any(), any(), any()))
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(tmdbClient.getNowPlaying()).thenReturn(List.of(tmdbMovieDto));
+        when(tmdbClient.getDetail(1L)).thenReturn(tmdbDetail);
+        when(tmdbClient.getTrailerUrl(1L)).thenReturn("https://youtube.com/emded/test");
+        when(movieService.getAllActive()).thenReturn(List.of());
+        when(movieService.save(any(), any(),any(), any(), anyInt(), any(), any(), any(), any(), any()))
                 .thenReturn(movie);
 
-    SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
 
-    assertThat(result.moviesImported()).isEqualTo(1);
-    verify(movieService, atLeastOnce()).save(isNull(), any(),eq("Inception"), anyString(), eq(148),
-            eq("Sci-Fi"), contains("/inception.jpg"), anyString(), any(), any());
+        assertThat(result.moviesImported()).isEqualTo(1);
+        verify(movieService, atLeastOnce()).save(isNull(), any(),eq("Inception"), anyString(), eq(148),
+                eq("Sci-Fi"), contains("/inception.jpg"), anyString(), any(), any());
     }
 
     @Test
@@ -158,7 +158,9 @@ class SeanceGeneratorServiceTest {
         when(movieService.getAllActive()).thenReturn(List.of(movie));
         when(movieService.save(any(), any(),any(), any(), anyInt(), any(),any(), any(), any(), any()))
                 .thenReturn(movie);
-        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+        when(seanceService.getExistingForGeneration(eq(1L), eq(1L), any(LocalDateTime.class),
+                any(LocalDateTime.class))).thenReturn(List.of());
+
 
         SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
 
@@ -170,7 +172,9 @@ class SeanceGeneratorServiceTest {
     @Test
     @DisplayName("generateSeancesForMovieAndCinema() - creates 21 seances when none exist (7 days x 3 slots)")
     void generateSeancesForMovieAndCinema_ShouldCreate21SeancesWhenNoneExist() {
-        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+        when(seanceService.getExistingForGeneration(eq(1L), eq(1L), any(LocalDateTime.class),
+                any(LocalDateTime.class))).thenReturn(List.of());
+
 
         int count = seanceGeneratorService.generateSeancesForMovieAndCinema(movie,cinema,START_DATE);
 
@@ -186,7 +190,7 @@ class SeanceGeneratorServiceTest {
         Seance existingSeance = new Seance();
         existingSeance.setDateTime(existingDate);
 
-        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of(existingSeance));
+        when(seanceService.getExistingForGeneration(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of(existingSeance));
 
         int count = seanceGeneratorService.generateSeancesForMovieAndCinema(movie,cinema,START_DATE);
 
@@ -198,7 +202,7 @@ class SeanceGeneratorServiceTest {
     @DisplayName("generateSeancesForMovieAndCinema() - returns 0 when all seances already exist")
     void generateSeancesForMovieAndCinema_ShouldReturnZeroWhenAllSeancesAlreadyExist() {
         List<Seance> allExisting = buildAllSeancesForWeek();
-        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(allExisting);
+        when(seanceService.getExistingForGeneration(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(allExisting);
 
         int count = seanceGeneratorService.generateSeancesForMovieAndCinema(movie, cinema,START_DATE);
 
@@ -209,7 +213,7 @@ class SeanceGeneratorServiceTest {
     @Test
     @DisplayName("generateSeancesForMovieAndCinema() - uses correct prices per slot")
     void generateSeancesForMovieAndCinema_ShouldUseCorrectPricesPerSlot() {
-        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+        when(seanceService.getExistingForGeneration(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
 
         seanceGeneratorService.generateSeancesForMovieAndCinema(movie,cinema,START_DATE);
 
@@ -243,7 +247,7 @@ class SeanceGeneratorServiceTest {
         when(movieService.save(eq(1L), any(),any(), any(), anyInt(), any(), any(), any(),
                 eq(List.of(1L)), any())).thenReturn(linkedMovie);
         when(movieService.getById(1L)).thenReturn(linkedMovie);
-        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+        when(seanceService.getExistingForGeneration(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
 
         seanceGeneratorService.generateForMovie(movie);
 
@@ -257,7 +261,7 @@ class SeanceGeneratorServiceTest {
         movie.setCinemas(List.of(cinema));
 
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
-        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+        when(seanceService.getExistingForGeneration(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
 
         seanceGeneratorService.generateForMovie(movie);
         verify(movieService, never()).save(anyLong(), any(),any(), any(),
@@ -273,7 +277,7 @@ class SeanceGeneratorServiceTest {
         movie.setCinemas(List.of(cinema,cinema2));
 
         when(cinemaService.getAll()).thenReturn(List.of(cinema,cinema2));
-        when(seanceService.getByMovieAndCinema(eq(1L), anyLong())).thenReturn(List.of());
+        when(seanceService.getExistingForGeneration(eq(1L), anyLong(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
 
         SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.generateForMovie(movie);
 
@@ -288,13 +292,83 @@ class SeanceGeneratorServiceTest {
         movie.setCinemas(List.of(cinema));
 
         when(cinemaService.getAll()).thenReturn(List.of(cinema));
-        when(seanceService.getByMovieAndCinema(1L, 1L)).thenReturn(List.of());
+        when(seanceService.getExistingForGeneration(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
 
         SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.generateForMovie(movie);
 
         assertThat(result.errors()).isEmpty();
         assertThat(result.hasErrors()).isFalse();
     }
+
+
+    @Test
+    @DisplayName("generateForMovie - respects explicit cinema associations")
+    void generateForMovie_ShouldOnlyGenerateForAssociatedCinemas() {
+        Cinema otherCinema = new Cinema();
+        otherCinema.setId(2L);
+        otherCinema.setName("Other Cinema");
+
+        movie.setCinemas(List.of(cinema));
+
+        when(cinemaService.getAll()).thenReturn(List.of(cinema, otherCinema));
+
+        when(seanceService.getExistingForGeneration(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.generateForMovie(movie);
+
+        assertThat(result.seancesCreated()).isEqualTo(21);
+
+        verify(seanceService, times(21)).save(isNull(), any(LocalDateTime.class),
+                eq(150), anyDouble(), eq(1L), eq(1L));
+
+        verify(seanceService, never()).getExistingForGeneration(eq(1L), eq(2L), any(LocalDateTime.class), any(LocalDateTime.class));
+    }
+
+
+    @Test
+    @DisplayName("importAndGenerate - respects existing movie cinema associations")
+    void importAndGenerate_ShouldRespectExistingCinemaAssociations() {
+        Cinema otherCinema = new Cinema();
+        otherCinema.setId(2L);
+        otherCinema.setName("Other Cinema");
+
+        movie.setCinemas(List.of(cinema));
+
+        when(cinemaService.getAll()).thenReturn(List.of(cinema, otherCinema));
+        when(tmdbClient.getNowPlaying()).thenReturn(List.of(tmdbMovieDto));
+        when(tmdbClient.getDetail(1L)).thenReturn(tmdbDetail);
+        when(movieService.getAllActive()).thenReturn(List.of(movie));
+        when(seanceService.getExistingForGeneration(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
+
+        assertThat(result.moviesImported()).isZero();
+        assertThat(result.seancesCreated()).isEqualTo(21);
+
+        verify(seanceService, never()).getExistingForGeneration(eq(1L), eq(2L), any(LocalDateTime.class), any(LocalDateTime.class));
+    }
+
+
+    @Test
+    @DisplayName("generateForMovie - excludes inactive associated cinemas")
+    void generateForMovie_ShouldExcludeInactiveAssociatedCinemas() {
+        Cinema inactiveCinema = new Cinema();
+        inactiveCinema.setId(99L);
+        inactiveCinema.setName("Inactive Cinema");
+        inactiveCinema.setDeleted(true);
+
+        movie.setCinemas(List.of(inactiveCinema));
+
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.generateForMovie(movie);
+
+        assertThat(result.seancesCreated()).isZero();
+        verifyNoInteractions(seanceService);
+    }
+
+
+
 
     //-------------------helper---------------------
     /**
@@ -316,3 +390,4 @@ class SeanceGeneratorServiceTest {
         return seances;
     }
 }
+

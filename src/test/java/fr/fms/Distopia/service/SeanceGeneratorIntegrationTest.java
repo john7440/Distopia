@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -80,4 +82,38 @@ class SeanceGeneratorIntegrationTest {
         assertThat(secondRun.seancesCreated()).isZero();
         assertThat(seanceRepository.count()).isEqualTo(21);
     }
+
+    @Test
+    @DisplayName("database rejects duplicate screening slots")
+    void database_shouldRejectDuplicateScreeningSlot() {
+        Movie movie = new Movie();
+        movie.setTitle("Film unique");
+        movie = movieRepository.saveAndFlush(movie);
+
+        Cinema cinema = new Cinema();
+        cinema.setName("Cinema unique");
+        cinema.setAddress("1 rue du test");
+        cinema = cinemaRepository.saveAndFlush(cinema);
+
+        LocalDateTime slot = LocalDate.now().plusDays(2).atTime(14, 0);
+
+        Seance first = new Seance();
+        first.setMovie(movie);
+        first.setCinema(cinema);
+        first.setDateTime(slot);
+        first.setAvailableSeats(150);
+        first.setPrice(10.0);
+
+        seanceRepository.saveAndFlush(first);
+
+        Seance duplicate = new Seance();
+        duplicate.setMovie(movie);
+        duplicate.setCinema(cinema);
+        duplicate.setDateTime(slot);
+        duplicate.setAvailableSeats(150);
+        duplicate.setPrice(10.0);
+
+        assertThatThrownBy(() -> seanceRepository.saveAndFlush(duplicate)).isInstanceOf(DataIntegrityViolationException.class);
+    }
+
 }

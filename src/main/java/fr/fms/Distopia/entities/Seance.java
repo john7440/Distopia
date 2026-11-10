@@ -18,9 +18,18 @@ import java.util.List;
  * <p>
  * <strong>Note on Lombok:</strong> This class uses Lombok annotations
  * ({@code @Getter},{@code @Setter}, {@code @AllArgsConstructor}, {@code @NoArgsConstructor})
- * to automatically generate getters, setters, and constructors
+ * to automatically generate getters, setters, and constructors.
+ *
+ * Database integrity rule:
+ * A movie cannot have multiple screenings at the exact same
+ * date and time in the same cinema
+ *
+ * <p>The unique database constraint protects screening generation
+ * against duplicate insertions, including concurrent requests</p>
  */
 @Entity
+@Table(name = "seance", uniqueConstraints =
+@UniqueConstraint(name = "uk_seance_movie_cinema_datetime", columnNames = {"movie_id", "cinema_id", "date_time"}))
 @Getter
 @Setter
 @AllArgsConstructor @NoArgsConstructor

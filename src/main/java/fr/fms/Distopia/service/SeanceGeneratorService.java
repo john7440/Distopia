@@ -50,16 +50,15 @@ public class SeanceGeneratorService {
 
 
     // ----------------------- point d'entrée principal--------------------------
-
     /**
-     * Imports currently playing movies and generates seances<p>
-     * Main workflow:
-     * <ol>
-     *     <li>imports TMDB movies</li>
-     *     <li>links movies to all cinemas</li>
-     *     <li>generates fictional seances</li>
-     * </ol>
-     * @return the generation result containing statistics and errors
+     * Imports currently playing TMDB movies and generates screenings
+     *
+     * <p>Movies without cinema associations are automatically linked
+     * to all active cinemas. Existing associations are preserved</p>
+     *
+     * <p>Screenings are generated only in eligible active cinemas</p>
+     *
+     * @return statistics and errors from the import and generation
      */
     public GeneratorResult importAndGenerate() {
         logger.info("Starting TMDB import and seance generation");
@@ -162,11 +161,14 @@ public class SeanceGeneratorService {
 
     //----------------------------étape 3 - génération des séances---------------------
     /**
-     * Generates fictional seances for all active movies and cinemas
+     * Generates fictional screenings for active movies
      *
-     * @param cinemas the list of cinemas
+     * <p>Each movie is scheduled only in its eligible cinemas.
+     * Existing movie/cinema associations are respected</p>
+     *
+     * @param cinemas the currently active cinemas
      * @param errors the shared error collection
-     * @return the number of generated seances
+     * @return the number of generated screenings
      */
     private int generateSeances(List<Cinema> cinemas, List<String> errors) {
         List<Movie> movies = movieService.getAllActive();
@@ -180,7 +182,9 @@ public class SeanceGeneratorService {
 
         int count = 0;
         for (Movie movie : movies) {
-            for (Cinema cinema : cinemas) {
+            List<Cinema> eligibleCinemas = resolveGenerationCinemas(movie, cinemas);
+
+            for (Cinema cinema : eligibleCinemas) {
                 count += generateSeancesForMovieAndCinema(movie, cinema, startDate);
             }
         }
@@ -197,13 +201,15 @@ public class SeanceGeneratorService {
      * @param startDate the generation start date
      * @return the number of generated seances
      */
-    public int generateSeancesForMovieAndCinema(Movie movie, Cinema cinema,
-                                                 LocalDateTime startDate) {
+    public int generateSeancesForMovieAndCinema(Movie movie, Cinema cinema, LocalDateTime startDate) {
+        LocalDateTime endExclusive = startDate.plusDays(7);
+
         Set<LocalDateTime> existing = seanceService
-                .getByMovieAndCinema(movie.getId(), cinema.getId())
+                .getExistingForGeneration(movie.getId(), cinema.getId(), startDate, endExclusive)
                 .stream()
                 .map(Seance::getDateTime)
                 .collect(Collectors.toSet());
+
 
         int count = 0;
         for (int day = 0; day < 7; day++) {
@@ -213,8 +219,8 @@ public class SeanceGeneratorService {
                         .withMinute(MINS[slot]);
 
                 if (!existing.contains(dateTime)) {
-                    seanceService.save(null, dateTime, 150, PRICES[slot],
-                            movie.getId(), cinema.getId());
+                    seanceService.save(null, dateTime, 150, PRICES[slot], movie.getId(), cinema.getId());
+                    existing.add(dateTime);
                     count++;
                 }
             }
@@ -223,13 +229,16 @@ public class SeanceGeneratorService {
     }
 
     /**
-     * Generates seances for a single movie
-     * across all cinemas<p>
-     * If the movie has no associated cinemas,
-     * it is automatically linked to all cinemas
+     * Generates fictional screenings for a specific movie
      *
-     * @param movie the movie for which seances must be generated
-     * @return the generation result containing statistics and errors
+     * <p>Existing cinema associations are respected. If the movie
+     * has no associated cinemas, it is first linked to all active
+     * cinemas to preserve the default generation behavior</p>
+     *
+     * <p>Only active cinemas are eligible for generation</p>
+     *
+     * @param movie the movie to schedule
+     * @return generation statistics and errors
      */
     public GeneratorResult generateForMovie(Movie movie) {
         List<String> errors = new ArrayList<>();
@@ -253,13 +262,45 @@ public class SeanceGeneratorService {
         LocalDateTime startDate = LocalDateTime.now().plusDays(1)
                 .withHour(0).withMinute(0).withSecond(0).withNano(0);
 
+        List<Cinema> eligibleCinemas = resolveGenerationCinemas(movie, cinemas);
+
         int count = 0;
-        for (Cinema cinema : cinemas) {
+        for (Cinema cinema : eligibleCinemas) {
             count += generateSeancesForMovieAndCinema(movie, cinema, startDate);
         }
 
         return new GeneratorResult(1, count, errors);
     }
+
+
+    /**
+     * Selects active cinemas eligible for screening generation
+     *
+     * <p>When a movie has explicit cinema associations, only associated cinemas that are still active are selected</p>
+     *
+     * <p>When no associations exist, all active cinemas are eligible, preserving the default generation behavior</p>
+     *
+     * @param movie the movie to schedule
+     * @param activeCinemas all currently active cinemas
+     * @return the eligible cinemas for screening generation
+     */
+    private List<Cinema> resolveGenerationCinemas(
+            Movie movie, List<Cinema> activeCinemas) {
+
+        if (movie.getCinemas() == null
+                || movie.getCinemas().isEmpty()) {
+            return activeCinemas;
+        }
+
+        Set<Long> associatedIds = movie.getCinemas().stream()
+                .map(Cinema::getId)
+                .collect(Collectors.toSet());
+
+        return activeCinemas.stream()
+                .filter(cinema -> associatedIds.contains(cinema.getId()))
+                .toList();
+    }
+
 
     //--------------------------méthodes helpers--------------------------------
     /**
