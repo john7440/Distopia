@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Service responsible for reservation business operations.
@@ -64,6 +66,15 @@ public class ReservationService {
      * If the user already has a reservation for the same seance, the existing reservation
      * quantity is increased instead of creating a duplicate reservation.
      *
+     * <p>Pricing rules:</p>
+     * <ul>
+     *     <li>The current screening price is captured when a new reservation is created</li>
+     *     <li>The historical unit price is stored with two decimal places using BigDecimal</li>
+     *     <li>When additional seats are booked, the original unit price remains unchanged</li>
+     * </ul>
+     *
+     * <p>The total reservation amount can be calculated by multiplying the historical unit price by the quantity</p>
+     *
      * @param seanceId the unique identifier of the seance to book
      * @param userId   the unique identifier of the user making the reservation
      * @param quantity the number of seats being reserved
@@ -101,6 +112,7 @@ public class ReservationService {
         reservation.setSeance(seance);
         reservation.setUser(user);
         reservation.setQuantity(quantity);
+        reservation.setUnitPriceAtBooking(BigDecimal.valueOf(seance.getPrice()).setScale(2, RoundingMode.HALF_UP));
 
         logger.info("Reservation created: userId={}, seanceId={}, quantity={}", userId, seanceId, quantity);
 

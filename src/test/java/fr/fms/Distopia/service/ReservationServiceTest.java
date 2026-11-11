@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -334,4 +335,47 @@ class ReservationServiceTest {
 
         assertThat(reservationService.getCinemaIdBySeance(1L)).isNull();
     }
+
+
+    @Test
+    @DisplayName("createReservation - captures initial unit price")
+    void createReservation_shouldCaptureUnitPrice() {
+        Seance seance = buildSeance(10);
+        User user = buildUser();
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
+        when(reservationRepository.findAllByUserIdAndSeanceId(2L, 1L)).thenReturn(List.of());
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Reservation result = reservationService.createReservation(1L, 2L, 3);
+
+        assertThat(result.getUnitPriceAtBooking()).isEqualByComparingTo("9.50");
+        assertThat(result.getQuantity()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("createReservation - preserves original unit price")
+    void createReservation_shouldPreserveOriginalUnitPrice() {
+        Seance seance = buildSeance(10);
+        User user = buildUser();
+
+        Reservation existing = new Reservation();
+        existing.setId(99L);
+        existing.setSeance(seance);
+        existing.setUser(user);
+        existing.setQuantity(2);
+        existing.setUnitPriceAtBooking(new BigDecimal("8.50"));
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
+        when(reservationRepository.findAllByUserIdAndSeanceId(2L, 1L)).thenReturn(List.of(existing));
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Reservation result = reservationService.createReservation(1L, 2L, 3);
+
+        assertThat(result.getQuantity()).isEqualTo(5);
+        assertThat(result.getUnitPriceAtBooking()).isEqualByComparingTo("8.50");
+    }
+
 }

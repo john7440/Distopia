@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 /**
  * Represents a Reservation entity in the application
@@ -41,5 +42,9 @@ public class Reservation implements Serializable {
     @Min(value = 1, message = "La quantité doit être au moins de 1")
     @Column(nullable = false)
     private int quantity;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal unitPriceAtBooking;
+
 
 }

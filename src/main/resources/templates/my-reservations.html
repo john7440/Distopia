@@ -54,7 +54,7 @@
                         <td th:text="${#temporals.format(resa.seance.dateTime, 'dd/MM/yyyy')}"></td>
                         <td th:text="${#temporals.format(resa.seance.dateTime, 'HH:mm')}"></td>
                         <td th:text="${resa.quantity}"></td>
-                        <td th:text="${resa.seance.price} + ' €'"></td>
+                        <td th:text="${resa.unitPriceAtBooking} + ' €'"></td>
                         <td th:text="${#temporals.format(resa.reservedAt, 'dd/MM/yyyy HH:mm')}"></td>
                         <td th:text="${resa.seance.cinema.name}"></td>
                     </tr>

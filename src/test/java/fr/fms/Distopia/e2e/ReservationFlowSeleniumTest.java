@@ -50,6 +50,8 @@ class ReservationFlowSeleniumTest {
     private SeanceRepository seanceRepository;
     @Autowired
     private PasswordEncoder  passwordEncoder;
+    @Autowired
+    private ReservationRepository reservationRepository;
 
     private WebDriver  driver;
     private WebDriverWait wait;
@@ -102,6 +104,14 @@ class ReservationFlowSeleniumTest {
 
         assertThat(driver.getPageSource()).contains("Inception");
         assertThat(driver.getPageSource()).contains("bien enregistrée");
+        assertThat(reservationRepository.findAll()).hasSize(1);
+
+        Reservation savedReservation = reservationRepository.findAll().get(0);
+
+        assertThat(savedReservation.getQuantity()).isEqualTo(1);
+        assertThat(savedReservation.getUnitPriceAtBooking()).isEqualByComparingTo("9.50");
+        assertThat(driver.findElement(By.tagName("body")).getText()).contains("9.50");
+
     }
 
     /**
@@ -130,6 +140,7 @@ class ReservationFlowSeleniumTest {
         cinemaRepository.deleteAll();
         townRepository.deleteAll();
         userRepository.deleteAll();
+        reservationRepository.deleteAll();
     }
 
     /**
