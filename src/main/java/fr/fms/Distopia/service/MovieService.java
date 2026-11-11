@@ -120,25 +120,30 @@ public class MovieService {
 
     //----------------suppression d'un film (il reste en bdd) + désactivation des séances liées -----------
     /**
-     * Performs a soft deletion of a movie and disables its associated seances<p>
-     * The movie is not physically removed from the database. Its {@code deleted}
-     * flag is set to {@code true}, all linked seances are marked as inactive and
-     * their available seats are set to {@code 0}. This prevents users from booking
-     * a seance linked to a movie that is no longer available.
+     * Soft-deletes a movie and deactivates its associated screenings
      *
-     * @param id the unique identifier of the movie to soft-delete
+     * <p>The movie remains in the database to preserve reservation history and referential integrity</p>
+     *
+     * <p>All associated screenings are marked as inactive, preventing new reservations.
+     * Their available seat counts remain unchanged to preserve existing capacity information</p>
+     *
+     * <p>The operation is transactional to ensure that the movie deletion flag and screening status changes are persisted
+     * atomically</p>
+     *
+     * @param id the identifier of the movie to soft-delete
      */
+    @Transactional
     public void softDelete(Long id) {
         movieRepository.findById(id).ifPresent(movie -> {
             movie.setDeleted(true);
-            movie.getSeances().forEach(seance -> {
-                seance.setActive(false);
-                seance.setAvailableSeats(0);
-            });
+
+            movie.getSeances().forEach(seance -> seance.setActive(false));
+
             seanceRepository.saveAll(movie.getSeances());
             movieRepository.save(movie);
         });
     }
+
 
     //-------------chercher tous les films actifs---------------
     /**
