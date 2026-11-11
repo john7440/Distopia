@@ -116,6 +116,7 @@ public class CinemaController {
      * @param sortField the selected sorting field
      * @param sortDir the sorting direction
      * @param editId the identifier of the cinema being edited
+     * @param includeDeleted whether to include soft-deleted cinemas
      * @param model the Spring {@link Model} used to pass data to the view
      * @return the cinema administration page
      */
@@ -125,9 +126,10 @@ public class CinemaController {
                                @RequestParam(defaultValue = "name") String sortField,
                                @RequestParam(defaultValue = "asc")String sortDir,
                                @RequestParam(required = false) Long editId,
+                               @RequestParam(defaultValue = "false") boolean includeDeleted,
                                Model model) {
 
-        Page<Cinema> cinemaPage = cinemaService.searchAdmin(keyword, sortField, sortDir, page);
+        Page<Cinema> cinemaPage = cinemaService.searchAdmin(keyword, sortField, sortDir, page, includeDeleted);
 
         Cinema cinemaToEdit = (editId != null)
                 ? cinemaService.findById(editId).orElse(new Cinema())
@@ -143,6 +145,7 @@ public class CinemaController {
         model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
         model.addAttribute("towns",         townService.getAll());
         model.addAttribute("cinemaToEdit",   cinemaToEdit);
+        model.addAttribute("includeDeleted", includeDeleted);
 
         return "admin-cinemas";
     }

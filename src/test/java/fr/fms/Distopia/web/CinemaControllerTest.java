@@ -121,8 +121,7 @@ class CinemaControllerTest {
     @DisplayName("/admin/cinemas - Should display admin cinemas page")
     void adminCinemas_shouldDisplayAdminCinemasPage() throws Exception {
         Page<Cinema> cinemaPage = new PageImpl<>(List.of());
-        when(cinemaService.searchAdmin(any(), any(), any(), anyInt()))
-                .thenReturn(cinemaPage);
+        when(cinemaService.searchAdmin(any(), any(), any(), anyInt(), eq(false))).thenReturn(cinemaPage);
         when(townService.getAll()).thenReturn(List.of());
 
         mockMvc.perform(get("/admin/cinemas")
@@ -143,18 +142,57 @@ class CinemaControllerTest {
         cinema.setName("Ciné");
 
         Page<Cinema> cinemaPage = new PageImpl<>(List.of());
-        when(cinemaService.searchAdmin(any(), any(), any(), anyInt()))
-                .thenReturn(cinemaPage);
+        when(cinemaService.searchAdmin(any(), any(), any(), anyInt(), eq(false))).thenReturn(cinemaPage);
         when(cinemaService.findById(1L)).thenReturn(Optional.of(cinema));
         when(townService.getAll()).thenReturn(List.of());
 
-        mockMvc.perform(get("/admin/cinemas")
-                        .with(user("admin").roles("ADMIN"))
-                        .param("editId", "1"))
+        mockMvc.perform(get("/admin/cinemas").with(user("admin").roles("ADMIN")).param("editId", "1"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin-cinemas"))
                 .andExpect(model().attributeExists("cinemaToEdit"));
     }
+
+
+    @Test
+    @DisplayName("/admin/cinemas - includes deleted cinemas when requested")
+    void adminCinemas_ShouldIncludeDeletedWhenRequested() throws Exception {
+        Cinema deletedCinema = new Cinema();
+        deletedCinema.setId(7L);
+        deletedCinema.setName("Cinéma supprimé");
+        deletedCinema.setDeleted(true);
+
+        Page<Cinema> page = new PageImpl<>(List.of(deletedCinema));
+
+        when(cinemaService.searchAdmin("Cinéma", "name", "desc", 0, true)).thenReturn(page);
+
+        mockMvc.perform(get("/admin/cinemas").with(user("admin").roles("ADMIN"))
+                        .param("keyword", "Cinéma")
+                        .param("sortField", "name")
+                        .param("sortDir", "desc")
+                        .param("includeDeleted", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin-cinemas"))
+                .andExpect(model().attribute("includeDeleted", true))
+                .andExpect(model().attribute("cinemas", List.of(deletedCinema)));
+
+        verify(cinemaService).searchAdmin("Cinéma", "name", "desc", 0, true);
+    }
+
+    @Test
+    @DisplayName("/admin/cinemas - excludes deleted cinemas by default")
+    void adminCinemas_ShouldExcludeDeletedByDefault() throws Exception {
+        Page<Cinema> page = new PageImpl<>(List.of());
+
+        when(cinemaService.searchAdmin(null, "name", "asc", 0, false)).thenReturn(page);
+
+        mockMvc.perform(get("/admin/cinemas").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin-cinemas"))
+                .andExpect(model().attribute("includeDeleted", false));
+
+        verify(cinemaService).searchAdmin(null, "name", "asc", 0, false);
+    }
+
 
 
     //----------------------------test for admin-saveCinema-----------------------------
