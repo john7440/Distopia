@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr"
       xmlns:th="http://www.thymeleaf.org"
@@ -59,17 +60,18 @@
             </button>
         </div>
 
+        <!-- Admin cinema search and deleted filter -->
         <form th:action="@{/admin/cinemas}"
               method="get"
               class="row g-3 mb-4">
 
             <div class="col-md-9">
                 <label for="cinemaSearch" class="visually-hidden">Rechercher un cinéma</label>
-                    <input id="cinemaSearch" type="text"
-                           name="keyword"
-                           class="form-control"
-                           placeholder="Rechercher par nom ou ville..."
-                           th:value="${keyword}">
+                <input id="cinemaSearch" type="text"
+                       name="keyword"
+                       class="form-control"
+                       placeholder="Rechercher par nom ou ville..."
+                       th:value="${keyword}">
             </div>
 
             <input type="hidden"
@@ -84,6 +86,22 @@
                 <button class="btn btn-dark">
                     <i class="bi bi-search"></i> Rechercher
                 </button>
+            </div>
+            <!-- Include soft-deleted cinemas in the admin listing -->
+            <div class="col-12">
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           id="includeDeleted"
+                           name="includeDeleted"
+                           value="true"
+                           th:checked="${includeDeleted}">
+
+                    <label class="form-check-label"
+                           for="includeDeleted">
+                        Inclure les cinémas supprimés
+                    </label>
+                </div>
             </div>
         </form>
 
@@ -106,6 +124,7 @@
                         <th>
                             <a th:href="@{/admin/cinemas(
                            keyword=${keyword},
+                           includeDeleted=${includeDeleted},
                            page=0,
                            sortField='name',
                            sortDir=${sortField == 'name' ? reverseSortDir : 'asc'})}"
@@ -127,6 +146,7 @@
                         <th>
                             <a th:href="@{/admin/cinemas(
                            keyword=${keyword},
+                           includeDeleted=${includeDeleted},
                            page=0,
                            sortField='town.name',
                            sortDir=${sortField == 'town.name' ? reverseSortDir : 'asc'})}"
@@ -166,7 +186,9 @@
                         </td>
                     </tr>
 
-                    <tr th:each="cinema : ${cinemas}">
+                    <!-- Cinemas, including deleted when requested -->
+                    <tr th:each="cinema : ${cinemas}"
+                        th:classappend="${cinema.deleted} ? 'table-secondary opacity-75' : ''">
 
                         <td>
                             <div class="d-flex align-items-center gap-3">
@@ -179,6 +201,11 @@
                                     <div class="fw-semibold"
                                          th:text="${cinema.name}">
                                     </div>
+
+                                    <!-- Soft-deleted cinema indicator -->
+                                    <span th:if="${cinema.deleted}" class="badge bg-danger mt-1">
+                                        Supprimé
+                                    </span>
                                 </div>
 
                             </div>
@@ -197,6 +224,7 @@
                             </span>
                         </td>
 
+                        <!-- Maps -->
                         <td>
                             <a th:if="${cinema.buildMapsUrl() != null}"
                                th:href="${cinema.buildMapsUrl()}"
@@ -209,9 +237,9 @@
                                   class="text-muted">
                                 —
                             </span>
-
                         </td>
 
+                        <!-- Website -->
                         <td>
                             <a th:if="${cinema.website != null}"
                                th:href="${cinema.website}"
@@ -224,23 +252,43 @@
                                   class="text-muted">
                                 —
                             </span>
-
                         </td>
 
+                        <!-- Actions -->
                         <td class="text-end">
 
-                            <a th:href="@{/admin/cinemas(editId=${cinema.id})}"
+                            <!-- Preserve admin filters when editing -->
+                            <a th:href="@{/admin/cinemas(
+                                editId=${cinema.id},
+                                includeDeleted=${includeDeleted},
+                                keyword=${keyword},
+                                page=${currentPage},
+                                sortField=${sortField},
+                                sortDir=${sortDir})}"
                                class="btn btn-sm btn-warning me-1">
                                 Modifier
                             </a>
 
-                            <form th:action="@{/admin/deleteCinema}" method="post" style="display:inline">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                <input type="hidden" name="id" th:value="${cinema.id}" />
-                                <button type="submit" class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Supprimer ce cinéma ?')">Supprimer</button>
-                            </form>
+                            <!-- Only active cinemas can be soft-deleted -->
+                            <form th:if="${!cinema.deleted}"
+                                  th:action="@{/admin/deleteCinema}"
+                                  method="post"
+                                  style="display:inline">
 
+                                <input type="hidden"
+                                       th:name="${_csrf.parameterName}"
+                                       th:value="${_csrf.token}">
+
+                                <input type="hidden"
+                                       name="id"
+                                       th:value="${cinema.id}">
+
+                                <button type="submit"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Supprimer ce cinéma ?')">
+                                    Supprimer
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     </tbody>
@@ -248,60 +296,70 @@
             </div>
         </div>
 
-        <!-- pagination---->
+        <!-- Pagination -->
         <nav th:if="${cinemaPage.totalPages > 1}" class="mt-4">
             <ul class="pagination justify-content-center">
 
+                <!-- First page -->
                 <li class="page-item"
                     th:classappend="${currentPage == 0} ? 'disabled'">
+
                     <a class="page-link"
                        th:href="@{/admin/cinemas(
-                    keyword=${keyword},
-                    sortField=${sortField},
-                    sortDir=${sortDir},
-                    page=0)}">
+                           keyword=${keyword},
+                           includeDeleted=${includeDeleted},
+                           sortField=${sortField},
+                           sortDir=${sortDir},
+                           page=0)}">
                         «
                     </a>
                 </li>
 
+                <!-- Previous page -->
                 <li class="page-item"
                     th:classappend="${currentPage == 0} ? 'disabled'">
+
                     <a class="page-link"
                        th:href="@{/admin/cinemas(
-                    keyword=${keyword},
-                    sortField=${sortField},
-                    sortDir=${sortDir},
-                    page=${currentPage - 1})}">
+                           keyword=${keyword},
+                           includeDeleted=${includeDeleted},
+                           sortField=${sortField},
+                           sortDir=${sortDir},
+                           page=${currentPage - 1})}">
                         ‹
                     </a>
                 </li>
 
+                <!-- Page numbers -->
                 <li th:each="i : ${#numbers.sequence(
-                currentPage > 2 ? currentPage - 2 : 0,
-                currentPage + 2 < cinemaPage.totalPages - 1 ?
-                currentPage + 2 :
-                cinemaPage.totalPages - 1)}"
+                    currentPage > 2 ? currentPage - 2 : 0,
+                    currentPage + 2 < cinemaPage.totalPages - 1 ?
+                    currentPage + 2 :
+                    cinemaPage.totalPages - 1)}"
                     class="page-item"
                     th:classappend="${i == currentPage} ? 'active'">
 
                     <a class="page-link"
                        th:text="${i + 1}"
                        th:href="@{/admin/cinemas(
-                    keyword=${keyword},
-                    sortField=${sortField},
-                    sortDir=${sortDir},
-                    page=${i})}">
+                           keyword=${keyword},
+                           includeDeleted=${includeDeleted},
+                           sortField=${sortField},
+                           sortDir=${sortDir},
+                           page=${i})}">
                     </a>
                 </li>
 
+                <!-- Next page -->
                 <li class="page-item"
                     th:classappend="${currentPage >= cinemaPage.totalPages - 1} ? 'disabled'">
                     <a class="page-link"
                        th:href="@{/admin/cinemas(
-                    keyword=${keyword},
-                    sortField=${sortField},
-                    sortDir=${sortDir},
-                    page=${currentPage + 1})}">
+                           keyword=${keyword},
+                           includeDeleted=${includeDeleted},
+                           sortField=${sortField},
+                           sortDir=${sortDir},
+                           page=${currentPage + 1})}">
                         ›
                     </a>
                 </li>
@@ -310,10 +368,11 @@
                     th:classappend="${currentPage >= cinemaPage.totalPages - 1} ? 'disabled'">
                     <a class="page-link"
                        th:href="@{/admin/cinemas(
-                    keyword=${keyword},
-                    sortField=${sortField},
-                    sortDir=${sortDir},
-                    page=${cinemaPage.totalPages - 1})}">
+                           keyword=${keyword},
+                           includeDeleted=${includeDeleted},
+                           sortField=${sortField},
+                           sortDir=${sortDir},
+                           page=${cinemaPage.totalPages - 1})}">
                         »
                     </a>
                 </li>
@@ -355,26 +414,26 @@
                         <!-- Nom -->
                         <div class="mb-3">
                             <label for="cinemaName" class="form-label fw-semibold">Nom</label>
-                                <input id="cinemaName" type="text"
-                                       name="name"
-                                       placeholder="Nom du Cinéma"
-                                       class="form-control"
-                                       th:value="${cinemaToEdit.name}"
-                                       minlength="2"
-                                       maxlength="120"
-                                       required/>
+                            <input id="cinemaName" type="text"
+                                   name="name"
+                                   placeholder="Nom du Cinéma"
+                                   class="form-control"
+                                   th:value="${cinemaToEdit.name}"
+                                   minlength="2"
+                                   maxlength="120"
+                                   required/>
                         </div>
 
                         <!-- Adresse -->
                         <div class="mb-3">
                             <label for="cinemaAddress" class="form-label fw-semibold">Adresse</label>
-                                <input id="cinemaAddress" type="text"
-                                       name="address"
-                                       class="form-control"
-                                       placeholder="3 rue de la Pierre en Bois"
-                                       th:value="${cinemaToEdit.address}"
-                                       maxlength="255"
-                                       required/>
+                            <input id="cinemaAddress" type="text"
+                                   name="address"
+                                   class="form-control"
+                                   placeholder="3 rue de la Pierre en Bois"
+                                   th:value="${cinemaToEdit.address}"
+                                   maxlength="255"
+                                   required/>
                         </div>
 
                         <div class="row g-3 mb-3">
@@ -382,15 +441,15 @@
                             <!-- Ville -->
                             <div class="col-md-8">
                                 <label for="cinemaTown" class="form-label fw-semibold">Ville</label>
-                                    <select id="cinemaTown" name="townId" class="form-select">
-                                        <option value="">-- Aucune ville --</option>
-                                        <option th:each="town : ${towns}"
-                                                th:value="${town.id}"
-                                                th:text="${town.name}"
-                                                th:selected="${cinemaToEdit.town != null
-                                                           and cinemaToEdit.town.id == town.id}">
-                                        </option>
-                                    </select>
+                                <select id="cinemaTown" name="townId" class="form-select">
+                                    <option value="">-- Aucune ville --</option>
+                                    <option th:each="town : ${towns}"
+                                            th:value="${town.id}"
+                                            th:text="${town.name}"
+                                            th:selected="${cinemaToEdit.town != null
+                                                       and cinemaToEdit.town.id == town.id}">
+                                    </option>
+                                </select>
                             </div>
 
                             <!-- Département -->
@@ -402,7 +461,7 @@
                                        name="department"
                                        class="form-control"
                                        maxlength="3"
-                                       pattern="^$|^\d{2,3}$"
+                                       pattern="^$|\d{2,3}$"
                                        title="Le département doit contenir 2 ou 3 chiffres"
                                        placeholder="ex: 75"
                                        th:value="${cinemaToEdit.department}"/>
@@ -414,13 +473,13 @@
                             <label for="cinemaWebsite" class="form-label fw-semibold">
                                 <i class="bi bi-globe me-1"></i>Site web
                             </label>
-                                <input id="cinemaWebsite"
-                                       type="url"
-                                       name="website"
-                                       class="form-control"
-                                       placeholder="https://..."
-                                       maxlength="250"
-                                       th:value="${cinemaToEdit.website}"/>
+                            <input id="cinemaWebsite"
+                                   type="url"
+                                   name="website"
+                                   class="form-control"
+                                   placeholder="https://..."
+                                   maxlength="250"
+                                   th:value="${cinemaToEdit.website}"/>
                         </div>
 
                         <!-- Image URL -->
@@ -460,29 +519,29 @@
                                 <label for="cinemaLatitude" class="form-label fw-semibold">
                                     <i class="bi bi-geo-alt me-1"></i>Latitude
                                 </label>
-                                    <input id="cinemaLatitude"
-                                           type="number"
-                                           name="latitude"
-                                           class="form-control"
-                                           step="0.0000001"
-                                           min="-90"
-                                           max="90"
-                                           placeholder="ex: 48.8566"
-                                           th:value="${cinemaToEdit.latitude}"/>
+                                <input id="cinemaLatitude"
+                                       type="number"
+                                       name="latitude"
+                                       class="form-control"
+                                       step="0.0000001"
+                                       min="-90"
+                                       max="90"
+                                       placeholder="ex: 48.8566"
+                                       th:value="${cinemaToEdit.latitude}"/>
                             </div>
                             <div class="col-md-6">
                                 <label for="cinemaLongitude" class="form-label fw-semibold">
                                     <i class="bi bi-geo-alt me-1"></i>Longitude
                                 </label>
-                                    <input id="cinemaLongitude"
-                                           type="number"
-                                           name="longitude"
-                                           class="form-control"
-                                           step="0.0000001"
-                                           min="-180"
-                                           max="180"
-                                           placeholder="ex: 2.3522"
-                                           th:value="${cinemaToEdit.longitude}"/>
+                                <input id="cinemaLongitude"
+                                       type="number"
+                                       name="longitude"
+                                       class="form-control"
+                                       step="0.0000001"
+                                       min="-180"
+                                       max="180"
+                                       placeholder="ex: 2.3522"
+                                       th:value="${cinemaToEdit.longitude}"/>
                             </div>
                         </div>
                         <small class="text-muted mt-1 d-block">
