@@ -484,4 +484,48 @@ import static org.mockito.Mockito.*;
 
         verify(seanceRepository, never()).save(any(Seance.class));
     }
+
+
+    @Test
+    @DisplayName("save - rejects movie change when reservations exist")
+    void save_shouldRejectMovieChangeWhenReservationsExist() {
+        Movie otherMovie = new Movie();
+        otherMovie.setId(2L);
+        otherMovie.setTitle("Other Movie");
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(movieRepository.findById(2L)).thenReturn(Optional.of(otherMovie));
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(reservationRepository.countBySeanceIds(List.of(1L))).thenReturn(1L);
+
+        assertThatThrownBy(() -> seanceService.save(1L, futureDate, 100, 12.0, 2L, 1L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("réservations");
+
+        assertThat(seance.getMovie()).isSameAs(movie);
+        verify(seanceRepository, never()).save(any(Seance.class));
+    }
+
+
+    @Test
+    @DisplayName("save - rejects cinema change when reservations exist")
+    void save_shouldRejectCinemaChangeWhenReservationsExist() {
+        Cinema otherCinema = new Cinema();
+        otherCinema.setId(2L);
+        otherCinema.setName("Other Cinema");
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(cinemaRepository.findById(2L)).thenReturn(Optional.of(otherCinema));
+        when(reservationRepository.countBySeanceIds(List.of(1L))).thenReturn(1L);
+
+        assertThatThrownBy(() -> seanceService.save(1L, futureDate, 100, 12.0, 1L, 2L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("réservations");
+
+        assertThat(seance.getCinema()).isSameAs(cinema);
+        verify(seanceRepository, never()).save(any(Seance.class));
+    }
+
+
 }

@@ -100,12 +100,13 @@ public class SeanceService {
      * <ul>
      *     <li>Available seats cannot be changed when reservations exist</li>
      *     <li>Screening date and time cannot be changed when reservations exist</li>
-     *     <li>Ticket price cannot be changed when reservations exist</li>
+     *     <li>Ticket price cannot be changed when reservations exist  </li>
+     *     <li>Associated movie cannot be changed when reservations exist</li>
+     *     <li>Associated cinema cannot be changed when reservations exist</li>
      * </ul>
      *
      * <p>These checks are performed while holding a pessimistic write lock within the current transaction</p>
-     *
-     *
+
      * <p>Lifecycle rules:</p>
      * <ul>
      *     <li>New future screenings are active.</li>
@@ -144,6 +145,15 @@ public class SeanceService {
         if (cinema.isDeleted()) {
             throw new IllegalStateException("Impossible de programmer une séance dans un cinéma supprimé");
         }
+
+        if (id != null && (!Objects.equals(seance.getMovie() != null ? seance.getMovie().getId() : null,
+                movie != null ? movie.getId() : null) || !Objects.equals(seance.getCinema() != null ? seance.getCinema().getId() : null,
+                cinema.getId())) && reservationRepository.countBySeanceIds(List.of(id)) > 0) {
+
+            throw new IllegalStateException(
+                    "Impossible de modifier le film ou le cinéma d'une séance ayant déjà des réservations");
+        }
+
 
         if (id != null && (!Objects.equals(seance.getDateTime(), dateTime) || Double.compare(seance.getPrice(), price) != 0)
                 && reservationRepository.countBySeanceIds(List.of(id)) > 0) {
