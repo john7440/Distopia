@@ -63,6 +63,26 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
         """)
     Page<Cinema> searchAdmin(@Param("keyword") String keyword, Pageable pageable);
 
+
+    /**
+     * Searches cinemas by name or town, including soft-deleted cinemas
+     *
+     * <p>Unlike {@link #searchAdmin(String, Pageable)}, this query does not filter on the cinema's deleted status</p>
+     *
+     * <p>This method is intended for administrative use only</p>
+     *
+     * @param keyword the cinema or town search keyword
+     * @param pageable the pagination and sorting configuration
+     * @return a page of matching cinemas, including deleted ones
+     */
+    @Query("""
+    SELECT c FROM Cinema c LEFT JOIN c.town t WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    OR LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    """)
+    Page<Cinema> searchAdminIncludingDeleted(
+            @Param("keyword") String keyword,
+            Pageable pageable);
+
     /**
      * Retrieves cinemas belonging to a specific town
      *

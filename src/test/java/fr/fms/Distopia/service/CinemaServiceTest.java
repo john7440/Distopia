@@ -20,7 +20,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.NoSuchElementException;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -384,7 +386,6 @@ class CinemaServiceTest {
     }
 
     //-------------------------tests for searchAdmin()  --------------------------
-
     @Test
     @DisplayName("searchAdmin() - searches cinemas when keyword is provided")
     void searchAdmin_ShouldSearchCinemasWhenKeywordProvided() {
@@ -412,4 +413,89 @@ class CinemaServiceTest {
         verify(cinemaRepository).findByDeletedFalse(any(Pageable.class));
         verify(cinemaRepository, never()).findAll(any(Pageable.class));
     }
+
+
+    @Test
+    @DisplayName("searchAdmin() - includes deleted cinemas when requested")
+    void searchAdmin_ShouldIncludeDeletedCinemas() {
+        cinema.setDeleted(true);
+
+        Page<Cinema> page = new PageImpl<>(List.of(cinema));
+
+        when(cinemaRepository.findAll(any(Pageable.class))).thenReturn(page);
+
+        Page<Cinema> result = cinemaService.searchAdmin(null, "name", "asc", 0, true);
+
+        assertThat(result.getContent()).containsExactly(cinema);
+        verify(cinemaRepository).findAll(any(Pageable.class));
+        verify(cinemaRepository, never()).findByDeletedFalse(any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("searchAdmin() - searches deleted cinemas when requested")
+    void searchAdmin_ShouldSearchIncludingDeletedCinemas() {
+        cinema.setDeleted(true);
+
+        Page<Cinema> page = new PageImpl<>(List.of(cinema));
+
+        when(cinemaRepository.searchAdminIncludingDeleted(eq("Gaumont"), any(Pageable.class))).thenReturn(page);
+
+        Page<Cinema> result = cinemaService.searchAdmin("Gaumont", "name", "asc", 0, true);
+
+        assertThat(result.getContent()).containsExactly(cinema);
+        verify(cinemaRepository).searchAdminIncludingDeleted(eq("Gaumont"), any(Pageable.class));
+    }
+
+
+    //-------------------------tests for restore()--------------------------
+    @Test
+    @DisplayName(" restore() - restores cinema without changing screenings")
+    void restore_ShouldRestoreCinemaWithoutReactivatingSeances() {
+        cinema.setDeleted(true);
+
+        Seance seance = new Seance();
+        seance.setDateTime(LocalDateTime.now().plusDays(2));
+        seance.setActive(false);
+        seance.setAvailableSeats(80);
+        cinema.getSeances().add(seance);
+
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+
+        boolean restored = cinemaService.restore(1L);
+
+        assertThat(restored).isTrue();
+        assertThat(cinema.isDeleted()).isFalse();
+        assertThat(seance.isActive()).isFalse();
+        assertThat(seance.getAvailableSeats()).isEqualTo(80);
+
+        verify(cinemaRepository).save(cinema);
+    }
+
+
+    @Test
+    @DisplayName("restore() - does nothing when cinema is already active ")
+    void restore_ShouldDoNothingWhenCinemaIsAlreadyActive() {
+        // GIVEN
+        cinema.setDeleted(false);
+
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+
+        boolean restored = cinemaService.restore(1L);
+
+        assertThat(restored).isFalse();
+        assertThat(cinema.isDeleted()).isFalse();
+
+        verify(cinemaRepository, never()).save(any(Cinema.class));
+    }
+
+    @Test
+    @DisplayName("restore() - rejects unknown cinema")
+    void restore_ShouldRejectUnknownCinema() {
+        when(cinemaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> cinemaService.restore(99L)).isInstanceOf(NoSuchElementException.class);
+
+        verify(cinemaRepository, never()).save(any(Cinema.class));
+    }
+
 }

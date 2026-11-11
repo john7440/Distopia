@@ -87,25 +87,53 @@ public class CinemaService {
 
     //------------------recherche admin--------------------------
     /**
-     * Searches cinemas for the administration dashboard
-     * <p>
-     * Supports keyword search and dynamic sorting
+     * Searches active cinemas for the administration dashboard.
      *
-     * @param keyword   the keyword used to search cinemas
+     * <p>Soft-deleted cinemas are excluded by default to preserve
+     * the existing administration behavior.</p>
+     *
+     * @param keyword the optional search keyword
      * @param sortField the field used for sorting
-     * @param sortDir   the sorting direction (asc or desc)
-     * @param page      the requested page number
-     * @return a paginated list of cinemas for administration
+     * @param sortDir the sorting direction
+     * @param page the requested page number
+     * @return a page of non-deleted cinemas
      */
     public Page<Cinema> searchAdmin(String keyword, String sortField, String sortDir, int page) {
+        return searchAdmin(keyword, sortField, sortDir, page, false);
+    }
+
+
+    /**
+     * Searches cinemas for the administration dashboard with
+     * optional inclusion of soft-deleted cinemas.
+     *
+     * <p>When {@code includeDeleted} is false, only active cinemas
+     * are returned. When true, both active and deleted cinemas
+     * are included, including during keyword searches.</p>
+     *
+     * <p>Pagination and sorting are applied consistently in
+     * both modes. Public cinema searches are unaffected.</p>
+     *
+     * @param keyword the optional cinema or town search keyword
+     * @param sortField the field used for sorting
+     * @param sortDir the sorting direction (asc or desc)
+     * @param page the requested page number
+     * @param includeDeleted whether to include soft-deleted cinemas
+     * @return a page of cinemas matching the requested filters
+     */
+    public Page<Cinema> searchAdmin(String keyword, String sortField, String sortDir, int page, boolean includeDeleted) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortField);
+
         Pageable pageable = PageRequest.of(page, 12, sort);
 
         if (keyword != null && !keyword.isBlank()) {
-            return cinemaRepository.searchAdmin(keyword, pageable);
+            return includeDeleted ? cinemaRepository.searchAdminIncludingDeleted(keyword, pageable)
+                    : cinemaRepository.searchAdmin(keyword, pageable);
         }
-        return cinemaRepository.findByDeletedFalse(pageable);
+
+        return includeDeleted ? cinemaRepository.findAll(pageable) : cinemaRepository.findByDeletedFalse(pageable);
     }
+
 
     //-----------afficher tous les cinémas-------------
     /**
@@ -204,4 +232,32 @@ public class CinemaService {
             cinemaRepository.save(cinema);
         });
     }
+
+
+    /**
+     * Explicitly restores a previously soft-deleted cinema
+     *
+     * <p>Restoration clears the cinema's deleted flag without modifying associated screenings, their activation states
+     * or their remaining seat counts</p>
+     *
+     * <p>The operation is idempotent: restoring an already active cinema does not perform another database update </p>
+     *
+     * @param id the identifier of the cinema to restore
+     * @return true if the cinema was restored, false if already active
+     * @throws java.util.NoSuchElementException if the cinema does not exist
+     */
+    @Transactional
+    public boolean restore(Long id) {
+        Cinema cinema = cinemaRepository.findById(id).orElseThrow();
+
+        if (!cinema.isDeleted()) {
+            return false;
+        }
+
+        cinema.setDeleted(false);
+        cinemaRepository.save(cinema);
+
+        return true;
+    }
+
 }
