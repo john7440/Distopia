@@ -277,8 +277,41 @@ class MovieServiceTest {
         assertThat(result.getReleaseDate()).isEqualTo(LocalDate.of(2026, 6, 5));
         verify(movieRepository).save(any(Movie.class));
     }
-    //------------------tests for searchAdmin() ---------------------------
 
+
+    @Test
+    @DisplayName("save() - preserves deleted status when editing a soft-deleted movie")
+    void save_shouldPreserveDeletedStatusWhenUpdating() {
+        movie.setDeleted(true);
+
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(movieRepository.save(any(Movie.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Movie result = movieService.save(1L, null, "Updated Movie", "Updated description",
+                120, "Drama", null, null, null, date);
+
+        assertThat(result.isDeleted()).isTrue();
+        assertThat(result.getTitle()).isEqualTo("Updated Movie");
+
+        verify(movieRepository).save(movie);
+    }
+
+
+    @Test
+    @DisplayName("save() - creates new movies as active")
+    void save_shouldCreateNewMovieAsActive() {
+        when(movieRepository.save(any(Movie.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Movie result = movieService.save(null, null, "New Movie", "Description",
+                110, "Drama", null, null, null, date);
+
+        assertThat(result.isDeleted()).isFalse();
+        assertThat(result.getTitle()).isEqualTo("New Movie");
+
+        verify(movieRepository).save(any(Movie.class));
+    }
+
+    //------------------tests for searchAdmin() ---------------------------
     @Test
     @DisplayName("searchAdmin() - returns paged movies sorted ascending")
     void searchAdmin_ShouldReturnPagedMoviesSortedAscending() {

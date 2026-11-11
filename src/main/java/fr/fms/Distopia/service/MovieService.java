@@ -72,6 +72,17 @@ public class MovieService {
      * When updating, all previous movie/cinema relations
      * are cleared before adding the new ones provided
      * in {@code cinemaIds}
+
+     * <p>Soft-delete lifecycle:</p>
+     * <ul>
+     *     <li>New movies are active by default</li>
+     *     <li>Updating an active movie preserves its active status</li>
+     *     <li>Updating a soft-deleted movie preserves its deleted status</li>
+     *     <li>Restoring a deleted movie requires an explicit restoration operation</li>
+     * </ul>
+     *
+     * <p>Regular movie updates must never implicitly restore
+     * previously deleted movies.</p>
      *
      * @param id          the movie identifier, or null for creation
      * @param tmdbId      the TMDB movie identifier
@@ -90,9 +101,7 @@ public class MovieService {
                       int duration, String genre, String imageUrl, String trailerUrl,
                       List<Long> cinemaIds, LocalDate releaseDate) {
 
-        Movie movie = (id != null)
-                ? movieRepository.findById(id).orElse(new Movie())
-                : new Movie();
+        Movie movie = (id != null) ? movieRepository.findById(id).orElse(new Movie()) : new Movie();
 
         movie.setTitle(title);
         movie.setDescription(description);
@@ -102,7 +111,6 @@ public class MovieService {
         movie.setTrailerUrl(trailerUrl);
         movie.setReleaseDate(releaseDate);
         movie.setTmdbId(tmdbId);
-        movie.setDeleted(false);
 
         if (cinemaIds != null) {
             movie.getCinemas().forEach(c -> c.getMovies().remove(movie));
