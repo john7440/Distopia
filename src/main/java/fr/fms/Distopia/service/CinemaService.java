@@ -164,17 +164,20 @@ public class CinemaService {
 
     //--------------soft delete cinéma ----------------
     /**
-     * Soft-deletes a cinema and disables its future seances
-     * <p>
-     * The cinema is not physically removed from the database. Its {@code deleted}
-     * flag is set to {@code true}, which keeps reservation history consistent while
-     * removing the cinema from public and administration listings.
-     * <p>
-     * Future seances linked to this cinema are marked as inactive and their
-     * available seats are set to {@code 0}, preventing new reservations. Past
-     * seances are kept unchanged to preserve historical data.
+     * Soft-deletes a cinema and deactivates its future screenings
      *
-     * @param id the unique identifier of the cinema to soft-delete
+     * <p>The cinema remains in the database to preserve its relationships and reservation history</p>
+     *
+     * <p>Future screenings are marked as inactive to prevent new reservations.
+     * Their available seat counts are preserved</p>
+     *
+     * <p>Past screenings and screenings without a scheduled date are left unchanged</p>
+     *
+     * <p>The operation is transactional so that the cinema deletion
+     * flag and changes to managed screenings belong to the same
+     * transaction</p>
+     *
+     * @param id the identifier of the cinema to soft-delete
      */
     @Transactional
     public void delete(Long id) {
@@ -185,7 +188,6 @@ public class CinemaService {
                 cinema.getSeances().forEach(seance -> {
                     if (seance.getDateTime() != null && seance.getDateTime().isAfter(LocalDateTime.now())) {
                         seance.setActive(false);
-                        seance.setAvailableSeats(0);
                     }
                 });
             }

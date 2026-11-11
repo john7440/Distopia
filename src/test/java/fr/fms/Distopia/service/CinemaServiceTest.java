@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -186,6 +187,37 @@ class CinemaServiceTest {
         verify(cinemaRepository, never()).save(any());
         verify(cinemaRepository, never()).delete(any());
     }
+
+
+    /**
+     * Verifies that soft-deleting a cinema disables future screenings
+     * without destroying their remaining seat counts.
+     */
+    @Test
+    @DisplayName("delete() - preserves available seats of future screenings")
+    void delete_ShouldPreserveAvailableSeatsOfFutureSeances() {
+        // GIVEN
+        Seance futureSeance = new Seance();
+        futureSeance.setDateTime(LocalDateTime.now().plusDays(1));
+        futureSeance.setActive(true);
+        futureSeance.setAvailableSeats(80);
+
+        cinema.getSeances().add(futureSeance);
+
+        when(cinemaRepository.findById(1L))
+                .thenReturn(Optional.of(cinema));
+
+        // WHEN
+        cinemaService.delete(1L);
+
+        // THEN
+        assertThat(cinema.isDeleted()).isTrue();
+        assertThat(futureSeance.isActive()).isFalse();
+        assertThat(futureSeance.getAvailableSeats()).isEqualTo(80);
+
+        verify(cinemaRepository).save(cinema);
+    }
+
 
     //---------------------tests for getAllDepartments() --------------------------
     @Test
