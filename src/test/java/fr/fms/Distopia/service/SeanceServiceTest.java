@@ -452,4 +452,36 @@ import static org.mockito.Mockito.*;
         verify(seanceRepository, never()).save(any(Seance.class));
     }
 
+
+    @Test
+    @DisplayName("save - rejects price change when reservations exist")
+    void save_shouldRejectPriceChangeWhenReservationsExist() {
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(reservationRepository.countBySeanceIds(List.of(1L))).thenReturn(1L);
+
+        assertThatThrownBy(() ->
+                seanceService.save(1L, futureDate, 100, 15.0, 1L, 1L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("réservations");
+
+        verify(seanceRepository, never()).save(any(Seance.class));
+    }
+
+    @Test
+    @DisplayName("save - rejects date change when reservations exist")
+    void save_shouldRejectDateChangeWhenReservationsExist() {
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(reservationRepository.countBySeanceIds(List.of(1L))).thenReturn(1L);
+
+        assertThatThrownBy(() ->
+                seanceService.save(1L, futureDate.plusDays(1), 100, 12.0, 1L, 1L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("réservations");
+
+        verify(seanceRepository, never()).save(any(Seance.class));
+    }
 }

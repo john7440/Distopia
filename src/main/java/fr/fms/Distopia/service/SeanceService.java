@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
 
 /**
  * Service responsible for seance business operations.
@@ -93,21 +94,24 @@ public class SeanceService {
     //-------------------créer ou modifier une séance-----------------------
     /**
      * Creates or updates a screening while enforcing reservation
-     * integrity and screening lifecycle rules.
+     * integrity and screening lifecycle rules
      *
-     * <p>When updating an existing screening, a pessimistic write lock
-     * prevents concurrent modifications during the transaction.</p>
+     * <p>Reservation integrity rules:</p>
+     * <ul>
+     *     <li>Available seats cannot be changed when reservations exist</li>
+     *     <li>Screening date and time cannot be changed when reservations exist</li>
+     *     <li>Ticket price cannot be changed when reservations exist</li>
+     * </ul>
      *
-     * <p>Available seats cannot be modified when reservations exist.
-     * Screenings cannot be programmed for deleted movies or cinemas</p>
+     * <p>These checks are performed while holding a pessimistic write lock within the current transaction</p>
+     *
      *
      * <p>Lifecycle rules:</p>
      * <ul>
      *     <li>New future screenings are active.</li>
      *     <li>Past screenings are inactive.</li>
      *     <li>Inactive future screenings remain inactive.</li>
-     *     <li>Rescheduling a past screening to the future
-     *         explicitly reactivates it</li>
+     *     <li>Rescheduling a past screening to the future explicitly reactivates it</li>
      * </ul>
      *
      * @param id the screening ID, or null when creating a screening
@@ -126,8 +130,7 @@ public class SeanceService {
         Seance seance = (id != null) ? seanceRepository.findByIdForUpdate(id).orElseThrow() : new Seance();
 
         if (id != null && availableSeats != seance.getAvailableSeats() && reservationRepository.countBySeanceIds(List.of(id)) > 0) {
-            throw new IllegalStateException(
-                    "Impossible de modifier les places d'une séance ayant déjà des réservations");
+            throw new IllegalStateException("Impossible de modifier les places d'une séance ayant déjà des réservations");
         }
 
         Movie movie = (movieId != null) ? movieRepository.findById(movieId).orElseThrow() : seance.getMovie();
@@ -136,11 +139,15 @@ public class SeanceService {
             throw new IllegalStateException("Impossible de programmer une séance pour un film supprimé");
         }
 
-        Cinema cinema = cinemaRepository.findById(cinemaId)
-                .orElseThrow(() -> new RuntimeException("Cinéma introuvable"));
+        Cinema cinema = cinemaRepository.findById(cinemaId).orElseThrow(() -> new RuntimeException("Cinéma introuvable"));
 
         if (cinema.isDeleted()) {
             throw new IllegalStateException("Impossible de programmer une séance dans un cinéma supprimé");
+        }
+
+        if (id != null && (!Objects.equals(seance.getDateTime(), dateTime) || Double.compare(seance.getPrice(), price) != 0)
+                && reservationRepository.countBySeanceIds(List.of(id)) > 0) {
+            throw new IllegalStateException("Impossible de modifier la date ou le prix d'une séance ayant déjà des réservations");
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -284,9 +291,7 @@ public class SeanceService {
         }
         long reservationCount = reservationRepository.countBySeanceIds(seanceIds);
         if (reservationCount > 0) {
-            throw new IllegalStateException(
-                    "Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations"
-            );
+            throw new IllegalStateException("Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations");
         }
     }
 
