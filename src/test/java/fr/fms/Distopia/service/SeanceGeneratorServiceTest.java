@@ -20,6 +20,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import org.springframework.dao.DataIntegrityViolationException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -389,5 +391,54 @@ class SeanceGeneratorServiceTest {
         }
         return seances;
     }
+
+
+    @Test
+    @DisplayName("generation - skips a confirmed concurrent duplicate")
+    void generateSeancesForMovieAndCinema_ShouldSkipConcurrentDuplicate() {
+        LocalDateTime slot = START_DATE.withHour(14).withMinute(0);
+
+        Seance concurrentSeance = new Seance();
+        concurrentSeance.setDateTime(slot);
+
+        when(seanceService.getExistingForGeneration(1L, 1L, START_DATE, START_DATE.plusDays(7)))
+                .thenReturn(List.of(), List.of(concurrentSeance));
+
+        doThrow(new DataIntegrityViolationException("Duplicate slot"))
+                .when(seanceService)
+                .save(isNull(), eq(slot), eq(150),
+                        eq(9.0), eq(1L), eq(1L));
+
+        int count = seanceGeneratorService
+                .generateSeancesForMovieAndCinema(
+                        movie, cinema, START_DATE);
+
+        assertThat(count).isEqualTo(20);
+
+        verify(seanceService, times(21))
+                .save(isNull(), any(LocalDateTime.class),
+                        eq(150), anyDouble(), eq(1L), eq(1L));
+    }
+
+
+    @Test
+    @DisplayName("generation - propagates unrelated integrity errors")
+    void generateSeancesForMovieAndCinema_ShouldPropagateOtherIntegrityErrors() {
+        LocalDateTime slot = START_DATE.withHour(14).withMinute(0);
+
+        when(seanceService.getExistingForGeneration(1L, 1L, START_DATE, START_DATE.plusDays(7)))
+                .thenReturn(List.of(), List.of());
+
+        DataIntegrityViolationException exception =
+                new DataIntegrityViolationException("Other constraint");
+
+        doThrow(exception).when(seanceService).save(isNull(), eq(slot), eq(150), eq(9.0), eq(1L), eq(1L));
+
+        assertThatThrownBy(() -> seanceGeneratorService.generateSeancesForMovieAndCinema(movie, cinema, START_DATE)).isSameAs(exception);
+
+        verify(seanceService, times(2)).getExistingForGeneration(1L, 1L, START_DATE, START_DATE.plusDays(7));
+    }
+
+
 }
 

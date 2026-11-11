@@ -8,6 +8,7 @@ import fr.fms.Distopia.tmdb.dto.TmdbMovieDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -191,17 +192,25 @@ public class SeanceGeneratorService {
         return count;
     }
 
+
     /**
-     * Generates fictional seances for a movie in a cinema
-     * over seven days
-     * <p>
-     * Existing seances are ignored to avoid duplicates
-     * @param movie the movie
-     * @param cinema the cinema
-     * @param startDate the generation start date
-     * @return the number of generated seances
+     * Generates fictional screenings for a movie in a cinema over a seven-day period
+     *
+     * <p>Existing screenings, including inactive ones, are skipped to preserve screening lifecycle decisions</p>
+     *
+     * <p>If an insertion fails because of a database integrity constraint, the generation window is queried again.
+     * When the requested screening slot now exists, the conflicting insertion is skipped</p>
+     *
+     * <p>Unrelated integrity errors are propagated rather than silently ignored</p>
+     *
+     * @param movie the movie to schedule
+     * @param cinema the cinema hosting the screenings
+     * @param startDate the first day of generation
+     * @return the number of successfully created screenings
+     * @throws DataIntegrityViolationException if an integrity violation occurs without a matching existing slot
      */
     public int generateSeancesForMovieAndCinema(Movie movie, Cinema cinema, LocalDateTime startDate) {
+
         LocalDateTime endExclusive = startDate.plusDays(7);
 
         Set<LocalDateTime> existing = seanceService
@@ -210,18 +219,35 @@ public class SeanceGeneratorService {
                 .map(Seance::getDateTime)
                 .collect(Collectors.toSet());
 
-
         int count = 0;
         for (int day = 0; day < 7; day++) {
             for (int slot = 0; slot < HOURS.length; slot++) {
-                LocalDateTime dateTime = startDate.plusDays(day)
-                        .withHour(HOURS[slot])
-                        .withMinute(MINS[slot]);
 
-                if (!existing.contains(dateTime)) {
+                LocalDateTime dateTime = startDate.plusDays(day).withHour(HOURS[slot]).withMinute(MINS[slot]);
+
+                if (existing.contains(dateTime)) {
+                    continue;
+                }
+
+                try {
                     seanceService.save(null, dateTime, 150, PRICES[slot], movie.getId(), cinema.getId());
                     existing.add(dateTime);
                     count++;
+                } catch (DataIntegrityViolationException e) {
+
+                    boolean slotNowExists = seanceService
+                            .getExistingForGeneration(movie.getId(), cinema.getId(), startDate, endExclusive)
+                            .stream()
+                            .anyMatch(s -> dateTime.equals(s.getDateTime()));
+
+                    if (!slotNowExists) {
+                        throw e;
+                    }
+
+                    existing.add(dateTime);
+
+                    logger.info("Skipping existing screening slot: movieId={}, cinemaId={}, dateTime={}", movie.getId(),
+                            cinema.getId(), dateTime);
                 }
             }
         }
