@@ -141,4 +141,32 @@ class SecurityConfigTest {
         assertThat(passwordEncoder.matches(raw, encoded)).isTrue();
         assertThat(passwordEncoder.matches("PasLouvre", encoded)).isFalse();
     }
+
+
+    @Test
+    @DisplayName("restore movie - redirects anonymous user")
+    void restoreMovie_ShouldRedirectAnonymousUser() throws Exception {
+        mockMvc.perform(post("/admin/restoreMovie").with(csrf())).andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @DisplayName("restore movie - forbids regular user")
+    void restoreMovie_ShouldForbidRegularUser() throws Exception {
+        mockMvc.perform(post("/admin/restoreMovie").with(csrf()).with(user("user").roles("USER")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("restore movie - rejects missing CSRF token")
+    void restoreMovie_ShouldRejectMissingCsrf() throws Exception {
+        mockMvc.perform(post("/admin/restoreMovie").with(user("admin").roles("ADMIN"))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("restore movie - allows admin with CSRF token")
+    void restoreMovie_ShouldAllowAdminWithCsrf() throws Exception {
+        mockMvc.perform(post("/admin/restoreMovie").with(csrf()).with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk());
+    }
+
 }

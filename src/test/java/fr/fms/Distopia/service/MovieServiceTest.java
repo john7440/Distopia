@@ -22,7 +22,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.NoSuchElementException;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -406,4 +408,53 @@ class MovieServiceTest {
         assertThat(result).containsExactly(movie);
         verify(movieRepository).findMoviesWithUpcomingSeancesByCinemaId(1L, sort);
     }
+
+
+    @Test
+    @DisplayName("restore() - restores movie without reactivating screenings")
+    void restore_shouldRestoreMovieWithoutReactivatingSeances() {
+        movie.setDeleted(true);
+        seance.setActive(false);
+        seance.setAvailableSeats(75);
+
+        when(movieRepository.findById(1L))
+                .thenReturn(Optional.of(movie));
+
+        boolean restored = movieService.restore(1L);
+
+        assertThat(restored).isTrue();
+        assertThat(movie.isDeleted()).isFalse();
+        assertThat(seance.isActive()).isFalse();
+        assertThat(seance.getAvailableSeats()).isEqualTo(75);
+
+        verify(movieRepository).save(movie);
+        verifyNoInteractions(seanceRepository);
+    }
+
+    @Test
+    @DisplayName("restore() - is idempotent for active movies")
+    void restore_shouldDoNothingWhenMovieIsAlreadyActive() {
+        movie.setDeleted(false);
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+
+        boolean restored = movieService.restore(1L);
+
+        assertThat(restored).isFalse();
+        assertThat(movie.isDeleted()).isFalse();
+
+        verify(movieRepository, never()).save(any(Movie.class));
+        verifyNoInteractions(seanceRepository);
+    }
+
+    @Test
+    @DisplayName("restore() - rejects unknown movies")
+    void restore_shouldRejectUnknownMovie() {
+        when(movieRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> movieService.restore(99L)).isInstanceOf(NoSuchElementException.class);
+
+        verify(movieRepository, never()).save(any(Movie.class));
+        verifyNoInteractions(seanceRepository);
+    }
+
 }

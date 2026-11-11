@@ -27,6 +27,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -340,5 +341,44 @@ class MovieControllerTest {
 
         verify(tmdbClient).getTrailerUrl(100L);
     }
+
+
+    @Test
+    @DisplayName("restoreMovie() - restores a deleted movie" )
+    void restoreMovie_ShouldRestoreDeletedMovie() {
+        when(movieService.restore(1L)).thenReturn(true);
+
+        String view = movieController.restoreMovie(1L, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/movies");
+        verify(movieService).restore(1L);
+        verify(redirectAttributes).addFlashAttribute("message", "Film restauré avec succès");
+    }
+
+    @Test
+    @DisplayName("restoreMovie() - handles an already active movie")
+    void restoreMovie_ShouldHandleAlreadyActiveMovie() {
+        when(movieService.restore(1L)).thenReturn(false);
+
+        String view = movieController.restoreMovie(1L, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/movies");
+
+        verify(movieService).restore(1L);
+        verify(redirectAttributes).addFlashAttribute("message", "Film déjà actif : aucune modification effectuée");
+    }
+
+    @Test
+    @DisplayName("restoreMovie() - handles unknown movie")
+    void restoreMovie_ShouldHandleUnknownMovie() {
+        when(movieService.restore(99L)).thenThrow(new NoSuchElementException());
+
+        String view = movieController.restoreMovie(99L, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/movies");
+        verify(movieService).restore(99L);
+        verify(redirectAttributes).addFlashAttribute("error", "Film introuvable");
+    }
+
 }
 

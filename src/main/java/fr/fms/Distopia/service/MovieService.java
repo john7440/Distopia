@@ -153,6 +153,36 @@ public class MovieService {
     }
 
 
+    /**
+     * Explicitly restores a previously soft-deleted movie
+     *
+     * <p>The movie is made visible again by clearing its deleted flag.
+     * Associated screenings are not modified or reactivated</p>
+     *
+     * <p>This preserves screening lifecycle decisions and prevents cancelled or archived screenings from becoming available
+     * automatically</p>
+     *
+     * <p>The operation is idempotent: restoring an already active movie does not trigger another database update</p>
+     *
+     * @param id the identifier of the movie to restore
+     * @return true if  the movie was restored, false if already active
+     * @throws java.util.NoSuchElementException if the movie does not exist
+     */
+    @Transactional
+    public boolean restore(Long id) {
+        Movie movie = movieRepository.findById(id).orElseThrow();
+
+        if (!movie.isDeleted()) {
+            return false;
+        }
+        movie.setDeleted(false);
+        movieRepository.save(movie);
+
+        return true;
+    }
+
+
+
     //-------------chercher tous les films actifs---------------
     /**
      * Retrieves all active (non-deleted) movies

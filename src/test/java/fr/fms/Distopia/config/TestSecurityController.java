@@ -45,4 +45,10 @@ public class TestSecurityController {
     public ResponseEntity<String> reserve() {
         return ResponseEntity.ok("reserve");
     }
+
+
+    @PostMapping("/admin/restoreMovie")
+    public ResponseEntity<String> restoreMovie() { return ResponseEntity.ok("movie restored");
+    }
+
 }

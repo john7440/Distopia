@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Optional;
+import java.util.NoSuchElementException;
 
 /**
  * Controller responsible for handling movie-related web requests,
@@ -175,6 +176,39 @@ public class MovieController {
     @PostMapping("/admin/deleteMovie")
     public String deleteMovie(@RequestParam Long id){
         movieService.softDelete(id);
+        return REDIRECT_ADMIN_MOVIES;
+    }
+
+
+    /**
+     * Restores a previously soft-deleted movie
+     *
+     * <p>The operation is restricted to administrators through the Spring Security rules protecting /admin/**</p>
+     *
+     * <p>Restoring a movie does not reactivate its screenings.
+     * An already active movie remains unchanged</p>
+     *
+     * @param id the identifier of the movie to restore
+     * @param redirectAttributes flash messages for the admin page
+     * @return a redirect to the movie administration page
+     */
+    @PostMapping("/admin/restoreMovie")
+    public String restoreMovie(
+            @RequestParam Long id,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            boolean restored = movieService.restore(id);
+
+            if (restored) {
+                redirectAttributes.addFlashAttribute("message", "Film restauré avec succès");
+            } else {
+                redirectAttributes.addFlashAttribute("message", "Film déjà actif : aucune modification effectuée");
+            }
+
+        } catch (NoSuchElementException e) {
+            redirectAttributes.addFlashAttribute("error", "Film introuvable");
+        }
         return REDIRECT_ADMIN_MOVIES;
     }
 
