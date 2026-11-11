@@ -139,6 +139,41 @@ class CinemaServiceTest {
         verify(townRepository, never()).findById(any());
     }
 
+
+    @Test
+    @DisplayName("save() - preserves deleted status when updating a cinema")
+    void save_ShouldPreserveDeletedStatusWhenUpdating() {
+        cinema.setDeleted(true);
+
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+
+        when(cinemaRepository.save(any(Cinema.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Cinema result = cinemaService.save(1L, "Cinéma renommé", "2 rue du test", null, "https://example.com",
+                43.48, -1.57, "image.jpg", "40");
+
+        assertThat(result.isDeleted()).isTrue();
+        assertThat(result.getName()).isEqualTo("Cinéma renommé");
+        assertThat(result.getAddress()).isEqualTo("2 rue du test");
+
+        verify(cinemaRepository).save(cinema);
+    }
+
+    @Test
+    @DisplayName("save() - creates new cinemas  as active")
+    void save_ShouldCreateNewCinemaAsActive() {
+        when(cinemaRepository.save(any(Cinema.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Cinema result = cinemaService.save(null, "Nouveau cinéma", "1 rue du test", null,
+                "https://example.com", 43.48, -1.57, "image.jpg", "40");
+
+        assertThat(result.isDeleted()).isFalse();
+        assertThat(result.getName()).isEqualTo("Nouveau cinéma");
+        verify(cinemaRepository).save(any(Cinema.class));
+    }
+
+
+
     //---------------------------tests du delete()---------------------------
 
     @Test

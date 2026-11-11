@@ -124,6 +124,17 @@ public class CinemaService {
      * If an ID is provided, the method attempts to fetch and update the existing cinema.
      * If the ID is null or the cinema is not found, a new {@link Cinema} instance is created
      *
+     * <p>Soft-delete lifecycle:</p>
+     * <ul>
+     *     <li>New cinemas are active by default</li>
+     *     <li>Updating an active cinema preserves its active status</li>
+     *     <li>Updating a soft-deleted cinema preserves its deleted status</li>
+     *     <li>Restoring a deleted cinema requires an explicit restoration operation</li>
+     * </ul>
+     *
+     * <p>Regular updates never change the cinema's soft-delete state</p>
+     *
+     *
      * @param id the unique identifier of the cinema to update, or null to create a new one
      * @param name the name of the cinema
      * @param address the address of the cinema
@@ -145,7 +156,6 @@ public class CinemaService {
         cinema.setLongitude(longitude);
         cinema.setImageUrl(imageUrl);
         cinema.setDepartment(department);
-        cinema.setDeleted(false);
 
         if (townId != null){
             townRepository.findById(townId).ifPresent(cinema::setTown);
