@@ -4,6 +4,8 @@ import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.service.CinemaCsvImporter;
 import fr.fms.Distopia.service.CinemaService;
 import fr.fms.Distopia.service.TownService;
+import fr.fms.Distopia.config.SecurityConfig;
+import fr.fms.Distopia.service.DistopiaUserDetailsService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +14,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.NoSuchElementException;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -25,6 +30,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CinemaController.class)
+@Import(SecurityConfig.class)
+@TestPropertySource(properties = {"spring.autoconfigure.exclude= org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"})
 class CinemaControllerTest {
 
     @Autowired
@@ -35,6 +42,8 @@ class CinemaControllerTest {
     private TownService townService;
     @MockitoBean
     private CinemaCsvImporter cinemaCsvImporter;
+    @MockitoBean
+    private DistopiaUserDetailsService userDetailsService;
 
 
     //------------------------tests for cinemas--------------------
@@ -274,4 +283,65 @@ class CinemaControllerTest {
 
         verify(cinemaService).delete(1L);
     }
+
+    @Test
+    @DisplayName("POST /admin/restoreCinema - restores deleted cinema" )
+    void restoreCinema_ShouldRestoreDeletedCinema() throws Exception {
+        when(cinemaService.restore(1L)).thenReturn(true);
+
+        mockMvc.perform(post("/admin/restoreCinema").with(csrf()).with(user("admin").roles("ADMIN")).param("id", "1"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"))
+                .andExpect(flash().attribute("message", "Cinéma restauré avec succès"));
+
+        verify(cinemaService).restore(1L);
+    }
+
+    @Test
+    @DisplayName("POST /admin/restoreCinema - handles active cinema")
+    void restoreCinema_ShouldHandleAlreadyActiveCinema() throws Exception {
+        when(cinemaService.restore(1L)).thenReturn(false);
+
+        mockMvc.perform(post("/admin/restoreCinema").with(csrf()).with(user("admin").roles("ADMIN")).param("id", "1"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"))
+                .andExpect(flash().attribute("message", "Cinéma déjà actif"));
+
+        verify(cinemaService).restore(1L);
+    }
+
+
+    @Test
+    @DisplayName("POST /admin/restoreCinema - handles unknown cinema")
+    void restoreCinema_ShouldHandleUnknownCinema() throws Exception {
+        when(cinemaService.restore(99L)).thenThrow(new NoSuchElementException());
+
+        mockMvc.perform(post("/admin/restoreCinema").with(csrf()).with(user("admin").roles("ADMIN")).param("id", "99"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"))
+                .andExpect(flash().attribute("error", "Cinéma introuvable"));
+
+        verify(cinemaService).restore(99L);
+    }
+
+
+    @Test
+    @DisplayName("POST /admin/restoreCinema - forbids regular user")
+    void restoreCinema_ShouldForbidRegularUser() throws Exception {
+        mockMvc.perform(post("/admin/restoreCinema").with(csrf()).with(user("user").roles("USER"))
+                        .param("id", "1")).andExpect(status().isForbidden());
+
+        verifyNoInteractions(cinemaService);
+    }
+
+
+    @Test
+    @DisplayName("POST /admin/restoreCinema - requires CSRF ")
+    void restoreCinema_ShouldRequireCsrf() throws Exception {
+        mockMvc.perform(post("/admin/restoreCinema").with(user("admin").roles("ADMIN"))
+                        .param("id", "1")).andExpect(status().isForbidden());
+
+        verifyNoInteractions(cinemaService);
+    }
+
 }

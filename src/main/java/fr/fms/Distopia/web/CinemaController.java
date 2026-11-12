@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Controller responsible for handling cinema-related web requests,
@@ -209,4 +210,36 @@ public class CinemaController {
         }
         return ADMIN_REDIRECT;
     }
+
+
+    /**
+     * Restores a previously soft-deleted cinema
+     *
+     * <p>This administrator-only operation delegates to the cinema service and does not reactivate associated screenings</p>
+     *
+     * <p>An already active cinema remains unchanged. Unknown cinema identifiers produce an error flash message</p>
+     *
+     * @param id the identifier of the cinema to restore
+     * @param ra the redirect attributes used for flash messages
+     * @return a redirect to the cinema administration page
+     */
+    @PostMapping("/admin/restoreCinema")
+    public String restoreCinema(@RequestParam Long id, RedirectAttributes ra) {
+
+        try {
+            boolean restored = cinemaService.restore(id);
+
+            if (restored) {
+                ra.addFlashAttribute("message", "Cinéma restauré avec succès");
+            } else {
+                ra.addFlashAttribute("message", "Cinéma déjà actif");
+            }
+
+        } catch (NoSuchElementException e) {
+            ra.addFlashAttribute(ERROR, "Cinéma introuvable");
+        }
+
+        return ADMIN_REDIRECT;
+    }
+
 }
