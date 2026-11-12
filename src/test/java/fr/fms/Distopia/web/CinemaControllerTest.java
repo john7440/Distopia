@@ -23,6 +23,9 @@ import java.util.NoSuchElementException;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -344,4 +347,47 @@ class CinemaControllerTest {
         verifyNoInteractions(cinemaService);
     }
 
+
+    @Test
+    @DisplayName("admin cinemas - shows restore action for deleted cinema")
+    void adminCinemas_ShouldShowRestoreActionForDeletedCinema()
+            throws Exception {
+
+        Cinema deletedCinema = new Cinema();
+        deletedCinema.setId(10L);
+        deletedCinema.setName("Cinéma supprimé");
+        deletedCinema.setDeleted(true);
+
+        Page<Cinema> page = new PageImpl<>(List.of(deletedCinema));
+
+        when(cinemaService.searchAdmin(null, "name", "asc", 0, true)).thenReturn(page);
+
+        // WHEN / THEN
+        mockMvc.perform(get("/admin/cinemas").with(user("admin").roles("ADMIN")).param("includeDeleted", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin-cinemas"))
+                .andExpect(content().string(containsString("action=\"/admin/restoreCinema\"")))
+                .andExpect(content().string(not(containsString("action=\"/admin/deleteCinema\""))));
+    }
+
+    @Test
+    @DisplayName("admin cinemas - shows delete action for active cinema")
+    void adminCinemas_ShouldShowDeleteActionForActiveCinema()
+            throws Exception {
+        Cinema activeCinema = new Cinema();
+        activeCinema.setId(11L);
+        activeCinema.setName("Cinéma actif");
+        activeCinema.setDeleted(false);
+
+        Page<Cinema> page = new PageImpl<>(List.of(activeCinema));
+
+        when(cinemaService.searchAdmin(null, "name", "asc", 0, false))
+                .thenReturn(page);
+
+        mockMvc.perform(get("/admin/cinemas").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin-cinemas"))
+                .andExpect(content().string(containsString("action=\"/admin/deleteCinema\"")))
+                .andExpect(content().string(not(containsString("action=\"/admin/restoreCinema\""))));
+    }
 }

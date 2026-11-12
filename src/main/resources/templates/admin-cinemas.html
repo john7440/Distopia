@@ -289,6 +289,29 @@
                                     Supprimer
                                 </button>
                             </form>
+
+                            <!-- Restore a soft-deleted cinema without reactivating its screenings -->
+                            <form th:if="${cinema.deleted}"
+                                  th:action="@{/admin/restoreCinema}"
+                                  method="post"
+                                  class="d-inline">
+
+                                <input type="hidden"
+                                       th:name="${_csrf.parameterName}"
+                                       th:value="${_csrf.token}">
+
+                                <input type="hidden"
+                                       name="id"
+                                       th:value="${cinema.id}">
+
+                                <button type="submit"
+                                        class="btn btn-success btn-sm"
+                                        onclick="return confirm('Restaurer ce cinéma ? Les séances resteront désactivées')">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                    Restaurer
+                                </button>
+                            </form>
+
                         </td>
                     </tr>
                     </tbody>
