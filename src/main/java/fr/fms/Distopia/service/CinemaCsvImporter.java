@@ -56,6 +56,9 @@ public class CinemaCsvImporter {
      *     <li>the cinema is saved in the database</li>
      * </ul>
      * <p>
+     * <p>Cinemas already present with the same name and town are skipped, including soft-deleted cinemas.
+     * The import never restores previously deleted cinemas automatically.</p>
+     *
      * Invalid or duplicate cinemas are skipped
      *
      * @return an {@link ImportResult} containing import statistics
@@ -85,9 +88,12 @@ public class CinemaCsvImporter {
 
                 String comNom  = parseTownFromAddress(address);
 
-                if (name == null || name.isBlank() || cinemaRepository.existsByNameAndTown_NameAndDeletedFalse(name, comNom)) {
+
+                if (name == null || name.isBlank() || cinemaRepository.existsByNameAndTown_Name(name, comNom)) {
                     skipped++;
-                    continue; }
+                    continue;
+                }
+
 
                 Town town = townRepository.findByName(comNom)
                         .orElseGet(() -> townRepository.save(newTown(comNom)));

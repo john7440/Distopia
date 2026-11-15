@@ -29,6 +29,20 @@ public interface CinemaRepository extends JpaRepository<Cinema,Long> {
      */
     boolean existsByNameAndTown_NameAndDeletedFalse(String name, String townName);
 
+
+    /**
+     * Checks whether a cinema already exists with the given name and town, regardless of its soft-delete status
+     *
+     * <p>This prevents CSV imports from recreating cinemas that have been soft-deleted. Restoration must
+     * remain an explicit administrator operation</p>
+     *
+     * @param name the cinema name
+     * @param townName the town name
+     * @return true if a matching cinema exists, including deleted ones
+     */
+    boolean existsByNameAndTown_Name(String name, String townName);
+
+
     /**
      * Retrieves all non-deleted cinemas
      *
