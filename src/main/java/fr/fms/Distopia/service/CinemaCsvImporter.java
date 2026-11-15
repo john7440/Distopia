@@ -56,8 +56,14 @@ public class CinemaCsvImporter {
      *     <li>the cinema is saved in the database</li>
      * </ul>
      * <p>
+     * <p>Rows with a blank cinema name or address are skipped before any database operation</p>
+     *
+     * <p>Cinemas already present with the same name and town are
+     * skipped, including soft-deleted cinemas. Importing never
+     * restores deleted cinemas automatically</p>
+     *
      * <p>Cinemas already present with the same name and town are skipped, including soft-deleted cinemas.
-     * The import never restores previously deleted cinemas automatically.</p>
+     * The import never restores previously deleted cinemas automatically</p>
      *
      * Invalid or duplicate cinemas are skipped
      *
@@ -86,10 +92,14 @@ public class CinemaCsvImporter {
                 String name    = row.get("name");
                 String address  = row.get("address");
 
+                if (name == null || name.isBlank() || address == null || address.isBlank()) {
+                    skipped++;
+                    continue;
+                }
+
                 String comNom  = parseTownFromAddress(address);
 
-
-                if (name == null || name.isBlank() || cinemaRepository.existsByNameAndTown_Name(name, comNom)) {
+                if (cinemaRepository.existsByNameAndTown_Name(name, comNom)) {
                     skipped++;
                     continue;
                 }

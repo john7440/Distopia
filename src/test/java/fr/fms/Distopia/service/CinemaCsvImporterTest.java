@@ -171,26 +171,27 @@ class CinemaCsvImporterTest {
         assertThat(cinemaCaptor.getValue().getLongitude()).isNull();
     }
 
+
     @Test
-    @DisplayName("importFromCsv() - uses Inconnue when address is blank")
-    void importFromCsv_ShouldUseUnknownTownWhenAddressIsBlank() throws ImportFailException {
+    @DisplayName("importFromCsv() - skips whitespace-only addresses")
+    void importFromCsv_ShouldSkipWhitespaceOnlyAddress()
+            throws ImportFailException {
+
         String csv = """
-                name,address,website,latitude,longitude
-                Cinema Test,,https://cinema.fr,43.7,-1.0
-                """;
+            name,address,website,latitude,longitude
+            Cinema Test,"   ",https://cinema.fr,43.7,-1.0
+            """;
+
         setCsvFile(csv);
 
-        when(cinemaRepository.existsByNameAndTown_Name("Cinema Test", "Inconnue")).thenReturn(false);
-        when(townRepository.findByName("Inconnue")).thenReturn(Optional.empty());
-        when(townRepository.save(any(Town.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
 
-        cinemaCsvImporter.importFromCsv();
+        assertThat(result.imported()).isZero();
+        assertThat(result.skipped()).isEqualTo(1);
 
-        ArgumentCaptor<Town> townCaptor = ArgumentCaptor.forClass(Town.class);
-
-        verify(townRepository).save(townCaptor.capture());
-        assertThat(townCaptor.getValue().getName()).isEqualTo("Inconnue");
+        verifyNoInteractions(cinemaRepository, townRepository);
     }
+
 
     @Test
     @DisplayName("importFromCsv() - throws ImportFailException when csv file cannot be read")
@@ -228,6 +229,30 @@ class CinemaCsvImporterTest {
         verifyNoInteractions(townRepository);
     }
 
+
+    /**
+     * Verifies that CSV rows with a blank address are skipped
+     * instead of creating invalid cinema entities.
+     */
+    @Test
+    @DisplayName("importFromCsv() - skips cinemas with blank address")
+    void importFromCsv_ShouldSkipCinemaWhenAddressIsBlank()
+            throws ImportFailException {
+
+        String csv = """
+            name,address,website,latitude,longitude
+            Cinema Test,,https://cinema.fr,43.7,-1.0
+            """;
+
+        setCsvFile(csv);
+
+        CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
+
+        assertThat(result.imported()).isZero();
+        assertThat(result.skipped()).isEqualTo(1);
+
+        verifyNoInteractions(cinemaRepository, townRepository);
+    }
 
     //-------------------------helper------------------------
     private void setCsvFile(String csvContent) {
