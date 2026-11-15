@@ -80,4 +80,51 @@ class CinemaSoftDeleteIntegrationTest {
         assertThat(savedSeance.isActive()).isFalse();
         assertThat(savedSeance.getAvailableSeats()).isEqualTo(80);
     }
+
+    @Test
+    @DisplayName("cinema restoration preserves inactive screenings and seats")
+    void restore_shouldPreserveScreeningStateAfterSoftDelete() {
+        Movie movie = new Movie();
+        movie.setTitle("Film restauration H2");
+        movie = movieRepository.saveAndFlush(movie);
+
+        Cinema cinema = new Cinema();
+        cinema.setName("Cinéma restauration H2");
+        cinema.setAddress("10 rue du test");
+        cinema = cinemaRepository.saveAndFlush(cinema);
+
+        Seance seance = new Seance();
+        seance.setMovie(movie);
+        seance.setCinema(cinema);
+        seance.setDateTime(LocalDateTime.now().plusDays(3));
+        seance.setAvailableSeats(85);
+        seance.setPrice(10.00);
+        seance.setActive(true);
+        seance = seanceRepository.saveAndFlush(seance);
+
+        Long cinemaId = cinema.getId();
+        Long seanceId = seance.getId();
+
+        cinemaService.delete(cinemaId);
+
+        assertThat(cinemaRepository.findById(cinemaId).orElseThrow().isDeleted()).isTrue();
+
+        Seance afterDeletion = seanceRepository.findById(seanceId).orElseThrow();
+
+        assertThat(afterDeletion.isActive()).isFalse();
+        assertThat(afterDeletion.getAvailableSeats()).isEqualTo(85);
+
+        boolean restored = cinemaService.restore(cinemaId);
+
+        assertThat(restored).isTrue();
+
+        Cinema afterRestorationCinema = cinemaRepository.findById(cinemaId).orElseThrow();
+        Seance afterRestorationSeance = seanceRepository.findById(seanceId).orElseThrow();
+
+        assertThat(afterRestorationCinema.isDeleted()).isFalse();
+        assertThat(afterRestorationSeance.isActive()).isFalse();
+        assertThat(afterRestorationSeance.getAvailableSeats()).isEqualTo(85);
+        assertThat(cinemaService.restore(cinemaId)).isFalse();
+    }
+
 }
