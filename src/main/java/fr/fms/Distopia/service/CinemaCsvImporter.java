@@ -108,7 +108,7 @@ public class CinemaCsvImporter {
                 Cinema cinema = new Cinema();
                 cinema.setName(name);
                 cinema.setAddress(address);
-                cinema.setWebsite(cleanUrl(row.get("website")));
+                cinema.setWebsite(row.isMapped("website") ? cleanUrl(row.get("website")) : null);
                 cinema.setLatitude(parseCoordinate(row.get("latitude"), -90.0, 90.0));
                 cinema.setLongitude(parseCoordinate(row.get("longitude"), -180.0, 180.0));
                 cinema.setImageUrl(row.isMapped("imageUrl") ? row.get("imageUrl") : null);

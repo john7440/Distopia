@@ -350,6 +350,34 @@ class CinemaCsvImporterTest {
         assertThat(captor.getValue().getLongitude()).isNull();
     }
 
+    @Test
+    @DisplayName(" importFromCsv() - accepts missing website column")
+    void importFromCsv_ShouldAcceptMissingWebsiteColumn()
+            throws ImportFailException {
+
+        String csv = """
+            name,address,latitude,longitude
+            Cinema Test,"10 avenue test, 40100 Dax",43.7,-1.0
+            """;
+
+        setCsvFile(csv);
+
+        Town town = new Town();
+        town.setName("Dax");
+
+        when(townRepository.findByName("Dax")).thenReturn(Optional.of(town));
+
+        CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
+
+        assertThat(result.imported()).isEqualTo(1);
+        assertThat(result.skipped()).isZero();
+
+        ArgumentCaptor<Cinema> captor = ArgumentCaptor.forClass(Cinema.class);
+
+        verify(cinemaRepository).save(captor.capture());
+        assertThat(captor.getValue().getWebsite()).isNull();
+    }
+
 
     //-------------------------helper------------------------
     private void setCsvFile(String csvContent) {
