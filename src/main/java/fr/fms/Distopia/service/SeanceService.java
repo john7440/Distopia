@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
@@ -56,7 +57,7 @@ public class SeanceService {
      */
     public List<Seance> getByMovieAndCinema(Long movieId, Long cinemaId) {
         return seanceRepository.findUpcomingActiveByMovieAndCinema(
-                movieId, cinemaId, LocalDateTime.now());
+                movieId, cinemaId, LocalDateTime.now(ZoneId.systemDefault()));
     }
 
 
@@ -160,7 +161,7 @@ public class SeanceService {
             throw new IllegalStateException("Impossible de modifier la date ou le prix d'une séance ayant déjà des réservations");
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
         boolean future = !dateTime.isBefore(now);
 
         boolean rescheduledFromPast = id != null
@@ -319,6 +320,6 @@ public class SeanceService {
      * unexpectedly</p>
      */
     public void syncSeanceActivityStatus() {
-        seanceRepository.archivePastSeances(LocalDateTime.now());
+        seanceRepository.archivePastSeances(LocalDateTime.now(ZoneId.systemDefault()));
     }
 }

@@ -40,8 +40,10 @@ public class MovieController {
         this.tmdbClient = tmdbClient;
     }
 
+    //-----constantes--------------
     private static final String MOVIES = "movies";
     private static final String REDIRECT_ADMIN_MOVIES = "redirect:/admin/movies";
+    private static final String MESSAGE = "message";
 
     //---------------films d'un cinéma--------------------
     /**
@@ -154,7 +156,7 @@ public class MovieController {
                 form.getCinemaIds(),
                 form.getReleaseDate()
         );
-        redirectAttributes.addFlashAttribute("message",
+        redirectAttributes.addFlashAttribute(MESSAGE,
                 form.getId() == null ? "Film ajouté avec succès" : "Film modifié avec succès");
 
         return REDIRECT_ADMIN_MOVIES;
@@ -201,9 +203,9 @@ public class MovieController {
             boolean restored = movieService.restore(id);
 
             if (restored) {
-                redirectAttributes.addFlashAttribute("message", "Film restauré avec succès");
+                redirectAttributes.addFlashAttribute(MESSAGE, "Film restauré avec succès");
             } else {
-                redirectAttributes.addFlashAttribute("message", "Film déjà actif : aucune modification effectuée");
+                redirectAttributes.addFlashAttribute(MESSAGE, "Film déjà actif : aucune modification effectuée");
             }
 
         } catch (NoSuchElementException e) {

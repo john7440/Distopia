@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -224,7 +225,7 @@ public class CinemaService {
 
             if (cinema.getSeances() != null) {
                 cinema.getSeances().forEach(seance -> {
-                    if (seance.getDateTime() != null && seance.getDateTime().isAfter(LocalDateTime.now())) {
+                    if (seance.getDateTime() != null && seance.getDateTime().isAfter(LocalDateTime.now(ZoneId.systemDefault()))) {
                         seance.setActive(false);
                     }
                 });

@@ -46,6 +46,9 @@ class ReservationServiceTest {
         Movie movie = new Movie();
         movie.setId(10L);
         movie.setDeleted(false);
+        Cinema cinema = new Cinema();
+        cinema.setId(20L);
+        cinema.setDeleted(false);
 
         Seance seance = new Seance();
         seance.setId(1L);
@@ -54,6 +57,7 @@ class ReservationServiceTest {
         seance.setPrice(9.50);
         seance.setDateTime(LocalDateTime.now().plusDays(1));
         seance.setActive(true);
+        seance.setCinema(cinema);
         return seance;
     }
 
@@ -412,6 +416,26 @@ class ReservationServiceTest {
 
         verify(reservationRepository, never()).deleteAll(anyList());
         verify(reservationRepository, never()).save(any(Reservation.class));
+        verify(seanceRepository, never()).save(any(Seance.class));
+    }
+
+    @Test
+    @DisplayName("createReservation() - rejects a deleted cinema")
+    void createReservation_ShouldRejectDeletedCinema() {
+        Seance seance = buildSeance(10);
+        Cinema cinema = new Cinema();
+        cinema.setId(20L);
+        cinema.setDeleted(true);
+
+        seance.setCinema(cinema);
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(buildUser()));
+
+        assertThatThrownBy(() -> reservationService.createReservation(1L, 2L, 2))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("cinéma");
+
+        assertThat(seance.getAvailableSeats()).isEqualTo(10);
+        verifyNoInteractions(reservationRepository);
         verify(seanceRepository, never()).save(any(Seance.class));
     }
 }

@@ -161,6 +161,9 @@ public class ReservationService {
         if (seance.getMovie() == null || seance.getMovie().isDeleted()) {
             throw new IllegalStateException("Ce film n'est plus disponible à la réservation");
         }
+        if (seance.getCinema() == null || seance.getCinema().isDeleted()) {
+            throw new IllegalStateException("Ce cinéma n'est plus disponible à la réservation");
+        }
         if (seance.getAvailableSeats() < quantity){
             throw new NoSeatsAvailableException("Seulement " + seance.getAvailableSeats() + " places disponibles");
         }
