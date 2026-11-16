@@ -57,6 +57,7 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     AND s.active = true
     AND s.dateTime >= :now
     AND s.movie.deleted = false
+    AND s.cinema.deleted = false
     ORDER BY s.dateTime ASC
     """)
     List<Seance> findUpcomingActiveByMovieAndCinema(@Param("movieId") Long movieId, @Param("cinemaId") Long cinemaId,
@@ -110,6 +111,7 @@ public interface SeanceRepository extends JpaRepository<Seance, Long> {
     AND s.dateTime >= CURRENT_TIMESTAMP
     AND s.active = true
     AND s.movie.deleted = false
+    AND s.cinema.deleted = false
     ORDER BY s.cinema.id ASC, s.dateTime ASC
     """)
     Page<Seance> findUpcomingSeancesByMovie(@Param("movieId") Long movieId, Pageable pageable);
