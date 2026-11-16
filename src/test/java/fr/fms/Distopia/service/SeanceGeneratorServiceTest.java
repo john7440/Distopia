@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -369,7 +370,32 @@ class SeanceGeneratorServiceTest {
         verifyNoInteractions(seanceService);
     }
 
+    @Test
+    @DisplayName("TMDB import - skips existing soft-deleted movie")
+    void importAndGenerate_ShouldSkipSoftDeletedTmdbMovie() {
+        Movie deletedMovie = new Movie();
+        deletedMovie.setId(7L);
+        deletedMovie.setTmdbId(1L);
+        deletedMovie.setTitle("Inception");
+        deletedMovie.setDeleted(true);
 
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(tmdbClient.getNowPlaying()).thenReturn(List.of(tmdbMovieDto));
+        when(movieService.getAllActive()).thenReturn(List.of());
+        when(movieService.findByTmdbId(1L)).thenReturn(Optional.of(deletedMovie));
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
+
+        assertThat(result.moviesImported()).isZero();
+        assertThat(deletedMovie.isDeleted()).isTrue();
+
+        verify(cinemaService).getAll();
+        verify(tmdbClient).getNowPlaying();
+        verify(movieService).findByTmdbId(1L);
+        verify(tmdbClient, never()).getDetail(1L);
+        verify(tmdbClient, never()).getTrailerUrl(1L);
+        verify(movieService, never()).save(isNull(), any(), any(), any(), anyInt(), any(), any(), any(), any(), any());
+    }
 
 
     //-------------------helper---------------------
@@ -438,7 +464,5 @@ class SeanceGeneratorServiceTest {
 
         verify(seanceService, times(2)).getExistingForGeneration(1L, 1L, START_DATE, START_DATE.plusDays(7));
     }
-
-
 }
 

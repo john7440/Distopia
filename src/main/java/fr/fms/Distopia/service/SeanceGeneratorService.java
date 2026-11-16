@@ -12,6 +12,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -120,6 +121,9 @@ public class SeanceGeneratorService {
      * @return true if the movie was imported, otherwise false
      */
     private boolean importSingleMovie(TmdbMovieDto tmdbMovie, Set<String> existingTitles) {
+        if (tmdbMovie.getId() != null && movieService.findByTmdbId(tmdbMovie.getId()).isPresent()) {
+            return false;
+        }
         TmdbMovieDto detail = tmdbClient.getDetail(tmdbMovie.getId());
         if (detail == null) return false;
 
@@ -178,7 +182,7 @@ public class SeanceGeneratorService {
             return 0;
         }
 
-        LocalDateTime startDate = LocalDateTime.now().plusDays(1)
+        LocalDateTime startDate = LocalDateTime.now(ZoneId.systemDefault()).plusDays(1)
                 .withHour(0).withMinute(0).withSecond(0).withNano(0);
 
         int count = 0;
@@ -285,7 +289,7 @@ public class SeanceGeneratorService {
             movie = movieService.getById(movie.getId());
         }
 
-        LocalDateTime startDate = LocalDateTime.now().plusDays(1)
+        LocalDateTime startDate = LocalDateTime.now(ZoneId.systemDefault()).plusDays(1)
                 .withHour(0).withMinute(0).withSecond(0).withNano(0);
 
         List<Cinema> eligibleCinemas = resolveGenerationCinemas(movie, cinemas);
