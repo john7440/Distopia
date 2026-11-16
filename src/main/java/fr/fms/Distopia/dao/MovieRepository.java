@@ -35,6 +35,7 @@ public interface MovieRepository extends JpaRepository<Movie,Long> {
         WHERE s.cinema.id = :cinemaId
           AND m.deleted = false
           AND s.active = true
+          AND s.cinema.deleted = false
           AND s.dateTime >= CURRENT_TIMESTAMP
         """)
     List<Movie> findMoviesWithUpcomingSeancesByCinemaId(@Param("cinemaId") Long cinemaId, Sort sort);
