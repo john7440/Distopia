@@ -142,6 +142,7 @@ public class SeanceGeneratorService {
                 null,
                 parseReleaseDate(detail.getReleaseDate())
         );
+        existingTitles.add(title.toLowerCase());
         return true;
     }
 

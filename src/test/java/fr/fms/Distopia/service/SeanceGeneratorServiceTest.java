@@ -464,5 +464,22 @@ class SeanceGeneratorServiceTest {
 
         verify(seanceService, times(2)).getExistingForGeneration(1L, 1L, START_DATE, START_DATE.plusDays(7));
     }
+
+    @Test
+    @DisplayName("TMDB import - skips duplicate titles within the same batch ")
+    void importAndGenerate_ShouldSkipDuplicateTitlesInSameBatch() {
+        TmdbMovieDto secondMovie = new TmdbMovieDto();
+        secondMovie.setId(2L);
+        secondMovie.setTitle("Inception");
+
+        when(cinemaService.getAll()).thenReturn(List.of(cinema));
+        when(tmdbClient.getNowPlaying()).thenReturn(List.of(tmdbMovieDto, secondMovie));
+        when(tmdbClient.getDetail(1L)).thenReturn(tmdbDetail);
+        when(tmdbClient.getDetail(2L)).thenReturn(tmdbDetail);
+        when(movieService.getAllActive()).thenReturn(List.of());
+
+        SeanceGeneratorService.GeneratorResult result = seanceGeneratorService.importAndGenerate();
+        assertThat(result.moviesImported()).isEqualTo(1);
+    }
 }
 
