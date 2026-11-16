@@ -73,6 +73,11 @@ public class ReservationService {
      *     <li>The historical unit price is stored with two decimal places using BigDecimal</li>
      *     <li>When additional seats are booked, the original unit price remains unchanged</li>
      * </ul>
+     * <p>When multiple reservations exist for the same user and screening, their historical unit prices must be numerically
+     * identical before consolidation</p>
+     *
+     * <p>Reservations with different or missing historical prices cannot be merged .
+     * Validation happens before changing available seats or modifying reservation records</p>
      *
      * <p>The total reservation amount can be calculated by multiplying the historical unit price by the quantity</p>
      *
@@ -84,6 +89,7 @@ public class ReservationService {
      * @throws IllegalStateException if the seance is no longer available for reservation
      * @throws IllegalArgumentException if the requested quantity is less than one
      * @throws NoSeatsAvailableException if the requested quantity is greater than the available seats
+     * @throws IllegalStateException if duplicate reservations have inconsistent historical prices
      */
     @Transactional
     public Reservation createReservation(Long seanceId, Long userId, int quantity){
@@ -93,6 +99,17 @@ public class ReservationService {
         validateReservationRequest(seance, quantity);
 
         List<Reservation> existingList = reservationRepository.findAllByUserIdAndSeanceId(userId, seanceId);
+
+        if (existingList.size() > 1) {
+            BigDecimal referencePrice = existingList.get(0).getUnitPriceAtBooking();
+
+            boolean inconsistentPrices = referencePrice == null || existingList.stream().anyMatch(reservation ->
+                    reservation.getUnitPriceAtBooking() == null || referencePrice.compareTo(reservation.getUnitPriceAtBooking()) != 0);
+
+            if (inconsistentPrices) {
+                throw new IllegalStateException("Impossible de fusionner des réservations avec des prix historiques incohérents");
+            }
+        }
 
         seance.setAvailableSeats(seance.getAvailableSeats() - quantity);
         seanceRepository.save(seance);
