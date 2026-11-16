@@ -62,6 +62,10 @@ public class CinemaCsvImporter {
      * skipped, including soft-deleted cinemas. Importing never
      * restores deleted cinemas automatically</p>
      *
+     * <p>Invalid GPS coordinates are stored as null without rejecting the cinema.
+     * Latitude is restricted to [-90, 90] and longitude to [-180, 180]. Non-finite values are
+     * also rejected</p>
+     *
      * <p>Cinemas already present with the same name and town are skipped, including soft-deleted cinemas.
      * The import never restores previously deleted cinemas automatically</p>
      *
@@ -89,31 +93,24 @@ public class CinemaCsvImporter {
                     .parse(reader);
 
             for (CSVRecord row : parser) {
-                String name    = row.get("name");
-                String address  = row.get("address");
+                String name = row.get("name");
+                String address = row.get("address");
+                String comNom = parseTownFromAddress(address);
 
-                if (name == null || name.isBlank() || address == null || address.isBlank()) {
+                if (name == null || name.isBlank() || address == null || address.isBlank()
+                        || cinemaRepository.existsByNameAndTown_Name(name, comNom)) {
                     skipped++;
                     continue;
                 }
 
-                String comNom  = parseTownFromAddress(address);
-
-                if (cinemaRepository.existsByNameAndTown_Name(name, comNom)) {
-                    skipped++;
-                    continue;
-                }
-
-
-                Town town = townRepository.findByName(comNom)
-                        .orElseGet(() -> townRepository.save(newTown(comNom)));
+                Town town = townRepository.findByName(comNom).orElseGet(() -> townRepository.save(newTown(comNom)));
 
                 Cinema cinema = new Cinema();
                 cinema.setName(name);
                 cinema.setAddress(address);
                 cinema.setWebsite(cleanUrl(row.get("website")));
-                cinema.setLatitude(parseDouble(row.get("latitude")));
-                cinema.setLongitude(parseDouble(row.get("longitude")));
+                cinema.setLatitude(parseCoordinate(row.get("latitude"), -90.0, 90.0));
+                cinema.setLongitude(parseCoordinate(row.get("longitude"), -180.0, 180.0));
                 cinema.setImageUrl(row.isMapped("imageUrl") ? row.get("imageUrl") : null);
                 cinema.setDepartment(row.isMapped("department") ? row.get("department") : null);
                 cinema.setTown(town);
@@ -163,6 +160,28 @@ public class CinemaCsvImporter {
         try { return (val != null && !val.isBlank()) ? Double.parseDouble(val) : null; }
         catch (NumberFormatException e) { return null; }
     }
+
+
+    /**
+     * Parses and validates a geographic coordinate
+     *
+     * <p>Invalid, non-finite or out-of-range values are rejected and represented as {@code null}.
+     * Both range boundaries are inclusive</p>
+     *
+     * @param value the raw coordinate from the CSV file
+     * @param min the minimum allowed value
+     * @param max the maximum allowed value
+     * @return the validated coordinate, or null if invalid
+     */
+    private Double parseCoordinate(String value, double min, double max) {
+        Double coordinate = parseDouble(value);
+
+        if (coordinate == null || !Double.isFinite(coordinate) || coordinate < min || coordinate > max) {
+            return null;
+        }
+        return coordinate;
+    }
+
 
     /**
      * Extracts the town name from an address
