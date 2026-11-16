@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -96,19 +97,21 @@ public class ReservationService {
         seance.setAvailableSeats(seance.getAvailableSeats() - quantity);
         seanceRepository.save(seance);
 
-        if (!existingList.isEmpty()){
+        if (!existingList.isEmpty()) {
             Reservation resa = existingList.get(0);
+            int existingQuantity = existingList.stream().mapToInt(Reservation::getQuantity).sum();
 
-            if (existingList.size() > 1){
+            if (existingList.size() > 1) {
                 reservationRepository.deleteAll(existingList.subList(1, existingList.size()));
             }
+            resa.setQuantity(existingQuantity + quantity);
 
-            resa.setQuantity(resa.getQuantity() + quantity);
             return reservationRepository.save(resa);
         }
 
+
         Reservation reservation = new Reservation();
-        reservation.setReservedAt(LocalDateTime.now());
+        reservation.setReservedAt(LocalDateTime.now(ZoneId.systemDefault()));
         reservation.setSeance(seance);
         reservation.setUser(user);
         reservation.setQuantity(quantity);
@@ -135,7 +138,7 @@ public class ReservationService {
         if (quantity < 1) {
             throw new IllegalArgumentException("La quantité doit être supérieure à 0");
         }
-        if (!seance.isActive() || seance.getDateTime().isBefore(LocalDateTime.now())) {
+        if (!seance.isActive() || seance.getDateTime().isBefore(LocalDateTime.now(ZoneId.systemDefault()))) {
             throw new IllegalStateException("Cette séance n'est plus disponible à la réservation");
         }
         if (seance.getMovie() == null || seance.getMovie().isDeleted()) {

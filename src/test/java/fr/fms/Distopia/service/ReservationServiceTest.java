@@ -199,7 +199,7 @@ class ReservationServiceTest {
         verify(reservationRepository).save(r1);
 
         assertThat(result).isSameAs(r1);
-        assertThat(r1.getQuantity()).isEqualTo(4);
+        assertThat(r1.getQuantity()).isEqualTo(7);
         assertThat(seance.getAvailableSeats()).isEqualTo(8);
     }
 
