@@ -19,6 +19,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
+import java.util.NoSuchElementException;
 
 /**
  * Service responsible for seance business operations.
@@ -255,21 +256,37 @@ public class SeanceService {
     }
 
     /**
-     * Deletes selected seances by their identifiers
+     * Deletes selected screenings after acquiring pessimistic locks.
      *
-     * @param ids the seance identifiers to delete
-     * @return the number of deleted seances
-     * @throws IllegalStateException if one or more selected seances have existing reservations
+     * <p>Screenings are locked in ascending identifier order
+     * before checking for existing reservations.</p>
+     *
+     * <p>Duplicate identifiers are locked only once.
+     * An unknown screening identifier aborts the operation.</p>
+     *
+     * @param ids the screening identifiers to delete
+     * @return the number of identifiers submitted for deletion
+     * @throws NoSuchElementException if a screening does not exist
+     * @throws IllegalStateException if any screening has reservations
      */
     @Transactional
     public int deleteSelected(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return 0;
         }
+
+        List<Long> orderedIds = ids.stream().distinct().sorted().toList();
+
+        for (Long id : orderedIds) {
+            seanceRepository.findByIdForUpdate(id).orElseThrow(() -> new NoSuchElementException("Séance introuvable : " + id));
+        }
+
         ensureSeancesHaveNoReservations(ids);
         seanceRepository.deleteAllByIdInBatch(ids);
+
         return ids.size();
     }
+
 
     /**
      * Deletes all seances matching the current admin filters<p>

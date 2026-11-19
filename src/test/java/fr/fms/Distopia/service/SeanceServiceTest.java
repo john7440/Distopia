@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -238,6 +239,7 @@ import static org.mockito.Mockito.*;
     @DisplayName("deleteSelected - Should delete selected seances when none has reservations")
     void deleteSelected_shouldDeleteSelectedSeancesWhenNoneHasReservations() {
         List<Long> ids = List.of(1L, 2L, 3L);
+        stubLockedSeances(1L, 2L, 3L);
 
         when(reservationRepository.countBySeanceIds(ids)).thenReturn(0L);
 
@@ -252,6 +254,7 @@ import static org.mockito.Mockito.*;
     @DisplayName("deleteSelected - Should refuse deletion when one selected seance has reservations")
     void deleteSelected_shouldRefuseDeletionWhenOneSelectedSeanceHasReservations() {
         List<Long> ids = List.of(1L, 2L, 3L);
+        stubLockedSeances(1L, 2L, 3L);
 
         when(reservationRepository.countBySeanceIds(ids)).thenReturn(1L);
 
@@ -261,6 +264,25 @@ import static org.mockito.Mockito.*;
                 exception.getMessage());
         verify(reservationRepository).countBySeanceIds(ids);
         verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
+    }
+
+    @Test
+    @DisplayName("deleteSelected() - locks screenings before checking reservations")
+    void deleteSelected_ShouldLockSeancesBeforeCheckingReservations() {
+        List<Long> ids = List.of(2L, 1L);
+
+        stubLockedSeances(1L, 2L);
+
+        int deleted = seanceService.deleteSelected(ids);
+
+        assertThat(deleted).isEqualTo(2);
+
+        InOrder order = inOrder(seanceRepository, reservationRepository);
+
+        order.verify(seanceRepository).findByIdForUpdate(1L);
+        order.verify(seanceRepository).findByIdForUpdate(2L);
+        order.verify(reservationRepository).countBySeanceIds(ids);
+        order.verify(seanceRepository).deleteAllByIdInBatch(ids);
     }
 
     //--------------test for deleteByAdminFilters----------------------------
@@ -529,4 +551,17 @@ import static org.mockito.Mockito.*;
     }
 
 
+    /**
+     * Stubs pessimistically locked screenings for service tests
+     *
+     * @param ids the identifiers of existing screenings
+     */
+    private void stubLockedSeances(Long... ids) {
+        for (Long id : ids) {
+            Seance lockedSeance = new Seance();
+            lockedSeance.setId(id);
+
+            when(seanceRepository.findByIdForUpdate(id)).thenReturn(Optional.of(lockedSeance));
+        }
+    }
 }
