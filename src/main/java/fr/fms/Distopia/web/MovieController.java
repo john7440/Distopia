@@ -44,6 +44,7 @@ public class MovieController {
     private static final String MOVIES = "movies";
     private static final String REDIRECT_ADMIN_MOVIES = "redirect:/admin/movies";
     private static final String MESSAGE = "message";
+    private static final String ERROR = "error";
 
     //---------------films d'un cinéma--------------------
     /**
@@ -140,24 +141,28 @@ public class MovieController {
             String errorMessage = bindingResult.getAllErrors().isEmpty()
                     ? "Données invalides"
                     : bindingResult.getAllErrors().get(0).getDefaultMessage();
-            redirectAttributes.addFlashAttribute("error", errorMessage);
+            redirectAttributes.addFlashAttribute(ERROR, errorMessage);
 
             return REDIRECT_ADMIN_MOVIES;
         }
-        movieService.save(
-                form.getId(),
-                form.getTmdbId(),
-                form.getTitle(),
-                form.getDescription(),
-                form.getDuration(),
-                form.getGenre(),
-                form.getImageUrl(),
-                form.getTrailerUrl(),
-                form.getCinemaIds(),
-                form.getReleaseDate()
-        );
-        redirectAttributes.addFlashAttribute(MESSAGE,
-                form.getId() == null ? "Film ajouté avec succès" : "Film modifié avec succès");
+        try {
+            movieService.save(
+                    form.getId(),
+                    form.getTmdbId(),
+                    form.getTitle(),
+                    form.getDescription(),
+                    form.getDuration(),
+                    form.getGenre(),
+                    form.getImageUrl(),
+                    form.getTrailerUrl(),
+                    form.getCinemaIds(),
+                    form.getReleaseDate()
+            );
+            redirectAttributes.addFlashAttribute(MESSAGE, form.getId() == null ? "Film ajouté avec succès" : "Film modifié avec succès");
+
+        } catch (NoSuchElementException e) {
+            redirectAttributes.addFlashAttribute(ERROR, "Ce film n'existe pas ou a été supprimé");
+        }
 
         return REDIRECT_ADMIN_MOVIES;
     }
@@ -209,7 +214,7 @@ public class MovieController {
             }
 
         } catch (NoSuchElementException e) {
-            redirectAttributes.addFlashAttribute("error", "Film introuvable");
+            redirectAttributes.addFlashAttribute(ERROR, "Film introuvable");
         }
         return REDIRECT_ADMIN_MOVIES;
     }

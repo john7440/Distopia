@@ -237,6 +237,25 @@ class MovieControllerTest {
                 any(), any(), any(), any());
     }
 
+    @Test
+    @DisplayName("saveMovie() - handles unknown movie during update")
+    void saveMovie_ShouldHandleUnknownMovieDuringUpdate() {
+        authenticate(adminUser);
+
+        MovieForm form = validMovieForm();
+        form.setId(99L);
+
+        when(movieService.save(form.getId(), form.getTmdbId(), form.getTitle(), form.getDescription(), form.getDuration(),
+                form.getGenre(), form.getImageUrl(), form.getTrailerUrl(), form.getCinemaIds(), form.getReleaseDate())).thenThrow(new NoSuchElementException());
+
+        String view = movieController.saveMovie(form, bindingResult, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/movies");
+
+        verify(redirectAttributes).addFlashAttribute("error", "Ce film n'existe pas ou a été supprimé");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+    }
+
     //---------------------------tests for deleteMovie()--------------------------
     @Test
     @DisplayName("deleteMovie() - soft-delete movie and redirects for admin user")
