@@ -264,8 +264,7 @@ public class MovieController {
         Optional<Movie> existing =
                 movieService.findByTmdbId(tmdbId);
         if (existing.isPresent()) {
-            return "redirect:/movie?id="
-                    + existing.get().getId();
+            return "redirect:/movie?id=" + existing.get().getId();
         }
         TmdbMovieDto tmdbMovie =
                 tmdbClient.getDetail(tmdbId);

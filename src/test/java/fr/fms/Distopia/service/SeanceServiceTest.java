@@ -130,25 +130,26 @@ import static org.mockito.Mockito.*;
     }
 
     @Test
-    @DisplayName("save() - throws RuntimeException when cinemaId not found")
+    @DisplayName("save() - rejects unknown cinema")
     void save_shouldThrowRuntimeExceptionWhenCinemaIdNotFound() {
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
         when(cinemaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> seanceService.save(null, futureDate, 200, 15.0,null,99L))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessage("Cinéma introuvable");
+        assertThatThrownBy(() -> seanceService.save(null, futureDate, 200, 15.0, 1L, 99L))
+               .isInstanceOf(RuntimeException.class).hasMessage("Cinéma introuvable");
+
+        verify(seanceRepository, never()).save(any(Seance.class));
     }
 
     @Test
-    @DisplayName("save() - skips movie assignment when movieId is null")
-    void save_shouldSkipMovieAssignmentWhenMovieIdIsNull() {
-        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
-        when(seanceRepository.save(any(Seance.class))).thenAnswer(i -> i.getArgument(0));
+    @DisplayName("save() - rejects new screening without a movie")
+    void save_ShouldRejectCreatingScreeningWithoutMovie() {
+        assertThatThrownBy(() -> seanceService.save(null, futureDate, 200, 15.0, null, 1L
+        )).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("film");
 
-        Seance result = seanceService.save(null, futureDate, 200, 15.0,null,1L);
-
-        assertThat(result.getMovie()).isNull();
-        verify(movieRepository, never()).findById(any());
+        verify(seanceRepository, never()).save(any(Seance.class));
+        verifyNoInteractions(movieRepository, cinemaRepository);
+        verify(seanceRepository, never()).save(any(Seance.class));
     }
 
 

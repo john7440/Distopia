@@ -128,6 +128,9 @@ public class SeanceService {
      */
     @Transactional
     public Seance save(Long id, LocalDateTime dateTime, int availableSeats, double price, Long movieId, Long cinemaId) {
+        if (id == null && movieId == null) {
+            throw new IllegalArgumentException("Un film est obligatoire pour créer une séance");
+        }
 
         Seance seance = (id != null) ? seanceRepository.findByIdForUpdate(id).orElseThrow() : new Seance();
 
