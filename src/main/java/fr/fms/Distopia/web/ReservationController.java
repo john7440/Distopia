@@ -61,6 +61,7 @@ public class ReservationController {
      * @param redirectAttributes the Spring {@link RedirectAttributes} used to pass flash messages across the redirect
      * @return a redirection URL to the user's reservations page, or to the login page if unauthenticated
      */
+    @SuppressWarnings("SpringMVCViewInspection")
     @PostMapping("/reserve")
     public String reserveSeance(@RequestParam Long seanceId,
                                 @Min(value = 1, message = "La quantité doit être au moins de 1")
@@ -81,9 +82,10 @@ public class ReservationController {
         try {
             reservationService.createReservation(seanceId, user.getId(), quantity);
             redirectAttributes.addFlashAttribute("message", "Reservation bien enregistrée");
-        } catch (NoSeatsAvailableException e) {
+        } catch (NoSeatsAvailableException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
+
         return "redirect:/my-reservations";
     }
 }
