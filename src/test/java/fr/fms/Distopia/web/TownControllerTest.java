@@ -25,6 +25,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -176,6 +177,26 @@ class TownControllerTest {
         verify(ra).addFlashAttribute("error", "error test");
         verify(townService, never()).save(any(), any());
     }
+
+    @Test
+    @DisplayName("saveTown() - displays an error for an unknown town")
+    void saveTown_ShouldRedirectWithErrorWhenTownDoesNotExist() {
+        authenticate(adminUser);
+
+        TownForm form = validTownForm();
+        form.setId(99L);
+        form.setName("Ville fantôme");
+
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(townService.save(99L, "Ville fantôme")).thenThrow(new NoSuchElementException());
+
+        String view = townController.saveTown(form, bindingResult, ra);
+
+        assertThat(view).isEqualTo("redirect:/admin/towns");
+
+        verify(ra).addFlashAttribute("error", "Cette ville n'existe pas ou a été supprimée");
+    }
+
     //---------------------------tests for deleteTown()---------------
     @Test
     @DisplayName("deleteTown() - deletes town and redirects for admin user")
