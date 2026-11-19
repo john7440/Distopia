@@ -154,7 +154,15 @@ public class MovieController {
             redirectAttributes.addFlashAttribute(ERROR, "Ce film n'existe pas ou a été supprimé");
 
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute(ERROR, "Le cinéma sélectionné n'existe pas");
+            String errorMessage;
+            if ("Le cinéma sélectionné est supprimé".equals(e.getMessage())) {
+                errorMessage = "Le cinéma sélectionné est supprimé";
+            } else if ("Le cinéma sélectionné n'existe pas".equals(e.getMessage())) {
+                errorMessage = "Le cinéma sélectionné n'existe pas";
+            } else {
+                errorMessage = "La sélection du cinéma est invalide";
+            }
+            redirectAttributes.addFlashAttribute(ERROR, errorMessage);
         }
         return REDIRECT_ADMIN_MOVIES;
     }
