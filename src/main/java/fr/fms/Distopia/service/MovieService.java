@@ -95,14 +95,14 @@ public class MovieService {
      * @param cinemaIds   the list of associated cinema identifiers
      * @param releaseDate the movie release date
      * @return the saved movie entity
+     * @throws java.util.NoSuchElementException if the provided identifier does not match an existing movie
      */
     @Transactional
     public Movie save(Long id,Long tmdbId, String title, String description,
                       int duration, String genre, String imageUrl, String trailerUrl,
                       List<Long> cinemaIds, LocalDate releaseDate) {
 
-        Movie movie = (id != null) ? movieRepository.findById(id).orElse(new Movie()) : new Movie();
-
+        Movie movie = (id != null) ? movieRepository.findById(id).orElseThrow() : new Movie();
         movie.setTitle(title);
         movie.setDescription(description);
         movie.setDuration(duration);

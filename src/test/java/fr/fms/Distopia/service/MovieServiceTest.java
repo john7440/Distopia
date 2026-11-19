@@ -178,6 +178,20 @@ class MovieServiceTest {
     }
 
     @Test
+    @DisplayName("save() - rejects update when movie does not exist")
+    void save_ShouldRejectUpdateWhenMovieDoesNotExist() {
+        LocalDate releaseDate = LocalDate.of(2026, 6, 5);
+
+        when(movieRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> movieService.save(99L, null, "Film fantôme", "Description du film",
+                120, "Drame", null, null, null, releaseDate)).isInstanceOf(NoSuchElementException.class);
+
+        verify(movieRepository, never()).save(any(Movie.class));
+        verifyNoInteractions(cinemaRepository);
+    }
+
+    @Test
     @DisplayName("save() - links movie to cinemas when cinemaIds are provided")
     void save_ShouldLinkMovieToCinemasWhenCinemaIdsProvided() {
         Cinema cinema1 = new Cinema();
