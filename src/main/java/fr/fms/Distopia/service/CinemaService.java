@@ -187,7 +187,9 @@ public class CinemaService {
         cinema.setImageUrl(imageUrl);
         cinema.setDepartment(department);
 
-        if (townId != null){
+        if (townId == null) {
+            cinema.setTown(null);
+        } else {
             townRepository.findById(townId).ifPresent(cinema::setTown);
         }
         return cinemaRepository.save(cinema);

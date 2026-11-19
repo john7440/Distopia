@@ -174,10 +174,21 @@ class CinemaServiceTest {
         verify(cinemaRepository).save(any(Cinema.class));
     }
 
+    @Test
+    @DisplayName("save() - clears existing town when townId is null")
+    void save_ShouldClearExistingTownWhenTownIdIsNull() {
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(cinemaRepository.save(any(Cinema.class))).thenAnswer(inv -> inv.getArgument(0));
 
+        Cinema result = cinemaService.save(1L, "Gaumont", "1 rue de la Paix", null,
+                "https://example.com", 43.48, -1.57, "image.jpg", "40");
+
+        assertThat(result.getTown()).isNull();
+        verify(cinemaRepository).save(cinema);
+        verifyNoInteractions(townRepository);
+    }
 
     //---------------------------tests du delete()---------------------------
-
     @Test
     @DisplayName("delete() - soft-deletes cinema")
     void delete_ShouldSoftDeleteCinema() {
