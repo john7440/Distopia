@@ -226,19 +226,23 @@ class MovieServiceTest {
     }
 
     @Test
-    @DisplayName("save() - ignores cinema ids when cinema does not exist")
-    void save_ShouldIgnoreCinemaIdsWhenCinemaDoesNotExist() {
+    @DisplayName("save() - rejects unknown cinema without modifying movie")
+    void save_ShouldRejectUnknownCinemaWithoutModifyingMovie() {
+        List<Long> requestedCinemaIds = List.of(99L);
+        cinema.getMovies().add(movie);
 
-        when(cinemaRepository.findById(1L)).thenReturn(Optional.empty());
-        when(movieRepository.save(any(Movie.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(cinemaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        Movie result = movieService.save(
-                null, 99L, "Interstellar", "desc", 150, "Sci-Fi",
-                "/img.jpg", "/trailer", List.of(1L), LocalDate.now());
+        assertThatThrownBy(() -> movieService.save(1L, null, "Film modifié", "Nouvelle description",
+                130, "Drame", "nouvelle-image.jpg", "nouveau-trailer.mp4", requestedCinemaIds,date
+        )).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("cinéma");
 
-        assertThat(result.getCinemas()).isEmpty();
+        assertThat(movie.getTitle()).isEqualTo("Movie Test");
+        assertThat(movie.getCinemas()).containsExactly(cinema);
+        assertThat(cinema.getMovies()).contains(movie);
 
-        verify(cinemaRepository).findById(1L);
+        verify(movieRepository, never()).save(any(Movie.class));
     }
 
     @Test
