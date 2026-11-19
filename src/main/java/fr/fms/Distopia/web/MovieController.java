@@ -146,24 +146,16 @@ public class MovieController {
             return REDIRECT_ADMIN_MOVIES;
         }
         try {
-            movieService.save(
-                    form.getId(),
-                    form.getTmdbId(),
-                    form.getTitle(),
-                    form.getDescription(),
-                    form.getDuration(),
-                    form.getGenre(),
-                    form.getImageUrl(),
-                    form.getTrailerUrl(),
-                    form.getCinemaIds(),
-                    form.getReleaseDate()
-            );
+            movieService.save(form.getId(), form.getTmdbId(), form.getTitle(), form.getDescription(), form.getDuration(),
+                    form.getGenre(), form.getImageUrl(), form.getTrailerUrl(), form.getCinemaIds(), form.getReleaseDate());
             redirectAttributes.addFlashAttribute(MESSAGE, form.getId() == null ? "Film ajouté avec succès" : "Film modifié avec succès");
 
         } catch (NoSuchElementException e) {
             redirectAttributes.addFlashAttribute(ERROR, "Ce film n'existe pas ou a été supprimé");
-        }
 
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute(ERROR, "Le cinéma sélectionné n'existe pas");
+        }
         return REDIRECT_ADMIN_MOVIES;
     }
 
@@ -200,10 +192,7 @@ public class MovieController {
      * @return a redirect to the movie administration page
      */
     @PostMapping("/admin/restoreMovie")
-    public String restoreMovie(
-            @RequestParam Long id,
-            RedirectAttributes redirectAttributes) {
-
+    public String restoreMovie(@RequestParam Long id, RedirectAttributes redirectAttributes) {
         try {
             boolean restored = movieService.restore(id);
 
@@ -212,7 +201,6 @@ public class MovieController {
             } else {
                 redirectAttributes.addFlashAttribute(MESSAGE, "Film déjà actif : aucune modification effectuée");
             }
-
         } catch (NoSuchElementException e) {
             redirectAttributes.addFlashAttribute(ERROR, "Film introuvable");
         }
