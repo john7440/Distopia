@@ -3,7 +3,10 @@ package fr.fms.Distopia.service;
 import fr.fms.Distopia.dao.CinemaRepository;
 import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.entities.Cinema;
+import fr.fms.Distopia.entities.Town;
+
 import jakarta.transaction.Transactional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -175,10 +178,19 @@ public class CinemaService {
      * @param department the departement where the cinemas are located
      * @return the saved or updated {@link Cinema} entity
      * @throws java.util.NoSuchElementException if the provided identifier does not match an existing cinema
+     * @throws IllegalArgumentException if the requested town identifier does not match an existing town
      */
-    public Cinema save(Long id, String name, String address, Long townId, String website,
-                       Double latitude, Double longitude,String imageUrl, String department) {
-        Cinema cinema = (id != null) ? cinemaRepository.findById(id).orElseThrow(): new Cinema();
+    public Cinema save(Long id, String name, String address, Long townId, String website, Double latitude, Double longitude,
+                       String imageUrl, String department) {
+
+        Cinema cinema = (id != null) ? cinemaRepository.findById(id).orElseThrow() : new Cinema();
+
+        Town selectedTown = null;
+
+        if (townId != null) {
+            selectedTown = townRepository.findById(townId).orElseThrow(() -> new IllegalArgumentException("La ville sélectionnée n'existe pas"));
+        }
+
         cinema.setName(name);
         cinema.setAddress(address);
         cinema.setWebsite(website);
@@ -186,14 +198,11 @@ public class CinemaService {
         cinema.setLongitude(longitude);
         cinema.setImageUrl(imageUrl);
         cinema.setDepartment(department);
+        cinema.setTown(selectedTown);
 
-        if (townId == null) {
-            cinema.setTown(null);
-        } else {
-            townRepository.findById(townId).ifPresent(cinema::setTown);
-        }
         return cinemaRepository.save(cinema);
     }
+
 
     /**
      * Retrieves all distinct cinema departments stored in the database

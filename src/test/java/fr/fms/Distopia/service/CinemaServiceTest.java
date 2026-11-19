@@ -188,6 +188,23 @@ class CinemaServiceTest {
         verifyNoInteractions(townRepository);
     }
 
+    @Test
+    @DisplayName("save() - rejects unknown town without modifying cinema")
+    void save_ShouldRejectUnknownTownWithoutModifyingCinema() {
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(townRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> cinemaService.save(1L, "Cinéma modifié", "Nouvelle adresse", 99L,
+                "https://example.com", 43.48, -1.57, "image.jpg", "40"
+        )).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("ville");
+
+        assertThat(cinema.getName()).isEqualTo("Gaumont");
+        assertThat(cinema.getAddress()).isEqualTo("1 rue de la Paix");
+        assertThat(cinema.getTown()).isSameAs(town);
+
+        verify(cinemaRepository, never()).save(any(Cinema.class));
+    }
+
     //---------------------------tests du delete()---------------------------
     @Test
     @DisplayName("delete() - soft-deletes cinema")
