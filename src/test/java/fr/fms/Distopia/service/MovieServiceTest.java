@@ -246,6 +246,32 @@ class MovieServiceTest {
     }
 
     @Test
+    @DisplayName("save() - rejects deleted cinema without modifying movie")
+    void save_ShouldRejectDeletedCinemaWithoutModifyingMovie() {
+        Cinema deletedCinema = new Cinema();
+        deletedCinema.setId(99L);
+        deletedCinema.setDeleted(true);
+
+        List<Long> requestedCinemaIds = List.of(99L);
+
+        cinema.getMovies().add(movie);
+
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
+        when(cinemaRepository.findById(99L)).thenReturn(Optional.of(deletedCinema));
+
+        assertThatThrownBy(() -> movieService.save(1L, null, "Film modifié", "Nouvelle description",
+                130, "Drame", "nouvelle-image.jpg", "nouveau-trailer.mp4", requestedCinemaIds, date
+        )).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("cinéma");
+
+        assertThat(movie.getTitle()).isEqualTo("Movie Test");
+        assertThat(movie.getCinemas()).containsExactly(cinema);
+        assertThat(cinema.getMovies()).contains(movie);
+        assertThat(deletedCinema.getMovies()).isEmpty();
+
+        verify(movieRepository, never()).save(any(Movie.class));
+    }
+
+    @Test
     @DisplayName("save() - clears previous cinema associations before adding new ones")
     void save_ShouldClearPreviousCinemaAssociationsBeforeAddingNewOnes() {
         Cinema oldCinema = new Cinema();

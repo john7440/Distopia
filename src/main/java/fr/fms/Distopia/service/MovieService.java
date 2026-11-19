@@ -112,8 +112,12 @@ public class MovieService {
         List<Cinema> selectedCinemas = null;
 
         if (cinemaIds != null) {
-            selectedCinemas = cinemaIds.stream().map(cinemaId -> cinemaRepository.findById(cinemaId).orElseThrow(() ->
-                            new IllegalArgumentException("Le cinéma sélectionné n'existe pas"))).toList();
+            selectedCinemas = cinemaIds.stream()
+                    .map(cinemaId -> {Cinema selectedCinema = cinemaRepository.findById(cinemaId).orElseThrow(() -> new IllegalArgumentException("Le cinéma sélectionné n'existe pas"));
+                        if (selectedCinema.isDeleted()) {
+                            throw new IllegalArgumentException("Le cinéma sélectionné est supprimé");
+                        }
+                        return selectedCinema;}).toList();
         }
 
         movie.setTitle(title);
