@@ -117,16 +117,16 @@ class CinemaServiceTest {
     }
 
     @Test
-    @DisplayName("save() - creates new cinema when id not found in database")
-    void save_ShouldCreateNewCinemaWhenIdNotFoundInDatabase() {
+    @DisplayName("save() - rejects update when cinema does not exist")
+    void save_ShouldRejectUpdateWhenCinemaDoesNotExist() {
         when(cinemaRepository.findById(99L)).thenReturn(Optional.empty());
-        when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
 
-        Cinema result = cinemaService.save(99L, "Ghost Ciné", "Nul part", null,
-                "www.test.com", 1D, 1D, "testImage", "74");
+        assertThatThrownBy(() -> cinemaService.save(99L, "Ghost Ciné", "Nulle part", null,
+                "https://example.com", 43.48, -1.57, "image.jpg", "40"
+        )).isInstanceOf(NoSuchElementException.class);
 
-        assertThat(result.getName()).isEqualTo("Ghost Ciné");
-        assertThat(result.getTown()).isNull();
+        verify(cinemaRepository, never()).save(any(Cinema.class));
+        verifyNoInteractions(townRepository);
     }
 
     @Test

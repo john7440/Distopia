@@ -174,10 +174,11 @@ public class CinemaService {
      * @param imageUrl an image URL about the cinema
      * @param department the departement where the cinemas are located
      * @return the saved or updated {@link Cinema} entity
+     * @throws java.util.NoSuchElementException if the provided identifier does not match an existing cinema
      */
     public Cinema save(Long id, String name, String address, Long townId, String website,
                        Double latitude, Double longitude,String imageUrl, String department) {
-        Cinema cinema = (id != null) ? cinemaRepository.findById(id).orElse(new Cinema()): new Cinema();
+        Cinema cinema = (id != null) ? cinemaRepository.findById(id).orElseThrow(): new Cinema();
         cinema.setName(name);
         cinema.setAddress(address);
         cinema.setWebsite(website);
