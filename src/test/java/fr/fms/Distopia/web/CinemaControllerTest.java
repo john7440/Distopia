@@ -281,6 +281,31 @@ class CinemaControllerTest {
                 -1.57, "image.jpg", "64");
     }
 
+    @Test
+    @DisplayName("/admin/saveCinema - handles unknown town")
+    void adminSaveCinema_ShouldHandleUnknownTown() throws Exception {
+        when(cinemaService.save(1L, "UGC", "26 rue du test", 99L, "https://ugc.fr", 43.48, -1.57,
+                "image.jpg", "64")).thenThrow(new IllegalArgumentException("La ville sélectionnée n'existe pas"));
+
+        mockMvc.perform(post("/admin/saveCinema")
+                        .with(csrf())
+                        .with(user("admin").roles("ADMIN"))
+                        .param("id", "1")
+                        .param("name", "UGC")
+                        .param("address", "26 rue du test")
+                        .param("townId", "99")
+                        .param("website", "https://ugc.fr")
+                        .param("latitude", "43.48")
+                        .param("longitude", "-1.57")
+                        .param("imageUrl", "image.jpg")
+                        .param("department", "64"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"))
+                .andExpect(flash().attribute("error", "La ville sélectionnée n'existe pas"));
+
+        verify(cinemaService).save(1L, "UGC", "26 rue du test", 99L, "https://ugc.fr",
+                43.48, -1.57, "image.jpg", "64");
+    }
 
     //----------tests for delete()----------------------------------
     @Test

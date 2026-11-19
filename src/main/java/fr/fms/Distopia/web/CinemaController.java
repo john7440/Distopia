@@ -177,15 +177,17 @@ public class CinemaController {
             return ADMIN_REDIRECT;
         }
 
+
         try {
-            cinemaService.save(form.getId(), form.getName(), form.getAddress(),form.getTownId(), form.getWebsite(),
+            cinemaService.save(form.getId(), form.getName(), form.getAddress(), form.getTownId(), form.getWebsite(),
                     form.getLatitude(), form.getLongitude(), form.getImageUrl(), form.getDepartment());
         } catch (NoSuchElementException e) {
             ra.addFlashAttribute(ERROR, "Ce cinéma n'existe pas ou a été supprimé");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute(ERROR, "La ville sélectionnée n'existe pas"
+            );
         }
-
         return ADMIN_REDIRECT;
-
     }
 
     /**
