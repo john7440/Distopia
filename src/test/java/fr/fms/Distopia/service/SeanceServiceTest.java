@@ -304,6 +304,7 @@ import static org.mockito.Mockito.*;
     @DisplayName("deleteByAdminFilters - Should delete matching seances when none has reservations")
     void deleteByAdminFilters_shouldDeleteMatchingSeancesWhenNoneHasReservations() {
         List<Long> ids = List.of(1L, 2L);
+        stubLockedSeances(1L, 2L);
 
         when(seanceRepository.findIdsByAdminFilters("avatar", 5L, true)).thenReturn(ids);
         when(reservationRepository.countBySeanceIds(ids)).thenReturn(0L);
@@ -320,6 +321,7 @@ import static org.mockito.Mockito.*;
     @DisplayName("deleteByAdminFilters - Should refuse deletion when one matching seance has reservations")
     void deleteByAdminFilters_shouldRefuseDeletionWhenOneMatchingSeanceHasReservations() {
         List<Long> ids = List.of(1L, 2L);
+        stubLockedSeances(1L, 2L);
 
         when(seanceRepository.findIdsByAdminFilters("avatar", 5L, true)).thenReturn(ids);
         when(reservationRepository.countBySeanceIds(ids)).thenReturn(1L);
@@ -331,6 +333,28 @@ import static org.mockito.Mockito.*;
         verify(seanceRepository).findIdsByAdminFilters("avatar", 5L, true);
         verify(reservationRepository).countBySeanceIds(ids);
         verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
+    }
+
+    @Test
+    @DisplayName("deleteByAdminFilters() - locks screenings before checking reservations")
+    void deleteByAdminFilters_ShouldLockSeancesBeforeCheckingReservations() {
+        List<Long> ids = List.of(2L, 1L);
+
+        when(seanceRepository.findIdsByAdminFilters("avatar", 5L, true)).thenReturn(ids);
+
+        stubLockedSeances(1L, 2L);
+
+        int deleted = seanceService.deleteByAdminFilters("avatar", 5L, true);
+
+        assertThat(deleted).isEqualTo(2);
+
+        InOrder order = inOrder(seanceRepository, reservationRepository);
+
+        order.verify(seanceRepository).findIdsByAdminFilters("avatar", 5L, true);
+        order.verify(seanceRepository).findByIdForUpdate(1L);
+        order.verify(seanceRepository).findByIdForUpdate(2L);
+        order.verify(reservationRepository).countBySeanceIds(ids);
+        order.verify(seanceRepository).deleteAllByIdInBatch(ids);
     }
 
     //------------------tests for searchAdmin() ---------------------------

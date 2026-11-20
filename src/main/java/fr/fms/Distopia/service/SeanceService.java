@@ -275,13 +275,44 @@ public class SeanceService {
             return 0;
         }
 
-        List<Long> orderedIds = ids.stream().distinct().sorted().toList();
-
-        for (Long id : orderedIds) {
-            seanceRepository.findByIdForUpdate(id).orElseThrow(() -> new NoSuchElementException("Séance introuvable : " + id));
-        }
+        lockSeancesForDeletion(ids);
 
         ensureSeancesHaveNoReservations(ids);
+        seanceRepository.deleteAllByIdInBatch(ids);
+
+        return ids.size();
+    }
+
+
+
+    /**
+     * Deletes all screenings matching the current admin filters.
+     *
+     * <p>Matching screenings are locked in ascending identifier order before checking their reservations and performing
+     * the bulk deletion</p>
+     *
+     * @param keyword the search keyword used in the admin page
+     * @param cinemaId the selected cinema identifier, or null
+     * @param showArchived whether archived screenings are included
+     * @return the number of deleted screenings
+     * @throws NoSuchElementException if a selected screening no longer exists
+     * @throws IllegalStateException if one or more screenings have existing reservations
+     */
+    @Transactional
+    public int deleteByAdminFilters(String keyword, Long cinemaId, boolean showArchived) {
+
+        syncSeanceActivityStatus();
+
+        List<Long> ids = seanceRepository.findIdsByAdminFilters(keyword, cinemaId, showArchived);
+
+        if (ids.isEmpty()) {
+            return 0;
+        }
+
+        lockSeancesForDeletion(ids);
+
+        ensureSeancesHaveNoReservations(ids);
+
         seanceRepository.deleteAllByIdInBatch(ids);
 
         return ids.size();
@@ -289,26 +320,24 @@ public class SeanceService {
 
 
     /**
-     * Deletes all seances matching the current admin filters<p>
-     * @param keyword  the search keyword used in the admin page
-     * @param cinemaId the selected cinema identifier, or null
-     * @param showArchived whether archived seances are included in the deletion scope
-     * @return the number of deleted seances
-     * @throws IllegalStateException if one or more matching seances have existing reservations
+     * Acquires pessimistic locks on screenings before deletion
+     *
+     * <p>Identifiers are deduplicated and sorted in ascending order to establish a deterministic locking protocol</p>
+     *
+     * <p>All locks are held until the surrounding transaction ends</p>
+     *
+     * @param ids the screening identifiers to lock
+     * @throws NoSuchElementException if a screening does not exist
      */
-    @Transactional
-    public int deleteByAdminFilters(String keyword, Long cinemaId, boolean showArchived) {
-        syncSeanceActivityStatus();
-        List<Long> ids = seanceRepository.findIdsByAdminFilters(keyword, cinemaId, showArchived);
+    private void lockSeancesForDeletion(List<Long> ids) {
+        List<Long> orderedIds = ids.stream().distinct().sorted().toList();
 
-        if (ids.isEmpty()) {
-            return 0;
+        for (Long id : orderedIds) {
+            seanceRepository.findByIdForUpdate(id)
+                    .orElseThrow(() -> new NoSuchElementException("Séance introuvable : " + id));
         }
-
-        ensureSeancesHaveNoReservations(ids);
-        seanceRepository.deleteAllByIdInBatch(ids);
-        return ids.size();
     }
+
 
     /**
      * Ensures that none of the given seances are linked to existing reservations
