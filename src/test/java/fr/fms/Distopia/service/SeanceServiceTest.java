@@ -187,32 +187,53 @@ import static org.mockito.Mockito.*;
 
     //---------------------test de la méthode delete()--------------------
     @Test
-    @DisplayName("delete - Should delete seance when it has no reservations")
+    @DisplayName("delete() - deletes screening without reservations")
     void delete_shouldDeleteSeanceWhenItHasNoReservations() {
-        seance.setId(1L);
-        seance.setReservations(new ArrayList<>());
-
-        when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(reservationRepository.countBySeanceIds(List.of(1L))).thenReturn(0L);
 
         seanceService.delete(1L);
 
+        verify(reservationRepository).countBySeanceIds(List.of(1L));
         verify(seanceRepository).delete(seance);
     }
 
     @Test
-    @DisplayName("delete - Should refuse deletion when seance has reservations")
+    @DisplayName("delete() - refuses deletion when reservations exist")
     void delete_shouldRefuseDeletionWhenSeanceHasReservations() {
-        seance.setId(1L);
-        seance.setReservations(List.of(new Reservation()));
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
 
-        when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
+        when(reservationRepository.countBySeanceIds(List.of(1L))).thenReturn(1L);
 
-        IllegalStateException exception = assertThrows(
-                IllegalStateException.class, () -> seanceService.delete(1L));
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> seanceService.delete(1L));
 
         assertEquals("Impossible de supprimer une séance avec des réservations", exception.getMessage());
-        verify(seanceRepository, never()).delete(seance);
+        verify(seanceRepository, never()).delete(any(Seance.class));
     }
+
+
+    /**
+     * Verifies that deleting an individual screening
+     * acquires a pessimistic lock before checking
+     * whether reservations prevent deletion.
+     *
+     * <p>The screening must only be deleted after
+     * the reservation check has succeeded.</p>
+     */
+    @Test
+    @DisplayName("delete() - locks screening before checking reservations")
+    void delete_ShouldLockSeanceBeforeCheckingReservations() {
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+
+        seanceService.delete(1L);
+
+        InOrder order = inOrder(seanceRepository, reservationRepository);
+
+        order.verify(seanceRepository).findByIdForUpdate(1L);
+        order.verify(reservationRepository).countBySeanceIds(List.of(1L));
+        order.verify(seanceRepository).delete(seance);
+    }
+
 
     //-----------------tests for deleteSelected() -------------------
     @Test

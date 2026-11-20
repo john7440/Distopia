@@ -192,24 +192,28 @@ public class SeanceService {
 
     //-----------supprimer une séance (ajout vérification de réservation)-------------
     /**
-     * Deletes a seance by its unique identifier
-     * <p>
-     * <strong>Business Rule:</strong> This method enforces a strict constraint to prevent
-     * the deletion of a seance if there are any existing reservations associated with it.
-     * This ensures data integrity and prevents leaving users with orphaned bookings
+     * Deletes a screening when it has no reservations
      *
-     * @param id the unique identifier of the seance to delete
-     * @throws java.util.NoSuchElementException if the seance with the specified ID cannot be found
-     * @throws IllegalStateException            if the seance has one or more associated reservations
+     * <p>The screening is retrieved with a pessimistic write lock before checking its reservations. This coordinates deletion
+     * with concurrent booking operations using the same lock</p>
+     *
+     * <p>If any reservation exists, deletion is rejected and the screening remains unchanged</p>
+     *
+     * @param id the identifier of the screening to delete
+     * @throws java.util.NoSuchElementException if the screening does not exist
+     * @throws IllegalStateException if the screening has reservations
      */
     @Transactional
-    public void delete(Long id){
-        Seance seance = seanceRepository.findById(id).orElseThrow();
-        if (!seance.getReservations().isEmpty()){
+    public void delete(Long id) {
+        Seance seance = seanceRepository.findByIdForUpdate(id).orElseThrow();
+
+        if (reservationRepository.countBySeanceIds(List.of(id)) > 0) {
             throw new IllegalStateException("Impossible de supprimer une séance avec des réservations");
         }
+
         seanceRepository.delete(seance);
     }
+
 
     //--------------recherche paginé admin avec tri et filtre-----------------
     /**
