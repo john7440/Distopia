@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Controller responsible for handling seance related web requests
@@ -120,20 +121,20 @@ public class SeanceController {
     public String saveSeance(@Valid @ModelAttribute SeanceForm form, BindingResult bindingResult,
                              RedirectAttributes ra){
         if (bindingResult.hasErrors()) {
-            String errorMessage = bindingResult.getAllErrors().isEmpty()
-                    ? "Données invalides"
-                    : bindingResult.getAllErrors().get(0).getDefaultMessage();
+            String errorMessage = bindingResult.getAllErrors().isEmpty() ? "Données invalides" : bindingResult.getAllErrors().get(0).getDefaultMessage();
 
             ra.addFlashAttribute(ERROR,errorMessage);
 
             return REDIRECT_ADMIN_SEANCES;
         }
 
+
         try {
-            seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(),
-                    form.getMovieId(), form.getCinemaId());
+            seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(), form.getMovieId(), form.getCinemaId());
         } catch (IllegalStateException e) {
             ra.addFlashAttribute(ERROR, e.getMessage());
+        } catch (NoSuchElementException e) {
+            ra.addFlashAttribute(ERROR, "Film ou séance introuvable");
         }
 
         return REDIRECT_ADMIN_SEANCES;
@@ -150,8 +151,7 @@ public class SeanceController {
      * @return a redirect to the seance administration page
      */
     @PostMapping("/admin/deleteSeance")
-    public String deleteSeance(@RequestParam Long id,
-                               RedirectAttributes redirectAttributes) {
+    public String deleteSeance(@RequestParam Long id, RedirectAttributes redirectAttributes) {
         try {
             seanceService.delete(id);
             redirectAttributes.addFlashAttribute(MESSAGE, "Séance supprimée avec succès");

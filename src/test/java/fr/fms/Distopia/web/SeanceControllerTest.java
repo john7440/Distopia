@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -254,6 +255,23 @@ class SeanceControllerTest {
 
         assertThat(view).isEqualTo("redirect:/admin/seances");
         verify(redirectAttributes).addFlashAttribute("error", error);
+    }
+
+    @Test
+    @DisplayName("saveSeance() - handles unknown movie")
+    void saveSeance_ShouldHandleUnknownMovie() {
+        SeanceForm form = validSeanceForm();
+        form.setMovieId(99L);
+
+        when(seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(),
+                form.getMovieId(), form.getCinemaId())).thenThrow(new NoSuchElementException());
+
+        String view = seanceController.saveSeance(form, bindingResult, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+
+        verify(redirectAttributes).addFlashAttribute("error", "Film ou séance introuvable");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
     }
 
 
