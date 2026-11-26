@@ -209,6 +209,8 @@ public class SeanceController {
             }
         } catch (IllegalStateException e) {
             redirectAttributes.addFlashAttribute(ERROR, e.getMessage());
+        } catch (NoSuchElementException e) {
+            redirectAttributes.addFlashAttribute(ERROR, "Une ou plusieurs séances n'existent plus. Actualisez la liste");
         }
 
         return buildAdminSeancesRedirect(keyword, cinemaId,showArchived, sortField, sortDir);
@@ -242,7 +244,10 @@ public class SeanceController {
             }
         } catch (IllegalStateException e) {
             redirectAttributes.addFlashAttribute(ERROR, e.getMessage());
+        } catch (NoSuchElementException e) {
+            redirectAttributes.addFlashAttribute(ERROR, "Une ou plusieurs séances n'existent plus. Actualisez la liste");
         }
+
 
         return buildAdminSeancesRedirect(keyword, cinemaId, showArchived, sortField, sortDir);
     }

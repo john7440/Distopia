@@ -458,6 +458,19 @@ class SeanceControllerTest {
         verify(redirectAttributes).addFlashAttribute("warning", "Aucune séance ne correspond aux filtres actuels");
     }
 
+    @Test
+    @DisplayName("deleteFilteredSeances() - handles unknown screening")
+    void deleteFilteredSeances_ShouldHandleUnknownSeance() {
+        when(seanceService.deleteByAdminFilters("avatar", 5L, true)).thenThrow(new NoSuchElementException("Séance introuvable : 99"));
+
+        String view = seanceController.deleteFilteredSeances("avatar", 5L, true, "dateTime", "asc", redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5&showArchived=true&sortField=dateTime&sortDir=asc");
+        verify(redirectAttributes).addFlashAttribute("error", "Une ou plusieurs séances n'existent plus. Actualisez la liste");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+        verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
+    }
+
     //---------------------------tests for deleteSelectedSeances()-----------------------------------
     @Test
     @DisplayName("deleteSelectedSeances() - redirects with warning when no seance is selected")
@@ -527,6 +540,22 @@ class SeanceControllerTest {
         verify(seanceService).deleteSelected(selectedIds);
         verify(redirectAttributes).addFlashAttribute("error",
                 "Impossible de supprimer une ou plusieurs séances car elles possèdent déjà des réservations");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+        verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
+    }
+
+    @Test
+    @DisplayName("deleteSelectedSeances() - handles unknown screening")
+    void deleteSelectedSeances_ShouldHandleUnknownSeance() {
+        List<Long> selectedIds = List.of(1L, 99L);
+
+        when(seanceService.deleteSelected(selectedIds)).thenThrow(new NoSuchElementException("Séance introuvable : 99"));
+
+        String view = seanceController.deleteSelectedSeances(selectedIds, "avatar", 5L, true,
+                "dateTime", "asc", redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances?keyword=avatar&cinemaId=5&showArchived=true&sortField=dateTime&sortDir=asc");
+        verify(redirectAttributes).addFlashAttribute("error", "Une ou plusieurs séances n'existent plus. Actualisez la liste");
         verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
         verify(redirectAttributes, never()).addFlashAttribute(eq("warning"), any());
     }
