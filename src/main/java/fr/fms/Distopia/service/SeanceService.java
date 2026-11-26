@@ -262,14 +262,13 @@ public class SeanceService {
     /**
      * Deletes selected screenings after acquiring pessimistic locks.
      *
-     * <p>Screenings are locked in ascending identifier order
-     * before checking for existing reservations.</p>
+     * <p>Duplicate identifiers are removed before checking reservations and performing the deletion</p>
      *
-     * <p>Duplicate identifiers are locked only once.
-     * An unknown screening identifier aborts the operation.</p>
+     * <p>Screenings are locked in ascending identifier order.
+     * If a screening does not exist or has reservations, the deletion is aborted</p>
      *
      * @param ids the screening identifiers to delete
-     * @return the number of identifiers submitted for deletion
+     * @return the number of distinct screenings deleted
      * @throws NoSuchElementException if a screening does not exist
      * @throws IllegalStateException if any screening has reservations
      */
@@ -279,12 +278,14 @@ public class SeanceService {
             return 0;
         }
 
-        lockSeancesForDeletion(ids);
+        List<Long> distinctIds = ids.stream().distinct().toList();
 
-        ensureSeancesHaveNoReservations(ids);
-        seanceRepository.deleteAllByIdInBatch(ids);
+        lockSeancesForDeletion(distinctIds);
 
-        return ids.size();
+        ensureSeancesHaveNoReservations(distinctIds);
+        seanceRepository.deleteAllByIdInBatch(distinctIds);
+
+        return distinctIds.size();
     }
 
 

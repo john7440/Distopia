@@ -306,6 +306,22 @@ import static org.mockito.Mockito.*;
         order.verify(seanceRepository).deleteAllByIdInBatch(ids);
     }
 
+    @Test
+    @DisplayName("deleteSelected() - counts distinct screenings only once")
+    void deleteSelected_ShouldCountDistinctScreeningsOnlyOnce() {
+        List<Long> selectedIds = List.of(2L, 1L, 2L);
+        List<Long> distinctIds = List.of(2L, 1L);
+
+        stubLockedSeances(1L, 2L);
+
+        int deleted = seanceService.deleteSelected(selectedIds);
+
+        assertThat(deleted).isEqualTo(2);
+        verify(reservationRepository).countBySeanceIds(distinctIds);
+
+        verify(seanceRepository).deleteAllByIdInBatch(distinctIds);
+    }
+
     //--------------test for deleteByAdminFilters----------------------------
 
     @Test
