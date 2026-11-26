@@ -123,11 +123,9 @@ public class SeanceController {
      * @return a redirect to the seance administration page
      */
     @PostMapping("/admin/saveSeance")
-    public String saveSeance(@Valid @ModelAttribute SeanceForm form, BindingResult bindingResult,
-                             RedirectAttributes ra){
+    public String saveSeance(@Valid @ModelAttribute SeanceForm form, BindingResult bindingResult, RedirectAttributes ra){
         if (bindingResult.hasErrors()) {
-            String errorMessage = bindingResult.getAllErrors().isEmpty()
-                    ? "Données invalides"
+            String errorMessage = bindingResult.getAllErrors().isEmpty() ? "Données invalides"
                     : bindingResult.getAllErrors().get(0).getDefaultMessage();
 
             ra.addFlashAttribute(ERROR,errorMessage);
@@ -157,18 +155,24 @@ public class SeanceController {
      * <p>
      * The deletion is refused if the seance already has reservations.
      *
+     * <p>If the screening no longer exists, the controller handles the exception locally and redirects to the
+     * administration page with an appropriate error message.</p>
+     *
+     * <p>A success notification is displayed only after successful deletion</p>
+     *
      * @param id the seance identifier
      * @param redirectAttributes the Spring redirect attributes used for feedback messages
      * @return a redirect to the seance administration page
      */
     @PostMapping("/admin/deleteSeance")
-    public String deleteSeance(@RequestParam Long id,
-                               RedirectAttributes redirectAttributes) {
+    public String deleteSeance(@RequestParam Long id, RedirectAttributes redirectAttributes) {
         try {
             seanceService.delete(id);
             redirectAttributes.addFlashAttribute(MESSAGE, "Séance supprimée avec succès");
         } catch (IllegalStateException e) {
             redirectAttributes.addFlashAttribute(ERROR, e.getMessage());
+        } catch (NoSuchElementException e) {
+            redirectAttributes.addFlashAttribute(ERROR, "Séance introuvable");
         }
 
         return REDIRECT_ADMIN_SEANCES;
@@ -251,11 +255,7 @@ public class SeanceController {
      * @param sortDir the current sort direction
      * @return the redirect URL with query parameters
      */
-    private String buildAdminSeancesRedirect(String keyword,
-                                             Long cinemaId,
-                                             boolean showArchived,
-                                             String sortField,
-                                             String sortDir) {
+    private String buildAdminSeancesRedirect(String keyword, Long cinemaId, boolean showArchived, String sortField, String sortDir) {
         StringBuilder redirect = new StringBuilder(REDIRECT_ADMIN_SEANCES);
 
         boolean hasParam = false;

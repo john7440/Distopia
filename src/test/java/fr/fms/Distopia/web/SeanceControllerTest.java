@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -311,6 +312,20 @@ class SeanceControllerTest {
         verify(seanceService).delete(1L);
         verify(redirectAttributes).addFlashAttribute("error",
                 "Impossible de supprimer une séance avec des réservations");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+    }
+
+    @Test
+    @DisplayName("deleteSeance() - handles unknown screening")
+    void deleteSeance_ShouldHandleUnknownSeance() {
+        doThrow(new NoSuchElementException()).when(seanceService).delete(99L);
+
+        String view = seanceController.deleteSeance(99L, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+
+        verify(seanceService).delete(99L);
+        verify(redirectAttributes).addFlashAttribute("error", "Séance introuvable");
         verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
     }
 
