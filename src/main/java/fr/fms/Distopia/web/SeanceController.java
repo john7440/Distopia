@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Controller responsible for handling seance related web requests
@@ -111,6 +112,11 @@ public class SeanceController {
      * If validation fails, the user is redirected back to the seance administration page
      * with an error message stored in flash attributes
      *
+     * <p>Invalid cinema identifiers are handled locally.
+     * The administrator is redirected to the screening management page with an appropriate error message.</p>
+     *
+     * <p>Other invalid arguments receive a generic validation message rather than an incorrect cinema-specific error</p>
+     *
      * @param form the validated seance form containing seance data
      * @param bindingResult the validation result for the submitted form
      * @param ra the Spring {@link RedirectAttributes} used to pass flash messages
@@ -134,6 +140,12 @@ public class SeanceController {
                     form.getMovieId(), form.getCinemaId());
         } catch (IllegalStateException e) {
             ra.addFlashAttribute(ERROR, e.getMessage());
+        } catch (NoSuchElementException e) {
+            ra.addFlashAttribute(ERROR, "Film ou séance introuvable");
+        } catch (IllegalArgumentException e) {
+            String errorMessage = "Cinéma introuvable".equals(e.getMessage()) ? "Cinéma introuvable" : "Données de séance invalides";
+
+            ra.addFlashAttribute(ERROR, errorMessage);
         }
 
         return REDIRECT_ADMIN_SEANCES;

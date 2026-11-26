@@ -256,6 +256,36 @@ class SeanceControllerTest {
         verify(redirectAttributes).addFlashAttribute("error", error);
     }
 
+    @Test
+    @DisplayName("saveSeance() - handles unknown cinema")
+    void saveSeance_ShouldHandleUnknownCinema() {
+        SeanceForm form = validSeanceForm();
+        form.setCinemaId(99L);
+
+        when(seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(), form.getMovieId(),
+                form.getCinemaId())).thenThrow(new IllegalArgumentException("Cinéma introuvable"));
+
+        String view = seanceController.saveSeance(form, bindingResult, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+        verify(redirectAttributes).addFlashAttribute("error", "Cinéma introuvable");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+    }
+
+    @Test
+    @DisplayName("saveSeance() - handles other invalid arguments")
+    void saveSeance_ShouldHandleOtherInvalidArguments() {
+        SeanceForm form = validSeanceForm();
+
+        when(seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(), form.getMovieId(),
+                form.getCinemaId())).thenThrow(new IllegalArgumentException("Autre argument invalide"));
+
+        String view = seanceController.saveSeance(form, bindingResult, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+        verify(redirectAttributes).addFlashAttribute("error", "Données de séance invalides");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+    }
 
     //---------------------------tests for deleteSeance()-----------------------------------
     @Test
