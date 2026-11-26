@@ -10,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,6 +41,22 @@ class TmdbClientTest {
 
         ReflectionTestUtils.setField(tmdbClient, "restTemplate", restTemplate);
         ReflectionTestUtils.setField(tmdbClient, "apiKey", "FAKE_KEY_TEST");
+    }
+
+    @Test
+    @DisplayName("TMDB client - configures HTTP timeouts")
+    void tmdbClient_ShouldConfigureHttpTimeouts() {
+        TmdbClient realClient = new TmdbClient();
+
+        RestTemplate configuredRestTemplate = (RestTemplate) ReflectionTestUtils.getField(realClient, "restTemplate");
+
+        assertThat(configuredRestTemplate).isNotNull();
+
+        ClientHttpRequestFactory requestFactory = configuredRestTemplate.getRequestFactory();
+
+        assertThat(requestFactory).isInstanceOf(SimpleClientHttpRequestFactory.class);
+        assertThat(ReflectionTestUtils.getField(requestFactory, "connectTimeout")).isEqualTo(3000);
+        assertThat(ReflectionTestUtils.getField(requestFactory, "readTimeout")).isEqualTo(5000);
     }
 
     //-----------------tests for search()-----------------

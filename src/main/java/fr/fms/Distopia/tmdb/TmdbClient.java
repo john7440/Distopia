@@ -7,6 +7,7 @@ import fr.fms.Distopia.tmdb.dto.TmdbVideosResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -29,7 +30,11 @@ public class TmdbClient {
     @Value("${tmdb.api.key}")
     private String apiKey;
 
-    private final RestTemplate restTemplate =  new RestTemplate();
+    private static final int CONNECT_TIMEOUT_MS = 3000;
+    private static final int READ_TIMEOUT_MS = 5000;
+
+    private final RestTemplate restTemplate = createRestTemplate();
+
 
     private static final String BASE_URL = "https://api.themoviedb.org/3/";
     public static final String IMG_BASE= "https://image.tmdb.org/t/p/w500";
@@ -147,5 +152,22 @@ public class TmdbClient {
                     } catch (Exception e) {
                         return movie;
                     }}).toList();
+    }
+
+
+    /**
+     * Creates the HTTP client used for TMDB API requests
+     *
+     * <p>Explicit connection and read timeouts prevent external network operations from blocking indefinitely</p>
+     *
+     * @return a RestTemplate configured with bounded HTTP timeouts
+     */
+    private static RestTemplate createRestTemplate() {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+
+        requestFactory.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        requestFactory.setReadTimeout(READ_TIMEOUT_MS);
+
+        return new RestTemplate(requestFactory);
     }
 }
