@@ -15,9 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
+import java.util.NoSuchElementException;
 
 /**
  * Service responsible for seance business operations.
@@ -56,7 +58,7 @@ public class SeanceService {
      */
     public List<Seance> getByMovieAndCinema(Long movieId, Long cinemaId) {
         return seanceRepository.findUpcomingActiveByMovieAndCinema(
-                movieId, cinemaId, LocalDateTime.now());
+                movieId, cinemaId, LocalDateTime.now(ZoneId.systemDefault()));
     }
 
 
@@ -127,6 +129,9 @@ public class SeanceService {
      */
     @Transactional
     public Seance save(Long id, LocalDateTime dateTime, int availableSeats, double price, Long movieId, Long cinemaId) {
+        if (id == null && movieId == null) {
+            throw new IllegalArgumentException("Un film est obligatoire pour créer une séance");
+        }
 
         Seance seance = (id != null) ? seanceRepository.findByIdForUpdate(id).orElseThrow() : new Seance();
 
@@ -160,7 +165,7 @@ public class SeanceService {
             throw new IllegalStateException("Impossible de modifier la date ou le prix d'une séance ayant déjà des réservations");
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
         boolean future = !dateTime.isBefore(now);
 
         boolean rescheduledFromPast = id != null
@@ -187,24 +192,28 @@ public class SeanceService {
 
     //-----------supprimer une séance (ajout vérification de réservation)-------------
     /**
-     * Deletes a seance by its unique identifier
-     * <p>
-     * <strong>Business Rule:</strong> This method enforces a strict constraint to prevent
-     * the deletion of a seance if there are any existing reservations associated with it.
-     * This ensures data integrity and prevents leaving users with orphaned bookings
+     * Deletes a screening when it has no reservations
      *
-     * @param id the unique identifier of the seance to delete
-     * @throws java.util.NoSuchElementException if the seance with the specified ID cannot be found
-     * @throws IllegalStateException            if the seance has one or more associated reservations
+     * <p>The screening is retrieved with a pessimistic write lock before checking its reservations. This coordinates deletion
+     * with concurrent booking operations using the same lock</p>
+     *
+     * <p>If any reservation exists, deletion is rejected and the screening remains unchanged</p>
+     *
+     * @param id the identifier of the screening to delete
+     * @throws java.util.NoSuchElementException if the screening does not exist
+     * @throws IllegalStateException if the screening has reservations
      */
     @Transactional
-    public void delete(Long id){
-        Seance seance = seanceRepository.findById(id).orElseThrow();
-        if (!seance.getReservations().isEmpty()){
+    public void delete(Long id) {
+        Seance seance = seanceRepository.findByIdForUpdate(id).orElseThrow();
+
+        if (reservationRepository.countBySeanceIds(List.of(id)) > 0) {
             throw new IllegalStateException("Impossible de supprimer une séance avec des réservations");
         }
+
         seanceRepository.delete(seance);
     }
+
 
     //--------------recherche paginé admin avec tri et filtre-----------------
     /**
@@ -251,43 +260,88 @@ public class SeanceService {
     }
 
     /**
-     * Deletes selected seances by their identifiers
+     * Deletes selected screenings after acquiring pessimistic locks.
      *
-     * @param ids the seance identifiers to delete
-     * @return the number of deleted seances
-     * @throws IllegalStateException if one or more selected seances have existing reservations
+     * <p>Screenings are locked in ascending identifier order
+     * before checking for existing reservations.</p>
+     *
+     * <p>Duplicate identifiers are locked only once.
+     * An unknown screening identifier aborts the operation.</p>
+     *
+     * @param ids the screening identifiers to delete
+     * @return the number of identifiers submitted for deletion
+     * @throws NoSuchElementException if a screening does not exist
+     * @throws IllegalStateException if any screening has reservations
      */
     @Transactional
     public int deleteSelected(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return 0;
         }
+
+        lockSeancesForDeletion(ids);
+
         ensureSeancesHaveNoReservations(ids);
         seanceRepository.deleteAllByIdInBatch(ids);
+
         return ids.size();
     }
 
+
+
     /**
-     * Deletes all seances matching the current admin filters<p>
-     * @param keyword  the search keyword used in the admin page
+     * Deletes all screenings matching the current admin filters.
+     *
+     * <p>Matching screenings are locked in ascending identifier order before checking their reservations and performing
+     * the bulk deletion</p>
+     *
+     * @param keyword the search keyword used in the admin page
      * @param cinemaId the selected cinema identifier, or null
-     * @param showArchived whether archived seances are included in the deletion scope
-     * @return the number of deleted seances
-     * @throws IllegalStateException if one or more matching seances have existing reservations
+     * @param showArchived whether archived screenings are included
+     * @return the number of deleted screenings
+     * @throws NoSuchElementException if a selected screening no longer exists
+     * @throws IllegalStateException if one or more screenings have existing reservations
      */
     @Transactional
     public int deleteByAdminFilters(String keyword, Long cinemaId, boolean showArchived) {
+
         syncSeanceActivityStatus();
+
         List<Long> ids = seanceRepository.findIdsByAdminFilters(keyword, cinemaId, showArchived);
 
         if (ids.isEmpty()) {
             return 0;
         }
 
+        lockSeancesForDeletion(ids);
+
         ensureSeancesHaveNoReservations(ids);
+
         seanceRepository.deleteAllByIdInBatch(ids);
+
         return ids.size();
     }
+
+
+    /**
+     * Acquires pessimistic locks on screenings before deletion
+     *
+     * <p>Identifiers are deduplicated and sorted in ascending order to establish a deterministic locking protocol</p>
+     *
+     * <p>All locks are held until the surrounding transaction ends</p>
+     *
+     * @param ids the screening identifiers to lock
+     * @throws NoSuchElementException if a screening does not exist
+     */
+    private void lockSeancesForDeletion(List<Long> ids) {
+        List<Long> orderedIds = ids.stream().distinct().sorted().toList();
+
+        for (Long id : orderedIds) {
+            seanceRepository.findByIdForUpdate(id)
+                    .orElseThrow(() -> new NoSuchElementException("Séance introuvable : " + id));
+        }
+    }
+
 
     /**
      * Ensures that none of the given seances are linked to existing reservations
@@ -319,6 +373,6 @@ public class SeanceService {
      * unexpectedly</p>
      */
     public void syncSeanceActivityStatus() {
-        seanceRepository.archivePastSeances(LocalDateTime.now());
+        seanceRepository.archivePastSeances(LocalDateTime.now(ZoneId.systemDefault()));
     }
 }

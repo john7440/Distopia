@@ -4,6 +4,7 @@ import fr.fms.Distopia.dao.CinemaRepository;
 import fr.fms.Distopia.dao.MovieRepository;
 
 import fr.fms.Distopia.dao.SeanceRepository;
+import fr.fms.Distopia.entities.Cinema;
 import fr.fms.Distopia.entities.Movie;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
@@ -83,6 +84,10 @@ public class MovieService {
      *
      * <p>Regular movie updates must never implicitly restore
      * previously deleted movies.</p>
+     * <p>All requested cinema identifiers are validated before any movie field or cinema association is modified</p>
+     *
+     * <p>If an unknown cinema identifier is provided, the operation is rejected without modifying the movie.
+     * A null cinema list preserves existing associations,while an empty list clears them</p>
      *
      * @param id          the movie identifier, or null for creation
      * @param tmdbId      the TMDB movie identifier
@@ -95,13 +100,25 @@ public class MovieService {
      * @param cinemaIds   the list of associated cinema identifiers
      * @param releaseDate the movie release date
      * @return the saved movie entity
+     * @throws java.util.NoSuchElementException if the provided identifier does not match an existing movie
+     * @throws IllegalArgumentException if any requested cinema identifier does not match an existing cinema
      */
     @Transactional
-    public Movie save(Long id,Long tmdbId, String title, String description,
-                      int duration, String genre, String imageUrl, String trailerUrl,
-                      List<Long> cinemaIds, LocalDate releaseDate) {
+    public Movie save(Long id, Long tmdbId, String title, String description, int duration, String genre, String imageUrl,
+                      String trailerUrl, List<Long> cinemaIds, LocalDate releaseDate) {
 
-        Movie movie = (id != null) ? movieRepository.findById(id).orElse(new Movie()) : new Movie();
+        Movie movie = (id != null) ? movieRepository.findById(id).orElseThrow() : new Movie();
+
+        List<Cinema> selectedCinemas = null;
+
+        if (cinemaIds != null) {
+            selectedCinemas = cinemaIds.stream()
+                    .map(cinemaId -> {Cinema selectedCinema = cinemaRepository.findById(cinemaId).orElseThrow(() -> new IllegalArgumentException("Le cinéma sélectionné n'existe pas"));
+                        if (selectedCinema.isDeleted()) {
+                            throw new IllegalArgumentException("Le cinéma sélectionné est supprimé");
+                        }
+                        return selectedCinema;}).toList();
+        }
 
         movie.setTitle(title);
         movie.setDescription(description);
@@ -112,16 +129,14 @@ public class MovieService {
         movie.setReleaseDate(releaseDate);
         movie.setTmdbId(tmdbId);
 
-        if (cinemaIds != null) {
-            movie.getCinemas().forEach(c -> c.getMovies().remove(movie));
+        if (selectedCinemas != null) {
+            movie.getCinemas().forEach(cinema -> cinema.getMovies().remove(movie));
             movie.getCinemas().clear();
 
-            cinemaIds.forEach(cinemaId ->
-                    cinemaRepository.findById(cinemaId).ifPresent(cinema -> {
-                        cinema.getMovies().add(movie);
-                        movie.getCinemas().add(cinema);
-                    })
-            );
+            selectedCinemas.forEach(cinema -> {
+                cinema.getMovies().add(movie);
+                movie.getCinemas().add(cinema);
+            });
         }
         return movieRepository.save(movie);
     }

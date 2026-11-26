@@ -1,5 +1,6 @@
 package fr.fms.Distopia.web;
 
+
 import fr.fms.Distopia.dao.TownRepository;
 import fr.fms.Distopia.service.TownService;
 import fr.fms.Distopia.web.form.TownForm;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.NoSuchElementException;
 
 /**
  * Controller responsible for town administration pages.
@@ -74,7 +76,12 @@ public class TownController {
             return REDIRECT_ADMIN_TOWNS;
         }
 
-        townService.save(form.getId(), form.getName());
+        try {
+            townService.save(form.getId(), form.getName());
+        } catch (NoSuchElementException e) {
+            ra.addFlashAttribute("error", "Cette ville n'existe pas ou a été supprimée");
+        }
+
         return REDIRECT_ADMIN_TOWNS;
     }
 

@@ -254,6 +254,166 @@ class CinemaCsvImporterTest {
         verifyNoInteractions(cinemaRepository, townRepository);
     }
 
+
+    @Test
+    @DisplayName("importFromCsv() - rejects out-of-range coordinates")
+    void importFromCsv_ShouldRejectOutOfRangeCoordinates()
+            throws ImportFailException {
+
+        String csv = """
+            name,address,website,latitude,longitude
+            Cinema Test,"10 avenue test, 40100 Dax",https://cinema.fr,95.0,200.0
+            """;
+
+        setCsvFile(csv);
+
+        Town town = new Town();
+        town.setName("Dax");
+
+        when(townRepository.findByName("Dax")).thenReturn(Optional.of(town));
+
+        CinemaCsvImporter.ImportResult result =
+                cinemaCsvImporter.importFromCsv();
+
+        assertThat(result.imported()).isEqualTo(1);
+        assertThat(result.skipped()).isZero();
+
+        ArgumentCaptor<Cinema> captor = ArgumentCaptor.forClass(Cinema.class);
+
+        verify(cinemaRepository).save(captor.capture());
+
+        Cinema importedCinema = captor.getValue();
+
+        assertThat(importedCinema.getLatitude()).isNull();
+        assertThat(importedCinema.getLongitude()).isNull();
+        assertThat(importedCinema.getName()).isEqualTo("Cinema Test");
+    }
+
+    @Test
+    @DisplayName("importFromCsv() - accepts coordinate boundary values")
+    void importFromCsv_ShouldAcceptCoordinateBoundaries()
+            throws ImportFailException {
+
+        String csv = """
+            name,address,website,latitude,longitude
+            Cinema Test,"10 avenue test, 40100 Dax",https://cinema.fr,90.0,-180.0
+            """;
+
+        setCsvFile(csv);
+
+        Town town = new Town();
+        town.setName("Dax");
+
+        when(townRepository.findByName("Dax")).thenReturn(Optional.of(town));
+
+        CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
+
+        assertThat(result.imported()).isEqualTo(1);
+
+        ArgumentCaptor<Cinema> captor = ArgumentCaptor.forClass(Cinema.class);
+
+        verify(cinemaRepository).save(captor.capture());
+        assertThat(captor.getValue().getLatitude()).isEqualTo(90.0);
+        assertThat(captor.getValue().getLongitude()).isEqualTo(-180.0);
+    }
+
+
+    /**
+     * Verifies that NaN and infinity cannot be stored
+     * as geographic coordinates.
+     */
+    @Test
+    @DisplayName("importFromCsv() - rejects non-finite coordinates")
+    void importFromCsv_ShouldRejectNonFiniteCoordinates()
+            throws ImportFailException {
+
+        String csv = """
+            name,address,website,latitude,longitude
+            Cinema Test,"10 avenue test, 40100 Dax",https://cinema.fr,NaN,Infinity
+            """;
+
+        setCsvFile(csv);
+        Town town = new Town();
+        town.setName("Dax");
+
+        when(townRepository.findByName("Dax")).thenReturn(Optional.of(town));
+
+        CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
+
+        assertThat(result.imported()).isEqualTo(1);
+        assertThat(result.skipped()).isZero();
+
+        ArgumentCaptor<Cinema> captor = ArgumentCaptor.forClass(Cinema.class);
+
+        verify(cinemaRepository).save(captor.capture());
+        assertThat(captor.getValue().getLatitude()).isNull();
+        assertThat(captor.getValue().getLongitude()).isNull();
+    }
+
+    @Test
+    @DisplayName(" importFromCsv() - accepts missing website column")
+    void importFromCsv_ShouldAcceptMissingWebsiteColumn()
+            throws ImportFailException {
+
+        String csv = """
+            name,address,latitude,longitude
+            Cinema Test,"10 avenue test, 40100 Dax",43.7,-1.0
+            """;
+
+        setCsvFile(csv);
+
+        Town town = new Town();
+        town.setName("Dax");
+
+        when(townRepository.findByName("Dax")).thenReturn(Optional.of(town));
+
+        CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
+
+        assertThat(result.imported()).isEqualTo(1);
+        assertThat(result.skipped()).isZero();
+
+        ArgumentCaptor<Cinema> captor = ArgumentCaptor.forClass(Cinema.class);
+
+        verify(cinemaRepository).save(captor.capture());
+        assertThat(captor.getValue().getWebsite()).isNull();
+    }
+
+
+    /**
+     * Verifies that a cinema can be imported when the
+     * optional latitude and longitude columns are absent.
+     */
+    @Test
+    @DisplayName("importFromCsv() - accepts missing GPS columns")
+    void importFromCsv_ShouldAcceptMissingGpsColumns()
+            throws ImportFailException {
+
+        String csv = """
+            name,address
+            Cinema Test,"10 avenue test, 40100 Dax"
+            """;
+
+        setCsvFile(csv);
+
+        Town town = new Town();
+        town.setName("Dax");
+
+        when(townRepository.findByName("Dax")).thenReturn(Optional.of(town));
+
+        CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
+
+        assertThat(result.imported()).isEqualTo(1);
+        assertThat(result.skipped()).isZero();
+
+        ArgumentCaptor<Cinema> captor = ArgumentCaptor.forClass(Cinema.class);
+
+        verify(cinemaRepository).save(captor.capture());
+
+        assertThat(captor.getValue().getLatitude()).isNull();
+        assertThat(captor.getValue().getLongitude()).isNull();
+    }
+
+
     //-------------------------helper------------------------
     private void setCsvFile(String csvContent) {
         ByteArrayResource resource = new ByteArrayResource(

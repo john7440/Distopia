@@ -15,7 +15,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.NoSuchElementException;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -72,14 +74,12 @@ class TownServiceTest {
     }
 
     @Test
-    @DisplayName("save() - creates new town when id not found in database")
-    void save_ShouldCreateNewTownWhenIdIsNotFound() {
+    @DisplayName("save() - rejects update when town does not exist")
+    void save_ShouldRejectUpdateWhenTownDoesNotExist() {
         when(townRepository.findById(99L)).thenReturn(Optional.empty());
-        when(townRepository.save(any(Town.class))).thenAnswer(i -> i.getArgument(0));
 
-        Town result = townService.save(99L, "Ville fantôme");
-
-        assertThat(result.getName()).isEqualTo("Ville fantôme");
+        assertThatThrownBy(() -> townService.save(99L, "Ville fantome")).isInstanceOf(NoSuchElementException.class);
+        verify(townRepository, never()).save(any(Town.class));
     }
 
     //---------------------test de la méthode delete()------------------------------------

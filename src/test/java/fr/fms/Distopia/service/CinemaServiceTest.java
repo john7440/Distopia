@@ -117,16 +117,16 @@ class CinemaServiceTest {
     }
 
     @Test
-    @DisplayName("save() - creates new cinema when id not found in database")
-    void save_ShouldCreateNewCinemaWhenIdNotFoundInDatabase() {
+    @DisplayName("save() - rejects update when cinema does not exist")
+    void save_ShouldRejectUpdateWhenCinemaDoesNotExist() {
         when(cinemaRepository.findById(99L)).thenReturn(Optional.empty());
-        when(cinemaRepository.save(any(Cinema.class))).thenAnswer(i -> i.getArgument(0));
 
-        Cinema result = cinemaService.save(99L, "Ghost Ciné", "Nul part", null,
-                "www.test.com", 1D, 1D, "testImage", "74");
+        assertThatThrownBy(() -> cinemaService.save(99L, "Ghost Ciné", "Nulle part", null,
+                "https://example.com", 43.48, -1.57, "image.jpg", "40"
+        )).isInstanceOf(NoSuchElementException.class);
 
-        assertThat(result.getName()).isEqualTo("Ghost Ciné");
-        assertThat(result.getTown()).isNull();
+        verify(cinemaRepository, never()).save(any(Cinema.class));
+        verifyNoInteractions(townRepository);
     }
 
     @Test
@@ -174,10 +174,38 @@ class CinemaServiceTest {
         verify(cinemaRepository).save(any(Cinema.class));
     }
 
+    @Test
+    @DisplayName("save() - clears existing town when townId is null")
+    void save_ShouldClearExistingTownWhenTownIdIsNull() {
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(cinemaRepository.save(any(Cinema.class))).thenAnswer(inv -> inv.getArgument(0));
 
+        Cinema result = cinemaService.save(1L, "Gaumont", "1 rue de la Paix", null,
+                "https://example.com", 43.48, -1.57, "image.jpg", "40");
+
+        assertThat(result.getTown()).isNull();
+        verify(cinemaRepository).save(cinema);
+        verifyNoInteractions(townRepository);
+    }
+
+    @Test
+    @DisplayName("save() - rejects unknown town without modifying cinema")
+    void save_ShouldRejectUnknownTownWithoutModifyingCinema() {
+        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
+        when(townRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> cinemaService.save(1L, "Cinéma modifié", "Nouvelle adresse", 99L,
+                "https://example.com", 43.48, -1.57, "image.jpg", "40"
+        )).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("ville");
+
+        assertThat(cinema.getName()).isEqualTo("Gaumont");
+        assertThat(cinema.getAddress()).isEqualTo("1 rue de la Paix");
+        assertThat(cinema.getTown()).isSameAs(town);
+
+        verify(cinemaRepository, never()).save(any(Cinema.class));
+    }
 
     //---------------------------tests du delete()---------------------------
-
     @Test
     @DisplayName("delete() - soft-deletes cinema")
     void delete_ShouldSoftDeleteCinema() {

@@ -36,18 +36,22 @@ public class TownService {
     }
 
     //------------------méthode pour créer/modifier une ville----------------------------
+
     /**
-     * Creates a new town or updates an existing one
-     * <p>
-     * If an ID is provided, the method attempts to fetch and update the existing town.
-     * If the ID is null or the town is not found, a new {@link Town} instance is created
+     * Creates a new town or updates an existing town
      *
-     * @param id   the unique identifier of the town to update, or null to create a new one
-     * @param name the name of the town
-     * @return the saved or updated {@link Town} entity
+     * <p>When the identifier is null, a new town is created.
+     * When an identifier is provided, the corresponding town must already exist</p>
+     *
+     * <p>Unknown identifiers are rejected to prevent accidental creation of towns during update operations</p>
+     *
+     * @param id the town identifier, or null for creation
+     * @param name the town name
+     * @return the created or updated town
+     * @throws java.util.NoSuchElementException if the provided identifier does not match an existing town
      */
     public Town save(Long id, String name) {
-        Town town = (id != null) ? townRepository.findById(id).orElse(new Town()) : new Town();
+        Town town = (id != null) ? townRepository.findById(id).orElseThrow() : new Town();
         town.setName(name);
         return townRepository.save(town);
     }

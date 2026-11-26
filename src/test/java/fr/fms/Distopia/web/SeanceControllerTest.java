@@ -257,36 +257,102 @@ class SeanceControllerTest {
         verify(redirectAttributes).addFlashAttribute("error", error);
     }
 
+
+    /**
+     * Verifies that an unknown movie is handled locally
+     * by the screening administration controller.
+     */
+    @Test
+    @DisplayName("saveSeance() - handles unknown movie")
+    void saveSeance_ShouldHandleUnknownMovie() {
+        SeanceForm form = validSeanceForm();
+        form.setMovieId(99L);
+
+        when(seanceService.save(
+                form.getId(),
+                form.getDateTime(),
+                form.getAvailableSeats(),
+                form.getPrice(),
+                form.getMovieId(),
+                form.getCinemaId()
+        )).thenThrow(new NoSuchElementException());
+
+        String view = seanceController.saveSeance(
+                form, bindingResult, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/seances");
+
+        verify(redirectAttributes).addFlashAttribute(
+                "error", "Film ou séance introuvable");
+
+        verify(redirectAttributes, never())
+                .addFlashAttribute(eq("message"), any());
+    }
+
+    /**
+     * Verifies that an unknown cinema is handled locally
+     * by the screening administration controller.
+     */
     @Test
     @DisplayName("saveSeance() - handles unknown cinema")
     void saveSeance_ShouldHandleUnknownCinema() {
         SeanceForm form = validSeanceForm();
         form.setCinemaId(99L);
 
-        when(seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(), form.getMovieId(),
-                form.getCinemaId())).thenThrow(new IllegalArgumentException("Cinéma introuvable"));
+        when(seanceService.save(
+                form.getId(),
+                form.getDateTime(),
+                form.getAvailableSeats(),
+                form.getPrice(),
+                form.getMovieId(),
+                form.getCinemaId()
+        )).thenThrow(new IllegalArgumentException(
+                "Cinéma introuvable"));
 
-        String view = seanceController.saveSeance(form, bindingResult, redirectAttributes);
+        String view = seanceController.saveSeance(
+                form, bindingResult, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/seances");
-        verify(redirectAttributes).addFlashAttribute("error", "Cinéma introuvable");
-        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+
+        verify(redirectAttributes).addFlashAttribute(
+                "error", "Cinéma introuvable");
+
+        verify(redirectAttributes, never())
+                .addFlashAttribute(eq("message"), any());
     }
 
+    /**
+     * Verifies that other invalid arguments receive a
+     * generic validation message instead of an incorrect
+     * cinema-specific error.
+     */
     @Test
     @DisplayName("saveSeance() - handles other invalid arguments")
     void saveSeance_ShouldHandleOtherInvalidArguments() {
         SeanceForm form = validSeanceForm();
 
-        when(seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(), form.getMovieId(),
-                form.getCinemaId())).thenThrow(new IllegalArgumentException("Autre argument invalide"));
+        when(seanceService.save(
+                form.getId(),
+                form.getDateTime(),
+                form.getAvailableSeats(),
+                form.getPrice(),
+                form.getMovieId(),
+                form.getCinemaId()
+        )).thenThrow(new IllegalArgumentException(
+                "Autre argument invalide"));
 
-        String view = seanceController.saveSeance(form, bindingResult, redirectAttributes);
+        String view = seanceController.saveSeance(
+                form, bindingResult, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/admin/seances");
-        verify(redirectAttributes).addFlashAttribute("error", "Données de séance invalides");
-        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+
+        verify(redirectAttributes).addFlashAttribute(
+                "error", "Données de séance invalides");
+
+        verify(redirectAttributes, never())
+                .addFlashAttribute(eq("message"), any());
     }
+
 
     //---------------------------tests for deleteSeance()-----------------------------------
     @Test

@@ -125,7 +125,8 @@ public class SeanceController {
     @PostMapping("/admin/saveSeance")
     public String saveSeance(@Valid @ModelAttribute SeanceForm form, BindingResult bindingResult, RedirectAttributes ra){
         if (bindingResult.hasErrors()) {
-            String errorMessage = bindingResult.getAllErrors().isEmpty() ? "Données invalides"
+            String errorMessage = bindingResult.getAllErrors().isEmpty()
+                    ? "Données invalides"
                     : bindingResult.getAllErrors().get(0).getDefaultMessage();
 
             ra.addFlashAttribute(ERROR,errorMessage);
@@ -133,9 +134,9 @@ public class SeanceController {
             return REDIRECT_ADMIN_SEANCES;
         }
 
+
         try {
-            seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(),
-                    form.getMovieId(), form.getCinemaId());
+            seanceService.save(form.getId(), form.getDateTime(), form.getAvailableSeats(), form.getPrice(), form.getMovieId(), form.getCinemaId());
         } catch (IllegalStateException e) {
             ra.addFlashAttribute(ERROR, e.getMessage());
         } catch (NoSuchElementException e) {

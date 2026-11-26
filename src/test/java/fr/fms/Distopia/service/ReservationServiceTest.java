@@ -46,6 +46,9 @@ class ReservationServiceTest {
         Movie movie = new Movie();
         movie.setId(10L);
         movie.setDeleted(false);
+        Cinema cinema = new Cinema();
+        cinema.setId(20L);
+        cinema.setDeleted(false);
 
         Seance seance = new Seance();
         seance.setId(1L);
@@ -54,6 +57,7 @@ class ReservationServiceTest {
         seance.setPrice(9.50);
         seance.setDateTime(LocalDateTime.now().plusDays(1));
         seance.setActive(true);
+        seance.setCinema(cinema);
         return seance;
     }
 
@@ -177,12 +181,14 @@ class ReservationServiceTest {
         Reservation r1 = new Reservation();
         r1.setId(100L);
         r1.setQuantity(2);
+        r1.setUnitPriceAtBooking(new BigDecimal("9.50"));
         r1.setUser(user);
         r1.setSeance(seance);
 
         Reservation r2 = new Reservation();
         r2.setId(101L);
         r2.setQuantity(3);
+        r2.setUnitPriceAtBooking(new BigDecimal("9.5"));
         r2.setUser(user);
         r2.setSeance(seance);
 
@@ -199,7 +205,7 @@ class ReservationServiceTest {
         verify(reservationRepository).save(r1);
 
         assertThat(result).isSameAs(r1);
-        assertThat(r1.getQuantity()).isEqualTo(4);
+        assertThat(r1.getQuantity()).isEqualTo(7);
         assertThat(seance.getAvailableSeats()).isEqualTo(8);
     }
 
@@ -378,4 +384,58 @@ class ReservationServiceTest {
         assertThat(result.getUnitPriceAtBooking()).isEqualByComparingTo("8.50");
     }
 
+
+    @Test
+    @DisplayName("createReservation() - rejects duplicates with different historical prices")
+    void createReservation_ShouldRejectDuplicatesWithDifferentPrices() {
+        Seance seance = buildSeance(10);
+        User user = buildUser();
+
+        Reservation first = new Reservation();
+        first.setId(100L);
+        first.setUser(user);
+        first.setSeance(seance);
+        first.setQuantity(2);
+        first.setUnitPriceAtBooking(new BigDecimal("8.50"));
+
+        Reservation second = new Reservation();
+        second.setId(101L);
+        second.setUser(user);
+        second.setSeance(seance);
+        second.setQuantity(3);
+        second.setUnitPriceAtBooking(new BigDecimal("10.50"));
+
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
+        when(reservationRepository.findAllByUserIdAndSeanceId(2L, 1L)).thenReturn(List.of(first, second));
+
+        assertThatThrownBy(() -> reservationService.createReservation(1L, 2L, 2)).isInstanceOf(IllegalStateException.class);
+        assertThat(first.getQuantity()).isEqualTo(2);
+        assertThat(second.getQuantity()).isEqualTo(3);
+        assertThat(seance.getAvailableSeats()).isEqualTo(10);
+
+        verify(reservationRepository, never()).deleteAll(anyList());
+        verify(reservationRepository, never()).save(any(Reservation.class));
+        verify(seanceRepository, never()).save(any(Seance.class));
+    }
+
+    @Test
+    @DisplayName("createReservation() - rejects a deleted cinema")
+    void createReservation_ShouldRejectDeletedCinema() {
+        Seance seance = buildSeance(10);
+        Cinema cinema = new Cinema();
+        cinema.setId(20L);
+        cinema.setDeleted(true);
+
+        seance.setCinema(cinema);
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(buildUser()));
+
+        assertThatThrownBy(() -> reservationService.createReservation(1L, 2L, 2))
+                .isInstanceOf(IllegalStateException.class).hasMessageContaining("cinéma");
+
+        assertThat(seance.getAvailableSeats()).isEqualTo(10);
+        verifyNoInteractions(reservationRepository);
+        verify(seanceRepository, never()).save(any(Seance.class));
+    }
 }

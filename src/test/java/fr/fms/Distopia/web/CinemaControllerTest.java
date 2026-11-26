@@ -254,6 +254,59 @@ class CinemaControllerTest {
         verify(cinemaService, never()).save(any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
+
+    @Test
+    @DisplayName("/admin/saveCinema - handles unknown cinema")
+    void adminSaveCinema_ShouldHandleUnknownCinema() throws Exception {
+        when(cinemaService.save(99L, "UGC", "26 rue du test", 1L, "https://ugc.fr",
+                43.48, -1.57, "image.jpg", "64")).thenThrow(new NoSuchElementException());
+
+        mockMvc.perform(post("/admin/saveCinema")
+                        .with(csrf())
+                        .with(user("admin").roles("ADMIN"))
+                        .param("id", "99")
+                        .param("name", "UGC")
+                        .param("address", "26 rue du test")
+                        .param("townId", "1")
+                        .param("website", "https://ugc.fr")
+                        .param("latitude", "43.48")
+                        .param("longitude", "-1.57")
+                        .param("imageUrl", "image.jpg")
+                        .param("department", "64"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"))
+                .andExpect(flash().attribute("error", "Ce cinéma n'existe pas ou a été supprimé"));
+
+        verify(cinemaService).save(99L, "UGC", "26 rue du test", 1L, "https://ugc.fr", 43.48,
+                -1.57, "image.jpg", "64");
+    }
+
+    @Test
+    @DisplayName("/admin/saveCinema - handles unknown town")
+    void adminSaveCinema_ShouldHandleUnknownTown() throws Exception {
+        when(cinemaService.save(1L, "UGC", "26 rue du test", 99L, "https://ugc.fr", 43.48, -1.57,
+                "image.jpg", "64")).thenThrow(new IllegalArgumentException("La ville sélectionnée n'existe pas"));
+
+        mockMvc.perform(post("/admin/saveCinema")
+                        .with(csrf())
+                        .with(user("admin").roles("ADMIN"))
+                        .param("id", "1")
+                        .param("name", "UGC")
+                        .param("address", "26 rue du test")
+                        .param("townId", "99")
+                        .param("website", "https://ugc.fr")
+                        .param("latitude", "43.48")
+                        .param("longitude", "-1.57")
+                        .param("imageUrl", "image.jpg")
+                        .param("department", "64"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/cinemas"))
+                .andExpect(flash().attribute("error", "La ville sélectionnée n'existe pas"));
+
+        verify(cinemaService).save(1L, "UGC", "26 rue du test", 99L, "https://ugc.fr",
+                43.48, -1.57, "image.jpg", "64");
+    }
+
     //----------tests for delete()----------------------------------
     @Test
     @DisplayName("/admin/deleteCinema - Should delete cinema")

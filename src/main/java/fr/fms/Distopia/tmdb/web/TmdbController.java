@@ -80,8 +80,10 @@ public class TmdbController {
      *     <li>trailer URL</li>
      *     <li>release date</li>
      * </ul><p>
-     * If the movie cannot be retrieved from TMDB,
-     * an error flash message is added
+     * If the movie cannot be retrieved from TMDB, an error flash message is added
+     * <p>Before contacting TMDB, the controller verifies whether the movie already exists locally in a soft-deleted state.
+     * Such movies cannot be reimported automatically and must be explicitly restored by an administrator</p>
+     *
      * @param tmdbId the TMDB movie identifier
      * @param query the optional TMDB search keyword
      * @param ra the Spring {@link RedirectAttributes} used for flash messages
@@ -90,6 +92,13 @@ public class TmdbController {
     @PostMapping("/admin/import-movie")
     public String importMovie(@RequestParam Long tmdbId,@RequestParam(required = false)String query, RedirectAttributes ra) {
         logger.info("Starting TMDB movie import for id {}", tmdbId);
+
+        if (movieService.findByTmdbId(tmdbId).filter(Movie::isDeleted).isPresent()) {
+            ra.addFlashAttribute("error", "Ce film a été supprimé et doit être restauré explicitement");
+
+            return redirectToImportMovies(query);
+        }
+
         TmdbMovieDto detail = tmdbClient.getDetail(tmdbId);
         if (detail == null) {
             logger.warn("TMDB movie not found for id {}", tmdbId);

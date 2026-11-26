@@ -40,8 +40,11 @@ public class MovieController {
         this.tmdbClient = tmdbClient;
     }
 
+    //-----constantes--------------
     private static final String MOVIES = "movies";
     private static final String REDIRECT_ADMIN_MOVIES = "redirect:/admin/movies";
+    private static final String MESSAGE = "message";
+    private static final String ERROR = "error";
 
     //---------------films d'un cinéma--------------------
     /**
@@ -138,25 +141,29 @@ public class MovieController {
             String errorMessage = bindingResult.getAllErrors().isEmpty()
                     ? "Données invalides"
                     : bindingResult.getAllErrors().get(0).getDefaultMessage();
-            redirectAttributes.addFlashAttribute("error", errorMessage);
+            redirectAttributes.addFlashAttribute(ERROR, errorMessage);
 
             return REDIRECT_ADMIN_MOVIES;
         }
-        movieService.save(
-                form.getId(),
-                form.getTmdbId(),
-                form.getTitle(),
-                form.getDescription(),
-                form.getDuration(),
-                form.getGenre(),
-                form.getImageUrl(),
-                form.getTrailerUrl(),
-                form.getCinemaIds(),
-                form.getReleaseDate()
-        );
-        redirectAttributes.addFlashAttribute("message",
-                form.getId() == null ? "Film ajouté avec succès" : "Film modifié avec succès");
+        try {
+            movieService.save(form.getId(), form.getTmdbId(), form.getTitle(), form.getDescription(), form.getDuration(),
+                    form.getGenre(), form.getImageUrl(), form.getTrailerUrl(), form.getCinemaIds(), form.getReleaseDate());
+            redirectAttributes.addFlashAttribute(MESSAGE, form.getId() == null ? "Film ajouté avec succès" : "Film modifié avec succès");
 
+        } catch (NoSuchElementException e) {
+            redirectAttributes.addFlashAttribute(ERROR, "Ce film n'existe pas ou a été supprimé");
+
+        } catch (IllegalArgumentException e) {
+            String errorMessage;
+            if ("Le cinéma sélectionné est supprimé".equals(e.getMessage())) {
+                errorMessage = "Le cinéma sélectionné est supprimé";
+            } else if ("Le cinéma sélectionné n'existe pas".equals(e.getMessage())) {
+                errorMessage = "Le cinéma sélectionné n'existe pas";
+            } else {
+                errorMessage = "La sélection du cinéma est invalide";
+            }
+            redirectAttributes.addFlashAttribute(ERROR, errorMessage);
+        }
         return REDIRECT_ADMIN_MOVIES;
     }
 
@@ -193,21 +200,17 @@ public class MovieController {
      * @return a redirect to the movie administration page
      */
     @PostMapping("/admin/restoreMovie")
-    public String restoreMovie(
-            @RequestParam Long id,
-            RedirectAttributes redirectAttributes) {
-
+    public String restoreMovie(@RequestParam Long id, RedirectAttributes redirectAttributes) {
         try {
             boolean restored = movieService.restore(id);
 
             if (restored) {
-                redirectAttributes.addFlashAttribute("message", "Film restauré avec succès");
+                redirectAttributes.addFlashAttribute(MESSAGE, "Film restauré avec succès");
             } else {
-                redirectAttributes.addFlashAttribute("message", "Film déjà actif : aucune modification effectuée");
+                redirectAttributes.addFlashAttribute(MESSAGE, "Film déjà actif : aucune modification effectuée");
             }
-
         } catch (NoSuchElementException e) {
-            redirectAttributes.addFlashAttribute("error", "Film introuvable");
+            redirectAttributes.addFlashAttribute(ERROR, "Film introuvable");
         }
         return REDIRECT_ADMIN_MOVIES;
     }
@@ -261,8 +264,7 @@ public class MovieController {
         Optional<Movie> existing =
                 movieService.findByTmdbId(tmdbId);
         if (existing.isPresent()) {
-            return "redirect:/movie?id="
-                    + existing.get().getId();
+            return "redirect:/movie?id=" + existing.get().getId();
         }
         TmdbMovieDto tmdbMovie =
                 tmdbClient.getDetail(tmdbId);

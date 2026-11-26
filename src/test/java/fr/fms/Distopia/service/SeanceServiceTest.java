@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -130,25 +131,26 @@ import static org.mockito.Mockito.*;
     }
 
     @Test
-    @DisplayName("save() - throws RuntimeException when cinemaId not found")
+    @DisplayName("save() - rejects unknown cinema")
     void save_shouldThrowRuntimeExceptionWhenCinemaIdNotFound() {
+        when(movieRepository.findById(1L)).thenReturn(Optional.of(movie));
         when(cinemaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> seanceService.save(null, futureDate, 200, 15.0,null,99L))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessage("Cinéma introuvable");
+        assertThatThrownBy(() -> seanceService.save(null, futureDate, 200, 15.0, 1L, 99L))
+               .isInstanceOf(RuntimeException.class).hasMessage("Cinéma introuvable");
+
+        verify(seanceRepository, never()).save(any(Seance.class));
     }
 
     @Test
-    @DisplayName("save() - skips movie assignment when movieId is null")
-    void save_shouldSkipMovieAssignmentWhenMovieIdIsNull() {
-        when(cinemaRepository.findById(1L)).thenReturn(Optional.of(cinema));
-        when(seanceRepository.save(any(Seance.class))).thenAnswer(i -> i.getArgument(0));
+    @DisplayName("save() - rejects new screening without a movie")
+    void save_ShouldRejectCreatingScreeningWithoutMovie() {
+        assertThatThrownBy(() -> seanceService.save(null, futureDate, 200, 15.0, null, 1L
+        )).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("film");
 
-        Seance result = seanceService.save(null, futureDate, 200, 15.0,null,1L);
-
-        assertThat(result.getMovie()).isNull();
-        verify(movieRepository, never()).findById(any());
+        verify(seanceRepository, never()).save(any(Seance.class));
+        verifyNoInteractions(movieRepository, cinemaRepository);
+        verify(seanceRepository, never()).save(any(Seance.class));
     }
 
 
@@ -185,32 +187,53 @@ import static org.mockito.Mockito.*;
 
     //---------------------test de la méthode delete()--------------------
     @Test
-    @DisplayName("delete - Should delete seance when it has no reservations")
+    @DisplayName("delete() - deletes screening without reservations")
     void delete_shouldDeleteSeanceWhenItHasNoReservations() {
-        seance.setId(1L);
-        seance.setReservations(new ArrayList<>());
-
-        when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+        when(reservationRepository.countBySeanceIds(List.of(1L))).thenReturn(0L);
 
         seanceService.delete(1L);
 
+        verify(reservationRepository).countBySeanceIds(List.of(1L));
         verify(seanceRepository).delete(seance);
     }
 
     @Test
-    @DisplayName("delete - Should refuse deletion when seance has reservations")
+    @DisplayName("delete() - refuses deletion when reservations exist")
     void delete_shouldRefuseDeletionWhenSeanceHasReservations() {
-        seance.setId(1L);
-        seance.setReservations(List.of(new Reservation()));
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
 
-        when(seanceRepository.findById(1L)).thenReturn(Optional.of(seance));
+        when(reservationRepository.countBySeanceIds(List.of(1L))).thenReturn(1L);
 
-        IllegalStateException exception = assertThrows(
-                IllegalStateException.class, () -> seanceService.delete(1L));
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> seanceService.delete(1L));
 
         assertEquals("Impossible de supprimer une séance avec des réservations", exception.getMessage());
-        verify(seanceRepository, never()).delete(seance);
+        verify(seanceRepository, never()).delete(any(Seance.class));
     }
+
+
+    /**
+     * Verifies that deleting an individual screening
+     * acquires a pessimistic lock before checking
+     * whether reservations prevent deletion.
+     *
+     * <p>The screening must only be deleted after
+     * the reservation check has succeeded.</p>
+     */
+    @Test
+    @DisplayName("delete() - locks screening before checking reservations")
+    void delete_ShouldLockSeanceBeforeCheckingReservations() {
+        when(seanceRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(seance));
+
+        seanceService.delete(1L);
+
+        InOrder order = inOrder(seanceRepository, reservationRepository);
+
+        order.verify(seanceRepository).findByIdForUpdate(1L);
+        order.verify(reservationRepository).countBySeanceIds(List.of(1L));
+        order.verify(seanceRepository).delete(seance);
+    }
+
 
     //-----------------tests for deleteSelected() -------------------
     @Test
@@ -237,6 +260,7 @@ import static org.mockito.Mockito.*;
     @DisplayName("deleteSelected - Should delete selected seances when none has reservations")
     void deleteSelected_shouldDeleteSelectedSeancesWhenNoneHasReservations() {
         List<Long> ids = List.of(1L, 2L, 3L);
+        stubLockedSeances(1L, 2L, 3L);
 
         when(reservationRepository.countBySeanceIds(ids)).thenReturn(0L);
 
@@ -251,6 +275,7 @@ import static org.mockito.Mockito.*;
     @DisplayName("deleteSelected - Should refuse deletion when one selected seance has reservations")
     void deleteSelected_shouldRefuseDeletionWhenOneSelectedSeanceHasReservations() {
         List<Long> ids = List.of(1L, 2L, 3L);
+        stubLockedSeances(1L, 2L, 3L);
 
         when(reservationRepository.countBySeanceIds(ids)).thenReturn(1L);
 
@@ -260,6 +285,25 @@ import static org.mockito.Mockito.*;
                 exception.getMessage());
         verify(reservationRepository).countBySeanceIds(ids);
         verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
+    }
+
+    @Test
+    @DisplayName("deleteSelected() - locks screenings before checking reservations")
+    void deleteSelected_ShouldLockSeancesBeforeCheckingReservations() {
+        List<Long> ids = List.of(2L, 1L);
+
+        stubLockedSeances(1L, 2L);
+
+        int deleted = seanceService.deleteSelected(ids);
+
+        assertThat(deleted).isEqualTo(2);
+
+        InOrder order = inOrder(seanceRepository, reservationRepository);
+
+        order.verify(seanceRepository).findByIdForUpdate(1L);
+        order.verify(seanceRepository).findByIdForUpdate(2L);
+        order.verify(reservationRepository).countBySeanceIds(ids);
+        order.verify(seanceRepository).deleteAllByIdInBatch(ids);
     }
 
     //--------------test for deleteByAdminFilters----------------------------
@@ -281,6 +325,7 @@ import static org.mockito.Mockito.*;
     @DisplayName("deleteByAdminFilters - Should delete matching seances when none has reservations")
     void deleteByAdminFilters_shouldDeleteMatchingSeancesWhenNoneHasReservations() {
         List<Long> ids = List.of(1L, 2L);
+        stubLockedSeances(1L, 2L);
 
         when(seanceRepository.findIdsByAdminFilters("avatar", 5L, true)).thenReturn(ids);
         when(reservationRepository.countBySeanceIds(ids)).thenReturn(0L);
@@ -297,6 +342,7 @@ import static org.mockito.Mockito.*;
     @DisplayName("deleteByAdminFilters - Should refuse deletion when one matching seance has reservations")
     void deleteByAdminFilters_shouldRefuseDeletionWhenOneMatchingSeanceHasReservations() {
         List<Long> ids = List.of(1L, 2L);
+        stubLockedSeances(1L, 2L);
 
         when(seanceRepository.findIdsByAdminFilters("avatar", 5L, true)).thenReturn(ids);
         when(reservationRepository.countBySeanceIds(ids)).thenReturn(1L);
@@ -308,6 +354,28 @@ import static org.mockito.Mockito.*;
         verify(seanceRepository).findIdsByAdminFilters("avatar", 5L, true);
         verify(reservationRepository).countBySeanceIds(ids);
         verify(seanceRepository, never()).deleteAllByIdInBatch(anyList());
+    }
+
+    @Test
+    @DisplayName("deleteByAdminFilters() - locks screenings before checking reservations")
+    void deleteByAdminFilters_ShouldLockSeancesBeforeCheckingReservations() {
+        List<Long> ids = List.of(2L, 1L);
+
+        when(seanceRepository.findIdsByAdminFilters("avatar", 5L, true)).thenReturn(ids);
+
+        stubLockedSeances(1L, 2L);
+
+        int deleted = seanceService.deleteByAdminFilters("avatar", 5L, true);
+
+        assertThat(deleted).isEqualTo(2);
+
+        InOrder order = inOrder(seanceRepository, reservationRepository);
+
+        order.verify(seanceRepository).findIdsByAdminFilters("avatar", 5L, true);
+        order.verify(seanceRepository).findByIdForUpdate(1L);
+        order.verify(seanceRepository).findByIdForUpdate(2L);
+        order.verify(reservationRepository).countBySeanceIds(ids);
+        order.verify(seanceRepository).deleteAllByIdInBatch(ids);
     }
 
     //------------------tests for searchAdmin() ---------------------------
@@ -528,4 +596,17 @@ import static org.mockito.Mockito.*;
     }
 
 
+    /**
+     * Stubs pessimistically locked screenings for service tests
+     *
+     * @param ids the identifiers of existing screenings
+     */
+    private void stubLockedSeances(Long... ids) {
+        for (Long id : ids) {
+            Seance lockedSeance = new Seance();
+            lockedSeance.setId(id);
+
+            when(seanceRepository.findByIdForUpdate(id)).thenReturn(Optional.of(lockedSeance));
+        }
+    }
 }

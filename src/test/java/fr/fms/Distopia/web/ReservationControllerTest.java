@@ -109,4 +109,19 @@ class ReservationControllerTest {
         assertThat(view).isEqualTo("redirect:/my-reservations");
         verify(reservationService).createReservation(1L,1L,1);
     }
+
+    @Test
+    @DisplayName("reserveSeance() - handles unavailable screening")
+    void reserveSeance_ShouldHandleUnavailableScreening() {
+        String errorMessage = "Cette séance n'est plus disponible à la réservation";
+
+        doThrow(new IllegalStateException(errorMessage)).when(reservationService)
+                .createReservation(1L, 1L, 2);
+
+        String view = reservationController.reserveSeance(1L, 2, null, connectedUser, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/my-reservations");
+        verify(redirectAttributes).addFlashAttribute("error", errorMessage);
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+    }
 }

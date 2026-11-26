@@ -17,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -186,6 +187,25 @@ class TmdbControllerTest {
         verify(movieService).save(any(), any(), any(),any(), anyInt(), any(), any(), any(), isNull(), any());
     }
 
+    @Test
+    @DisplayName("importMovie() - rejects previously deleted TMDB movie")
+    void importMovie_ShouldRejectPreviouslyDeletedMovie() {
+        Movie deletedMovie = new Movie();
+        deletedMovie.setId(7L);
+        deletedMovie.setTmdbId(1L);
+        deletedMovie.setDeleted(true);
+
+        when(movieService.findByTmdbId(1L)).thenReturn(Optional.of(deletedMovie));
+
+        String view = tmdbController.importMovie(1L, null, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/import-movies");
+
+        verify(movieService).findByTmdbId(1L);
+        verify(redirectAttributes).addFlashAttribute("error", "Ce film a été supprimé et doit être restauré explicitement");
+        verifyNoInteractions(tmdbClient, seanceGeneratorService);
+        verify(movieService, never()).save(any(), any(), any(), any(), anyInt(),any(), any(), any(), any(), any());
+    }
 
     //------------------   tests for generateNowPlaying() ---------------------------
 

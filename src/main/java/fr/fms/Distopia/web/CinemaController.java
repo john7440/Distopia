@@ -41,6 +41,7 @@ public class CinemaController {
     private static final String CINEMAS = "cinemas";
     private static final String ADMIN_REDIRECT = "redirect:/admin/cinemas";
     private static final String ERROR = "error";
+    private static final String MESSAGE = "message";
 
     //---------pour visiteur — cinémas d'une ville-----------------
     /**
@@ -92,7 +93,7 @@ public class CinemaController {
     public String importCinemas(RedirectAttributes redirectAttributes){
         try {
             CinemaCsvImporter.ImportResult result = cinemaCsvImporter.importFromCsv();
-            redirectAttributes.addFlashAttribute("message",
+            redirectAttributes.addFlashAttribute(MESSAGE,
                     result.imported() + " cinémas importés, " + result.skipped() + " ignorés");
         }catch (Exception e){
             redirectAttributes.addFlashAttribute(ERROR, "Erreur import : " + e.getMessage());
@@ -132,9 +133,7 @@ public class CinemaController {
 
         Page<Cinema> cinemaPage = cinemaService.searchAdmin(keyword, sortField, sortDir, page, includeDeleted);
 
-        Cinema cinemaToEdit = (editId != null)
-                ? cinemaService.findById(editId).orElse(new Cinema())
-                : new Cinema();
+        Cinema cinemaToEdit = (editId != null) ? cinemaService.findById(editId).orElse(new Cinema()) : new Cinema();
 
         model.addAttribute("cinemaPage",    cinemaPage);
         model.addAttribute(CINEMAS,cinemaPage.getContent());
@@ -158,36 +157,36 @@ public class CinemaController {
      * If validation fails, the user is redirected back to the cinema administration page
      * with an error message stored in flash attributes
      *
+     * <p>If an update targets a cinema that no longer exists, the controller handles the exception locally and redirects
+     * to the administration page with an appropriate error message </p>
+     *
      * @param form the validated cinema form containing cinema data
      * @param bindingResult the validation result for the submitted form
      * @param ra the Spring {@link RedirectAttributes} used to pass flash messages
      * @return a redirect to the cinema administration page
      */
     @PostMapping("/admin/saveCinema")
-    public String saveCinema(@Valid @ModelAttribute CinemaForm form,
-                             BindingResult bindingResult,
-                             RedirectAttributes ra){
+    public String saveCinema(@Valid @ModelAttribute CinemaForm form, BindingResult bindingResult, RedirectAttributes ra){
 
         if (bindingResult.hasErrors()) {
-            String errorMessage = bindingResult.getAllErrors().isEmpty()
-                    ? "Données invalides"
+            String errorMessage = bindingResult.getAllErrors().isEmpty() ? "Données invalides"
                     : bindingResult.getAllErrors().get(0).getDefaultMessage();
 
             ra.addFlashAttribute(ERROR, errorMessage);
 
             return ADMIN_REDIRECT;
         }
-        cinemaService.save(
-                form.getId(),
-                form.getName(),
-                form.getAddress(),
-                form.getTownId(),
-                form.getWebsite(),
-                form.getLatitude(),
-                form.getLongitude(),
-                form.getImageUrl(),
-                form.getDepartment()
-        );
+
+
+        try {
+            cinemaService.save(form.getId(), form.getName(), form.getAddress(), form.getTownId(), form.getWebsite(),
+                    form.getLatitude(), form.getLongitude(), form.getImageUrl(), form.getDepartment());
+        } catch (NoSuchElementException e) {
+            ra.addFlashAttribute(ERROR, "Ce cinéma n'existe pas ou a été supprimé");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute(ERROR, "La ville sélectionnée n'existe pas"
+            );
+        }
         return ADMIN_REDIRECT;
     }
 
@@ -204,7 +203,7 @@ public class CinemaController {
     public String deleteCinema(@RequestParam Long id, RedirectAttributes ra){
         try {
             cinemaService.delete(id);
-            ra.addFlashAttribute("message", "Cinéma supprimé avec succès");
+            ra.addFlashAttribute(MESSAGE, "Cinéma supprimé avec succès");
         } catch (IllegalStateException e) {
             ra.addFlashAttribute(ERROR, e.getMessage());
         }
@@ -230,9 +229,9 @@ public class CinemaController {
             boolean restored = cinemaService.restore(id);
 
             if (restored) {
-                ra.addFlashAttribute("message", "Cinéma restauré avec succès");
+                ra.addFlashAttribute(MESSAGE, "Cinéma restauré avec succès");
             } else {
-                ra.addFlashAttribute("message", "Cinéma déjà actif");
+                ra.addFlashAttribute(MESSAGE, "Cinéma déjà actif");
             }
 
         } catch (NoSuchElementException e) {
