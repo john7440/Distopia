@@ -18,6 +18,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Controller responsible for TMDB movie import and TMDB-related
@@ -80,10 +81,13 @@ public class TmdbController {
      *     <li>trailer URL</li>
      *     <li>release date</li>
      * </ul><p>
-     * If the movie cannot be retrieved from TMDB, an error flash message is added
-     * <p>Before contacting TMDB, the controller verifies whether the movie already exists locally in a soft-deleted state.
-     * Such movies cannot be reimported automatically and must be explicitly restored by an administrator</p>
+     * <p>Before contacting TMDB, the controller checks whether the movie already exists locally</p>
      *
+     * <p>Existing active movies cannot be imported again.
+     * Soft-deleted movies must be explicitly restored by an administrator</p>
+     *
+     * <p>Rejected imports do not modify existing movies,
+     * contact TMDB or generate additional screenings.</p>
      * @param tmdbId the TMDB movie identifier
      * @param query the optional TMDB search keyword
      * @param ra the Spring {@link RedirectAttributes} used for flash messages
@@ -93,8 +97,14 @@ public class TmdbController {
     public String importMovie(@RequestParam Long tmdbId,@RequestParam(required = false)String query, RedirectAttributes ra) {
         logger.info("Starting TMDB movie import for id {}", tmdbId);
 
-        if (movieService.findByTmdbId(tmdbId).filter(Movie::isDeleted).isPresent()) {
-            ra.addFlashAttribute("error", "Ce film a été supprimé et doit être restauré explicitement");
+        Optional<Movie> existingMovie = movieService.findByTmdbId(tmdbId);
+
+        if (existingMovie.isPresent()) {
+            if (existingMovie.get().isDeleted()) {
+                ra.addFlashAttribute("error", "Ce film a été supprimé et doit être restauré explicitement");
+            } else {
+                ra.addFlashAttribute("warning", "Ce film est déjà importé");
+            }
 
             return redirectToImportMovies(query);
         }

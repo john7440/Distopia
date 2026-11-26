@@ -207,6 +207,26 @@ class TmdbControllerTest {
         verify(movieService, never()).save(any(), any(), any(), any(), anyInt(),any(), any(), any(), any(), any());
     }
 
+    @Test
+    @DisplayName("importMovie() - rejects already imported active movie")
+    void importMovie_ShouldRejectAlreadyImportedMovie() {
+        Movie existingMovie = new Movie();
+        existingMovie.setId(7L);
+        existingMovie.setTmdbId(1L);
+        existingMovie.setDeleted(false);
+
+        when(movieService.findByTmdbId(1L)).thenReturn(Optional.of(existingMovie));
+
+        String view = tmdbController.importMovie(1L, "avatar", redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/admin/import-movies?query=avatar");
+
+        verify(redirectAttributes).addFlashAttribute("warning", "Ce film est déjà importé");
+        verifyNoInteractions(tmdbClient, seanceGeneratorService);
+        verify(movieService, never()).save(any(), any(), any(), any(), anyInt(), any(), any(), any(), any(), any());
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+    }
+
     //------------------   tests for generateNowPlaying() ---------------------------
 
     @Test
