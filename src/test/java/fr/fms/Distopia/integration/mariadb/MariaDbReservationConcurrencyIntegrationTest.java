@@ -13,7 +13,10 @@ import fr.fms.Distopia.entities.Seance;
 import fr.fms.Distopia.entities.User;
 import fr.fms.Distopia.exceptions.NoSeatsAvailableException;
 import fr.fms.Distopia.service.ReservationService;
+import fr.fms.Distopia.service.SeanceService;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -50,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * from overselling available seats.</p>
  */
 @DataJpaTest
-@Import(ReservationService.class)
+@Import({ReservationService.class, SeanceService.class})
 @ActiveProfiles("mariadb-test")
 @TestPropertySource(locations = "classpath:application-mariadb-test.properties")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -74,6 +77,15 @@ class MariaDbReservationConcurrencyIntegrationTest {
     private UserRepository userRepository;
     @Autowired
     private PlatformTransactionManager transactionManager;
+    @Autowired
+    private SeanceService seanceService;
+
+
+    private enum DeletionMode {
+        INDIVIDUAL,
+        SELECTED,
+        FILTERED
+    }
 
     /**
      * Verifies that two concurrent users cannot book
@@ -159,6 +171,104 @@ class MariaDbReservationConcurrencyIntegrationTest {
 
         assertThat(executorTerminated).as("Concurrent booking tasks must terminate").isTrue();
     }
+
+
+    /**
+     * Verifies that concurrent administrative deletion cannot remove a screening with a committed reservation
+     *
+     * <p>All supported deletion modes must wait for the booking transaction and reject deletion once the reservation
+     * becomes visible</p>
+     *
+     * @param mode the administrative deletion mode
+     */
+    @ParameterizedTest
+    @EnumSource(DeletionMode.class)
+    @DisplayName("MariaDB - concurrent deletion preserves booked screening")
+    void deletion_ShouldPreserveConcurrentlyBookedScreening(DeletionMode mode)
+            throws InterruptedException, ExecutionException, TimeoutException {
+
+        Long seanceId = createScreeningWithOneSeat();
+
+        Long cinemaId = seanceRepository.findById(seanceId)
+                .orElseThrow()
+                .getCinema()
+                .getId();
+
+        Long userId = createUser("d05b-" + mode.name());
+
+        CountDownLatch bookingCompleted = new CountDownLatch(1);
+        CountDownLatch allowBookingCommit = new CountDownLatch(1);
+        CountDownLatch deletionStarted = new CountDownLatch(1);
+
+        TransactionTemplate transactionTemplate =
+                new TransactionTemplate(transactionManager);
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        boolean executorTerminated;
+
+        try {
+            Future<Long> booking = executor.submit(() ->
+                    transactionTemplate.execute(status -> {
+
+                        Reservation reservation = reservationService.createReservation(seanceId, userId, 1);
+
+                        bookingCompleted.countDown();
+                        awaitSignal(allowBookingCommit);
+
+                        return reservation.getId();
+                    })
+            );
+
+            awaitSignal(bookingCompleted);
+
+            Future<Void> deletion = executor.submit(() -> {
+                deletionStarted.countDown();
+
+                switch (mode) {
+                    case INDIVIDUAL -> seanceService.delete(seanceId);
+                    case SELECTED -> seanceService.deleteSelected(List.of(seanceId));
+                    case FILTERED -> seanceService.deleteByAdminFilters(null, cinemaId, true);
+                }
+                return null;
+            });
+
+            awaitSignal(deletionStarted);
+
+            assertThatThrownBy(() -> deletion.get(1, TimeUnit.SECONDS)).isInstanceOf(TimeoutException.class);
+
+            allowBookingCommit.countDown();
+
+            assertThat(booking.get(20, TimeUnit.SECONDS)).isNotNull();
+            assertThatThrownBy(() -> deletion.get(20, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class)
+                    .hasCauseInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("réservations");
+
+            Seance persistedSeance = seanceRepository.findById(seanceId).orElseThrow();
+
+            assertThat(persistedSeance.getAvailableSeats()).isZero();
+            assertThat(reservationRepository.countBySeanceIds(List.of(seanceId))).isEqualTo(1L);
+            assertThat(reservationRepository.findAllByUserIdAndSeanceId(userId, seanceId))
+                    .extracting(Reservation::getQuantity)
+                    .containsExactly(1);
+
+        } finally {
+            allowBookingCommit.countDown();
+            executor.shutdown();
+
+            try {
+                executorTerminated = executor.awaitTermination(20, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                executorTerminated = false;
+            }
+            if (!executorTerminated) {
+                executor.shutdownNow();
+            }
+        }
+
+        assertThat(executorTerminated).as("Concurrent booking and deletion tasks must terminate").isTrue();
+    }
+
 
     /**
      * Creates a future active screening with one available seat.
