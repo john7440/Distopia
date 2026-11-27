@@ -1,0 +1,26 @@
+
+services:
+  db-test:
+    image: mariadb:11.4
+
+    environment:
+      MARIADB_DATABASE: distopia_test
+      MARIADB_USER: distopia_test
+      MARIADB_PASSWORD: ${DISTOPIA_TEST_DB_PASSWORD:?Test database password required}
+      MARIADB_ROOT_PASSWORD: ${DISTOPIA_TEST_DB_ROOT_PASSWORD:?Test root password required}
+
+    ports:
+      - "127.0.0.1:3309:3306"
+
+    volumes:
+      - mariadb-test-data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  mariadb-test-data:
