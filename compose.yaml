@@ -1,0 +1,27 @@
+
+services:
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+
+    environment:
+      MARIADB_DATABASE: distopia2
+      MARIADB_USER: distopia
+      MARIADB_PASSWORD: ${DISTOPIA_DB_PASSWORD:?Database password required}
+      MARIADB_ROOT_PASSWORD: ${DISTOPIA_DB_ROOT_PASSWORD:?Root password required}
+
+    ports:
+      - "127.0.0.1:3308:3306"
+
+    volumes:
+      - mariadb-data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  mariadb-data:
