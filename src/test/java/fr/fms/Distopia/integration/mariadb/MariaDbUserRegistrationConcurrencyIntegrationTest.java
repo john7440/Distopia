@@ -62,70 +62,60 @@ class MariaDbUserRegistrationConcurrencyIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+
     /**
-     * Verifies that two concurrent registrations using the same username result in exactly one persisted account
-     *
-     * <p>Both requests pass the initial availability checks before attempting to persist their respective users</p>
+     * Verifies that concurrent registrations using the same username result in exactly one persisted account
      */
     @Test
     @DisplayName("MariaDB - concurrent registrations cannot duplicate usernames")
-    void registration_ShouldPreventConcurrentDuplicateUsername()
-            throws InterruptedException, ExecutionException, TimeoutException {
-
+    void registration_ShouldPreventConcurrentDuplicateUsername() throws InterruptedException, ExecutionException, TimeoutException {
         String username = "d05c-concurrent-user";
         String firstEmail = "d05c-first@example.test";
         String secondEmail = "d05c-second@example.test";
         String rawPassword = "test-only-password";
 
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        boolean executorTerminated;
+        User successfulUser = registerConcurrently(username, firstEmail, username, secondEmail, rawPassword);
 
-        try {
-            Future<Optional<User>> firstRegistration = executor.submit(() -> userService.register(username, firstEmail, rawPassword));
+        Long accountCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM users WHERE username = ?", Long.class, username);
 
-            Future<Optional<User>> secondRegistration = executor.submit(() -> userService.register(username, secondEmail, rawPassword));
+        assertThat(accountCount).isEqualTo(1L);
 
-            Optional<User> firstResult = firstRegistration.get(30, TimeUnit.SECONDS);
+        User persistedUser = userRepository.findByUsername(username).orElseThrow();
 
-            Optional<User> secondResult = secondRegistration.get(30, TimeUnit.SECONDS);
+        assertPersistedUser(persistedUser, successfulUser, rawPassword);
 
-            assertThat(firstResult.isPresent()).isNotEqualTo(secondResult.isPresent());
+        String rejectedEmail = firstEmail.equals(successfulUser.getEmail()) ? secondEmail : firstEmail;
 
-            User successfulUser = firstResult.orElseGet(secondResult::orElseThrow);
-
-            Long accountCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM users WHERE username = ?", Long.class, username);
-
-            assertThat(accountCount).isEqualTo(1L);
-
-            User persistedUser = userRepository.findByUsername(username).orElseThrow();
-
-            assertThat(persistedUser.getId()).isEqualTo(successfulUser.getId());
-            assertThat(persistedUser.getEmail()).isEqualTo(successfulUser.getEmail());
-            assertThat(persistedUser.getRole()).isEqualTo(Role.USER);
-            assertThat(passwordEncoder.matches(rawPassword, persistedUser.getPassword())).isTrue();
-
-            String rejectedEmail = firstResult.isPresent() ? secondEmail : firstEmail;
-
-            assertThat(userRepository.findByEmail(rejectedEmail)).isEmpty();
-
-        } finally {
-            executor.shutdown();
-
-            try {
-                executorTerminated = executor.awaitTermination(
-                        20, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                executorTerminated = false;
-            }
-
-            if (!executorTerminated) {
-                executor.shutdownNow();
-            }
-        }
-
-        assertThat(executorTerminated).as("Concurrent registration tasks must terminate").isTrue();
+        assertThat(userRepository.findByEmail(rejectedEmail)).isEmpty();
     }
+
+
+    /**
+     * Verifies that concurrent registrations using the same email address result in exactly one persisted account
+     *
+     * <p>The rejected registration must not create another account with its requested username</p>
+     */
+    @Test
+    @DisplayName("MariaDB - concurrent registrations cannot duplicate emails")
+    void registration_ShouldPreventConcurrentDuplicateEmail() throws InterruptedException, ExecutionException, TimeoutException {
+
+        String firstUsername = "d05d-first";
+        String secondUsername = "d05d-second";
+        String email = "d05d@example.test";
+        String rawPassword = "test-only-password";
+
+        User successfulUser = registerConcurrently(firstUsername, email, secondUsername, email, rawPassword);
+
+        Long accountCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM users WHERE email = ?", Long.class, email);
+
+        assertThat(accountCount).isEqualTo(1L);
+        User persistedUser = userRepository.findByEmail(email).orElseThrow();
+        assertPersistedUser(persistedUser, successfulUser, rawPassword);
+        String rejectedUsername = firstUsername.equals(successfulUser.getUsername()) ? secondUsername : firstUsername;
+
+        assertThat(userRepository.findByUsername(rejectedUsername)).isEmpty();
+    }
+
 
     /**
      * Provides a password encoder dedicated to concurrency tests
@@ -162,4 +152,69 @@ class MariaDbUserRegistrationConcurrencyIntegrationTest {
             return encodedPassword;
         }
     }
+
+    /**
+     * Executes two concurrent registration requests
+     *
+     * <p>Exactly one registration must succeed, while the other must return an empty optional</p>
+     *
+     * @param firstUsername the first requested username
+     * @param firstEmail the first requested email
+     * @param secondUsername the second requested username
+     * @param secondEmail the second requested email
+     * @param rawPassword the password used by both requests
+     * @return the successfully registered user
+     */
+    private User registerConcurrently(String firstUsername, String firstEmail, String secondUsername, String secondEmail,
+                                      String rawPassword) throws InterruptedException, ExecutionException, TimeoutException {
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        boolean executorTerminated;
+        User successfulUser;
+
+        try {
+            Future<Optional<User>> firstRegistration = executor.submit(() -> userService.register(firstUsername, firstEmail, rawPassword));
+            Future<Optional<User>> secondRegistration = executor.submit(() -> userService.register(secondUsername, secondEmail, rawPassword));
+            Optional<User> firstResult = firstRegistration.get(30, TimeUnit.SECONDS);
+            Optional<User> secondResult = secondRegistration.get(30, TimeUnit.SECONDS);
+
+            assertThat(firstResult.isPresent()).isNotEqualTo(secondResult.isPresent());
+            successfulUser = firstResult.orElseGet(secondResult::orElseThrow);
+
+        } finally {
+            executor.shutdown();
+
+            try {
+                executorTerminated = executor.awaitTermination(20, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                executorTerminated = false;
+            }
+            if (!executorTerminated) {
+                executor.shutdownNow();
+            }
+        }
+        assertThat(executorTerminated).as("Concurrent registration tasks must terminate").isTrue();
+
+        return successfulUser;
+    }
+
+
+    /**
+     * Verifies the identity, role and password of a persisted user
+     *
+     * @param persistedUser the user retrieved from the database
+     * @param successfulUser the successfully registered user
+     * @param rawPassword the original registration password
+     */
+    private void assertPersistedUser(User persistedUser, User successfulUser, String rawPassword) {
+
+        assertThat(persistedUser.getId()).isEqualTo(successfulUser.getId());
+        assertThat(persistedUser.getUsername()).isEqualTo(successfulUser.getUsername());
+        assertThat(persistedUser.getEmail()).isEqualTo(successfulUser.getEmail());
+        assertThat(persistedUser.getRole()).isEqualTo(Role.USER);
+        assertThat(passwordEncoder.matches(rawPassword, persistedUser.getPassword())).isTrue();
+    }
+
+
 }
