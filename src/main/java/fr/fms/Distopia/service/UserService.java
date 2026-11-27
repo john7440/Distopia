@@ -5,6 +5,7 @@ import fr.fms.Distopia.entities.Role;
 import fr.fms.Distopia.entities.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Optional;
 
@@ -27,22 +28,24 @@ public class UserService {
 
     //-----------l'inscription----------------------------------
     /**
-     * Registers a new user with a default 'USER' role.
-     * <p>
-     * This method first checks if the requested username or email is already taken.
-     * If one of them is already used, the registration is aborted. Otherwise, it
-     * secures the provided password via encoding, assigns the default {@link Role#USER},
-     * and persists the new user to the database.
+     * Registers a new user with a default USER role
      *
-     * @param username    the desired username for the new account
-     * @param email       the email address for the new account
-     * @param rawPassword the plain-text password to be securely encoded and saved
-     * @return an {@link Optional} containing the newly registered {@link User},
-     * or empty if the username or email is already in use
+     * <p>The username and email must be available before
+     * registration. The password is encoded before persistence</p>
+     *
+     * <p>If a concurrent registration causes a database integrity violation, identifier availability is checked
+     * again to determine whether a duplicate account exists</p>
+     *
+     * @param username the desired username
+     * @param email the email address of the new account
+     * @param rawPassword the plain-text password to encode
+     * @return an optional containing the registered user, or empty if the username or email is already used
+     * @throws DataIntegrityViolationException if an unrelated database integrity violation occurs
      */
-    public Optional<User> register(String username, String email, String rawPassword) {
-        if (userRepository.findByUsername(username).isPresent()
-                || userRepository.findByEmail(email).isPresent()) {
+    public Optional<User> register(
+            String username, String email, String rawPassword) {
+
+        if (isRegistrationIdentifierTaken(username, email)) {
             return Optional.empty();
         }
 
@@ -52,6 +55,25 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setRole(Role.USER);
 
-        return Optional.of(userRepository.save(user));
+        try {
+            return Optional.of(userRepository.save(user));
+        } catch (DataIntegrityViolationException e) {
+            if (isRegistrationIdentifierTaken(username, email)) {
+                return Optional.empty();
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Checks whether a registration identifier is already used
+     *
+     * @param username the requested username
+     * @param email the requested email address
+     * @return true if either identifier is already registered
+     */
+    private boolean isRegistrationIdentifierTaken(String username, String email) {
+
+        return userRepository.findByUsername(username).isPresent() || userRepository.findByEmail(email).isPresent();
     }
 }

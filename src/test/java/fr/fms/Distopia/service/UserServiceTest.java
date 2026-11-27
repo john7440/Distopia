@@ -11,9 +11,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.dao.DataIntegrityViolationException;
+
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -83,5 +86,61 @@ class UserServiceTest {
 
         assertThat(result.get().getPassword()).isEqualTo("encodedSecret");
         assertThat(result.get().getPassword()).doesNotContain("mySecret");
+    }
+
+    @Test
+    @DisplayName("register() - handles concurrent username conflict")
+    void register_ShouldHandleConcurrentUsernameConflict() {
+        User existingUser = new User();
+        existingUser.setId(2L);
+        existingUser.setUsername("newUser");
+
+        when(userRepository.findByUsername("newUser")).thenReturn(Optional.empty(), Optional.of(existingUser));
+
+        when(userRepository.findByEmail("new@test.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("rawPassword")).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenThrow(new DataIntegrityViolationException("Duplicate username"));
+
+        Optional<User> result = userService.register("newUser", "new@test.com", "rawPassword");
+
+        assertThat(result).isEmpty();
+
+        verify(userRepository, times(2)).findByUsername("newUser");
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("register() - handles concurrent email conflict")
+    void register_ShouldHandleConcurrentEmailConflict() {
+        User existingUser = new User();
+        existingUser.setId(2L);
+        existingUser.setEmail("new@test.com");
+
+        when(userRepository.findByUsername("newUser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("new@test.com")).thenReturn(Optional.empty(), Optional.of(existingUser));
+        when(passwordEncoder.encode("rawPassword")).thenReturn("encodedPassword");
+
+        when(userRepository.save(any(User.class))).thenThrow(new DataIntegrityViolationException("Duplicate email"));
+
+        Optional<User> result = userService.register("newUser", "new@test.com", "rawPassword");
+
+        assertThat(result).isEmpty();
+
+        verify(userRepository, times(2)).findByEmail("new@test.com");
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("register() - propagates unrelated integrity violations")
+    void register_ShouldPropagateUnrelatedIntegrityViolation() {
+        when(userRepository.findByUsername("newUser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("new@test.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("rawPassword")).thenReturn("encodedPassword");
+
+        DataIntegrityViolationException failure = new DataIntegrityViolationException("Unexpected integrity violation");
+
+        when(userRepository.save(any(User.class))).thenThrow(failure);
+
+        assertThatThrownBy(() -> userService.register("newUser", "new@test.com", "rawPassword")).isSameAs(failure);
     }
 }
