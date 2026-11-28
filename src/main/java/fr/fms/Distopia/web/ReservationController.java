@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.NoSuchElementException;
+
 /**
  * Controller responsible for handling user reservations and related web requests
  */
@@ -84,6 +86,8 @@ public class ReservationController {
             redirectAttributes.addFlashAttribute("message", "Reservation bien enregistrée");
         } catch (NoSeatsAvailableException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (NoSuchElementException e) {
+            redirectAttributes.addFlashAttribute("error", "La séance ou le compte utilisateur n'est plus disponible");
         }
 
         return "redirect:/my-reservations";

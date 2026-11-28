@@ -17,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -124,4 +125,27 @@ class ReservationControllerTest {
         verify(redirectAttributes).addFlashAttribute("error", errorMessage);
         verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
     }
+
+
+    /**
+     * Verifies that a reservation request targeting a missing
+     * screening is handled locally by the controller.
+     *
+     * <p>The user must receive an appropriate error message
+     * without any successful reservation notification.</p>
+     */
+    @Test
+    @DisplayName("reserveSeance() - handles missing screening")
+    void reserveSeance_ShouldHandleMissingScreening() {
+        doThrow(new NoSuchElementException()).when(reservationService).createReservation(99L, 1L, 1);
+
+        String view = reservationController.reserveSeance(99L, 1, null, connectedUser, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/my-reservations");
+
+        verify(redirectAttributes).addFlashAttribute("error", "La séance ou le compte utilisateur n'est plus disponible");
+        verify(redirectAttributes, never()).addFlashAttribute(eq("message"), any());
+        verify(reservationService).createReservation(99L, 1L, 1);
+    }
+
 }
