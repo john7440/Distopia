@@ -41,6 +41,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -271,6 +272,88 @@ class MariaDbReservationConcurrencyIntegrationTest {
 
 
     /**
+     * Verifies that a concurrent reservation cannot book a screening deleted by another transaction
+     *
+     * <p>The deletion transaction acquires the lock first and remains open until the booking request starts.
+     * Once deletion commits, the booking must be rejected without creating an orphaned reservation</p>
+     *
+     * @param mode the administrative deletion mode
+     */
+    @ParameterizedTest
+    @EnumSource(DeletionMode.class)
+    @DisplayName("MariaDB - concurrent booking cannot reserve deleted screening")
+    void reservation_ShouldRejectConcurrentlyDeletedScreening(DeletionMode mode) throws InterruptedException, ExecutionException,
+            TimeoutException {
+
+        Long seanceId = createScreeningWithOneSeat();
+
+        Long cinemaId = seanceRepository.findById(seanceId).orElseThrow().getCinema().getId();
+
+        Long userId = createUser("d05f-" + mode.name());
+
+        CountDownLatch deletionCompleted = new CountDownLatch(1);
+        CountDownLatch allowDeletionCommit = new CountDownLatch(1);
+        CountDownLatch bookingStarted = new CountDownLatch(1);
+
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        boolean executorTerminated;
+
+        try {
+            Future<?> deletion = executor.submit(() ->
+                    transactionTemplate.executeWithoutResult(status -> {
+                        deleteScreening(mode, seanceId, cinemaId);
+                        seanceRepository.flush();
+                        deletionCompleted.countDown();
+                        awaitSignal(allowDeletionCommit);
+                    })
+            );
+
+            awaitSignal(deletionCompleted);
+
+            Future<Reservation> booking = executor.submit(() -> {
+                bookingStarted.countDown();
+
+                return reservationService.createReservation(seanceId, userId, 1);
+            });
+
+            awaitSignal(bookingStarted);
+
+            assertThatThrownBy(() -> booking.get(1, TimeUnit.SECONDS)).isInstanceOf(TimeoutException.class);
+
+            allowDeletionCommit.countDown();
+            deletion.get(20, TimeUnit.SECONDS);
+
+            assertThatThrownBy(() -> booking.get(20, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class)
+                    .hasCauseInstanceOf(NoSuchElementException.class);
+
+            assertThat(seanceRepository.findById(seanceId)).isEmpty();
+            assertThat(reservationRepository.countBySeanceIds(List.of(seanceId))).isZero();
+            assertThat(reservationRepository.findByUserIdOrderByReservedAtDesc(userId)).isEmpty();
+            assertThat(userRepository.findById(userId)).isPresent();
+
+        } finally {
+            allowDeletionCommit.countDown();
+            executor.shutdown();
+
+            try {
+                executorTerminated = executor.awaitTermination(20, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                executorTerminated = false;
+            }
+            if (!executorTerminated) {
+                executor.shutdownNow();
+            }
+        }
+
+        assertThat(executorTerminated).as("Concurrent deletion and booking tasks must terminate").isTrue();
+    }
+
+
+
+    /**
      * Creates a future active screening with one available seat.
      *
      * @return the persisted screening identifier
@@ -329,4 +412,22 @@ class MariaDbReservationConcurrencyIntegrationTest {
                     "Concurrency test interrupted", e);
         }
     }
+
+
+    /**
+     * Deletes a screening using the requested administrative mode
+     *
+     * @param mode the deletion mode
+     * @param seanceId the screening identifier
+     * @param cinemaId the cinema used for filtered deletion
+     */
+    private void deleteScreening(DeletionMode mode, Long seanceId, Long cinemaId) {
+
+        switch (mode) {
+            case INDIVIDUAL -> seanceService.delete(seanceId);
+            case SELECTED -> seanceService.deleteSelected(List.of(seanceId));
+            case FILTERED -> seanceService.deleteByAdminFilters(null, cinemaId, true);
+        }
+    }
+
 }
